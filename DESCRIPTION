@@ -1,8 +1,8 @@
 Package: lme4breeding
 Version: 0.3-4
-Date: 2023-11-22
+Date: 2024-05-01
 Title: Relationship-Based Mixed-Effects Models
-Author: Giovanny Covarrubias-Pazaran & Douglas Bates,
+Author: Giovanny Covarrubias-Pazaran
 Maintainer: Giovanny Covarrubias-Pazaran <cova_ruber@live.com.mx>
 Description: Fit relationship-based mixed-effects models.
 Depends: R(>= 3.0.0), lme4 (>= 1.0), Matrix (>= 1.0), methods

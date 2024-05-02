@@ -1,4 +1,4 @@
-#' Pedigree class
+#' lmebreed class
 #'
 #'
 setClass("pedigree", representation =
