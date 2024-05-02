@@ -289,7 +289,7 @@ editPed <- function(sire, dam, label, verbose = FALSE)
     ans[ord,]
 }
 
-pedigreemm <-
+lmebreed <-
     function(formula, data, family = NULL, REML = TRUE, pedigree = list(),
              control = list(), start = NULL, verbose = FALSE, 
              subset, weights, na.action, offset, contrasts = NULL,
@@ -358,7 +358,7 @@ pedigreemm <-
         opt <- optimizeGlmer(devfun, optimizer="Nelder_Mead",...)
     }
     mm <- mkMerMod(environment(devfun), opt, reTrms, lmf@frame, mc)
-    cls <- if (gaus) "lmerpedigreemm" else "glmerpedigreemm"
+    cls <- if (gaus) "lmerlmebreed" else "glmerlmebreed"
     ans <- do.call(new, list(Class=cls, relfac=relfac,
                              frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
                              theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
@@ -367,7 +367,7 @@ pedigreemm <-
     ans
 }
 
-setMethod("ranef", signature(object = "pedigreemm"),
+setMethod("ranef", signature(object = "lmebreed"),
           function(object, postVar = FALSE, drop = FALSE, whichel = names(ans), pedigree = TRUE, ...)
       {
           if ((postVar <- as.logical(postVar)) && (pedigree <- as.logical(pedigree)))
@@ -402,14 +402,14 @@ setMethod("ranef", signature(object = "pedigreemm"),
       })
 
 
-setMethod("fitted", signature(object = "pedigreemm"),
+setMethod("fitted", signature(object = "lmebreed"),
           function(object, ...) {
-              stop("fitted() not applicable to pedigreemm objects")
+              stop("fitted() not applicable to lmebreed objects")
           })
 
 
-setMethod("residuals", signature(object = "pedigreemm"),
+setMethod("residuals", signature(object = "lmebreed"),
           function(object, ...) {
-              stop("residuals() not applicable to pedigreemm objects")
+              stop("residuals() not applicable to lmebreed objects")
           })
 

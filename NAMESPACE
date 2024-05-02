@@ -1,12 +1,12 @@
-useDynLib(pedigreemm, .registration=TRUE)
+useDynLib(lme4Breeding, .registration=TRUE)
 
 import("methods")
 import("Matrix")
 import("lme4")
 
-export("Dmat", "inbreeding", "relfactor", "pedigree", "pedigreemm", "editPed", "getA", "getAInv")
+export("Dmat", "inbreeding", "relfactor", "pedigree", "lmebreed", "editPed", "getA", "getAInv")
 
-exportClasses("pedigree", "pedigreemm")
+exportClasses("pedigree", "lmebreed")
 
 exportMethods(
               "coerce",

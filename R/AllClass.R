@@ -23,12 +23,12 @@ setClass("pedigree", representation =
 	     TRUE
 	 })
 
-setClass("pedigreemm", representation = list(relfac = "list"),
+setClass("lmebreed", representation = list(relfac = "list"),
          contains = "merMod")
-setClass("glmerpedigreemm", representation = list(resp="glmResp"),
-         contains = "pedigreemm")
-setClass("lmerpedigreemm", representation = list(resp="lmerResp"),
-         contains = "pedigreemm")
+setClass("glmerlmebreed", representation = list(resp="glmResp"),
+         contains = "lmebreed")
+setClass("lmerlmebreed", representation = list(resp="lmerResp"),
+         contains = "lmebreed")
 
 
 
