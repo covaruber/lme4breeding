@@ -1,0 +1,29 @@
+If LDL' form of the Cholesky decomposition of the relationship matrix
+of a pedigree is written as TDT' where T is unit lower triangular and
+D is diagonal then D is I + F, where F is the diagonal matrix of the
+inbreeding coefficients.  We use the technique described in 
+
+"Comparison of four direct algorithms for computing inbreeding
+coefficients" by Mehdi Sargolzaei and Hiroaki Iwaisaki, Animal
+Science Journal (2005) 76, 401--406.
+
+to determine F directly from the pedigree.
+
+The inverse of T is easily expressed.  It is a sparse, unit lower
+triangular matrix with -0.5 in each of the elements relating the
+offspring to the parent.  It's form is that of the directed graph of
+the pedigree.
+
+To calculate the modified model matrix Z* for a sire model from Z we
+use the indicator S of the animals from the pedigree that occur as
+sires in the data.  We want the Cholesky factor of SAS' which can be
+expressed as SLL'S' where L is the Cholesky factor of A.  Rather than
+calculate L we calculate its inverse then solve for K in K = SL.  The
+matrix that we want is the Cholesky factor of KK' which can be
+calculated directly in CHOLMOD from K (both the symbolic and the
+numeric staged can be performed on K).
+
+To get L^{-1} we take T^{-1} and D^{-1} = (I + F)^{-1} and form them
+into a CHOLMOD LDL' factor then convert it to an LL' factor using
+cholmod_change_factor. After that we can use cholmod_spsolve to
+evaluate K' from S'

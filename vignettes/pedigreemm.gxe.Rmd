@@ -1,0 +1,360 @@
+---
+title: "Fitting genotype by environment models in pedigreemm"
+author: "Giovanny Covarrubias-Pazaran & Ana Inez Vazquez"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GxE models in pedigreemm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the pedigreemm package:  
+
+1) Multienvironment model: Main effect model
+2) Multienvironment model: Diagonal model (DG)
+3) Multienvironment model: Compund symmetry model (CS)
+4) Multienvironment model: Unstructured model (US)
+5) Multienvironment model: Random regression model (RR)
+6) Multienvironment model: Finlay-Wilkinson regression
+7) Multienvironment model: Factor analytic (reduced rank) model (FA)
+8) Two stage analysis
+
+When the breeder decides to run a trial and apply selection in a single environment (whether because the amount of seed is a limitation or there's no availability for a location) the breeder takes the risk of selecting material for a target population of environments (TPEs) using an environment that is not representative of the larger TPE. Therefore, many breeding programs try to base their selection decision on multi-environment trial (MET) data. Models could be adjusted by adding additional information like spatial information, experimental design information, etc. In this tutorial we will focus mainly on the covariance structures for GxE and the incorporation of relationship matrices for the genotype effect.
+
+## 1) MET: main effect model
+
+A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The main effect model assumes that GxE doesn't exist and that the main genotype effect plus the fixed effect for environment is enough to predict the genotype effect in all locations of interest.
+
+```{r}
+library(pedigreemm)
+data(DT_example)
+DT <- DT_example
+A <- A_example
+
+ansMain <- pedigreemm(Yield ~ Env + (1|Name),
+                        pedigree = list(Name = Matrix::chol(A) ),
+                        data=DT)
+vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
+
+```
+
+In this model, the only term to be estimated is the one for the germplasm (here called `Name`). For the sake of example we have added a relationship matrix among the levels of the random effect `Name`. This is just a diagonal matrix with as many rows and columns as levels present in the random effect `Name`, but any other non-diagonal relationship matrix could be used.
+
+## 2) MET: diagonal model (DG)
+
+A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The diagonal model assumes that GxE exists and that the genotype variation is expressed differently at each location, therefore fitting a variance component for the genotype effect at each location. The main drawback is that this model assumes no covariance among locations, as if genotypes were independent (despite the fact that is the same genotypes). The fixed effect for environment plus the location-specific BLUP is used to predict the genotype effect in each locations of interest.
+
+```{r}
+
+Z <- with(DT, dsc(Env))$Z
+diagFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansDG <- pedigreemm(as.formula(diagFormula),
+                      pedigree = list(Name = Matrix::chol(A) ),
+                      data=DT)
+vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
+
+```
+
+## 3) MET: compund symmetry model (CS)
+
+A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The compound symmetry model assumes that GxE exists and that a main genotype variance-covariance component is expressed across all location. In addition, it assumes that a main genotype-by-environment variance is expressed across all locations. The main drawback is that the model assumes the same variance and covariance among locations. The fixed effect for environment plus the main effect for BLUP plus genotype-by-environment effect is used to predict the genotype effect in each location of interest.
+
+```{r}
+E <- diag(length(unique(DT$Env)))
+rownames(E) <- colnames(E) <- unique(DT$Env)
+EA <- kronecker(E,A, make.dimnames = TRUE)
+ansCS <- mmer(Yield~Env,
+              random= ~ vsr(Name, Gu=A) + vsr(Env:Name, Gu=EA),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansCS)
+
+## or
+E <- diag(length(unique(DT$Env)));rownames(E) <- colnames(E) <- unique(DT$Env)
+Ei <- solve(E)
+Ai <- solve(A)
+EAi <- kronecker(Ei,Ai, make.dimnames = TRUE)
+Ei <- as(Ei, Class="dgCMatrix")
+Ai <- as(Ai, Class="dgCMatrix")
+EAi <- as(EAi, Class="dgCMatrix")
+ansCS <- mmec(Yield~Env,
+              random= ~ vsc(isc(Name), Gu=Ai) + vsc(isc(Env:Name), Gu=EAi),
+              rcov= ~ units, 
+              data=DT, verbose = FALSE)
+summary(ansCS)
+
+```
+
+## 4) MET: compund symmetry model + diagonal (CS+DG)
+
+A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The compound symmetry model assumes that GxE exists and that a main genotype variance-covariance component is expressed across all location. In addition, it assumes that a main genotype-by-environment variance is expressed across all locations. The main drawback is that the model assumes the same variance and covariance among locations. The fixed effect for environment plus the main effect for BLUP plus genotype-by-environment effect is used to predict the genotype effect in each location of interest.
+
+```{r}
+Z <- with(DT, dsc(Env))$Z
+diagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansCSDG <- pedigreemm(as.formula(diagFormula),
+                      pedigree = list(Name = Matrix::chol(A) ),
+                      data=DT)
+vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
+```
+
+## 5) MET: unstructured model (US)
+
+A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The unstructured model is the most flexible model assuming that GxE exists and that an environment-specific variance exists in addition to as many covariances for each environment-to-environment combinations. The main drawback is that is difficult to make this models converge because of the large number of variance components, the fact that some of these variance or covariance components are zero, and the difficulty in choosing good starting values. The fixed effect for environment plus the environment specific BLUP (adjusted by covariances) is used to predict the genotype effect in each location of interest.
+
+```{r}
+
+ansUS <- mmer(Yield~Env,
+              random= ~ vsr(usr(Env),Name, Gu=A),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansUS)
+# adjust variance BLUPs by adding covariances
+# ansUS$U[1:6] <- unsBLUP(ansUS$U[1:6])
+
+# or
+Ai <- solve(A)
+Ai <- as(Ai, Class="dgCMatrix")
+ansUS <- mmec(Yield~Env,
+              random= ~ vsc(usc(Env),isc(Name), Gu=Ai),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansUS)
+
+```
+
+## 6) MET: random regression model
+
+A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The random regression model assumes that the environment can be seen as a continuous variable and therefore a variance component for the intercept and a variance component for the slope can be fitted. The number of variance components will depend on the order of the Legendre polynomial fitted.
+
+```{r}
+library(orthopolynom)
+DT$EnvN <- as.numeric(as.factor(DT$Env))
+ansRR <- mmer(Yield~Env,
+              random= ~ vsr(leg(EnvN,1),Name),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansRR)
+
+# or
+
+ansRR <- mmec(Yield~Env,
+              random= ~ vsc(dsc(leg(EnvN,1)),isc(Name)),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansRR)
+
+```
+
+In addition, an unstructured, diagonal or other variance-covariance structure can be put on top of the polynomial model:
+
+```{r}
+library(orthopolynom)
+DT$EnvN <- as.numeric(as.factor(DT$Env))
+ansRR <- mmer(Yield~Env,
+              random= ~ vsr(usr(leg(EnvN,1)),Name),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansRR)
+
+# or
+
+ansRR <- mmec(Yield~Env,
+              random= ~ vsc(usc(leg(EnvN,1)),isc(Name)),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansRR)
+
+```
+
+
+## 7) Other GxE covariance structures
+
+Although not very commonly used in GxE models, the autoregressive of order 1 (AR1) and other covariance structures could be used in the GxE modeling. Here we show how to do it (not recommending it).
+
+```{r}
+
+E <- AR1(DT$Env) # can be AR1() or CS(), etc.
+rownames(E) <- colnames(E) <- unique(DT$Env)
+EA <- kronecker(E,A, make.dimnames = TRUE)
+ansCS <- mmer(Yield~Env,
+              random= ~ vsr(Name, Gu=A) + vsr(Env:Name, Gu=EA),
+              rcov= ~ units,
+              data=DT, verbose = FALSE)
+summary(ansCS)
+
+```
+
+## 8) Finlay-Wilkinson regression
+
+```{r}
+
+data(DT_h2)
+DT <- DT_h2
+
+## build the environmental index
+ei <- aggregate(y~Env, data=DT,FUN=mean)
+colnames(ei)[2] <- "envIndex"
+ei$envIndex <- ei$envIndex - mean(ei$envIndex,na.rm=TRUE) # center the envIndex to have clean VCs
+ei <- ei[with(ei, order(envIndex)), ]
+
+## add the environmental index to the original dataset
+DT2 <- merge(DT,ei, by="Env")
+
+# numeric by factor variables like envIndex:Name can't be used in the random part like this
+# they need to come with the vsc() structure
+DT2 <- DT2[with(DT2, order(Name)), ]
+mix2 <- mmec(y~ envIndex,
+             random=~ Name + vsc(dsc(envIndex),isc(Name)), data=DT2,
+             rcov=~vsc(dsc(Name),isc(units)),
+             tolParConvNorm = .0001,
+             nIters = 50, verbose = FALSE
+)
+# summary(mix2)$varcomp
+
+b=mix2$uList$`vsc(dsc(envIndex), isc(Name))` # adaptability (b) or genotype slopes
+mu=mix2$uList$`vsc( isc( Name ) )` # general adaptation (mu) or main effect
+e=sqrt(summary(mix2)$varcomp[-c(1:2),1]) # error variance for each individual
+
+## general adaptation (main effect) vs adaptability (response to better environments)
+plot(mu[,1]~b[,1], ylab="general adaptation", xlab="adaptability")
+text(y=mu[,1],x=b[,1], labels = rownames(mu), cex=0.5, pos = 1)
+
+## prediction across environments
+Dt <- mix2$Dtable
+Dt[1,"average"]=TRUE
+Dt[2,"include"]=TRUE
+Dt[3,"include"]=TRUE
+pp <- predict(mix2,Dtable = Dt, D="Name")
+preds <- pp$pvals
+# preds[with(preds, order(-predicted.value)), ]
+## performance vs stability (deviation from regression line)
+plot(preds[,2]~e, ylab="performance", xlab="stability")
+text(y=preds[,2],x=e, labels = rownames(mu), cex=0.5, pos = 1)
+
+```
+
+## 9) Factor analytic (reduced rank) model
+
+When the number of environments where genotypes are evaluated is big and we want to consider the genetic covariance between environments and location-specific variance components we cannot fit an unstructured covariance in the model since the number of parameters is too big and the matrix can become non-full rank leading to singularities. In those cases is suggested a dimensionality reduction technique. Among those the factor analytic structures proposed by many research groups (Piepho, Smith, Cullis, Thompson, Meyer, etc.) are the way to go. Sommer has a reduced-rank factor analytic implementation available through the rrc() function. Here we show an example of how to fit the model:
+
+```{r}
+
+data(DT_h2)
+DT <- DT_h2
+DT=DT[with(DT, order(Env)), ]
+
+# fit diagonal model first to produce H matrix
+ans1a <- mmec(y~Env,
+              random=~ vsc(dsc(Env), isc(Name)),
+              rcov=~units, nIters = 100,
+              # we recommend giving more EM iterations at the beggining
+              emWeight = c(rep(1,10),logspace(10,1,.05), rep(.05,80)),
+              data=DT)
+
+H0 <- ans1a$uList$`vsc(dsc(Env), isc(Name))` # GxE table
+# reduced rank model
+ans1b <- mmec(y~Env,
+              random=~vsc( dsc(rrc(Env, H = H0, nPC = 3)) , isc(Name)) + # rr
+                vsc(dsc(Env), isc(Name)), # diag
+              rcov=~units,
+              # we recommend giving more iterations to these models
+              nIters = 100,
+              # we recommend giving more EM iterations at the beggining
+              emWeight = c(rep(1,10),logspace(10,1,.05), rep(.05,80)),
+              data=DT)
+
+## get the loadings
+loadings=with(DT, rrc(Env, nPC = 3, H = wide0, returnGamma = T) )$Gamma
+## extract factor scores from the model
+scores <- ans1b$uList[[1]];
+## BLUPs for all environments
+E= scores %*% t(loadings)  
+## Extract the covariance matrix
+vc <- ans1b$theta[[1]];vc # rr
+vc2 <- ans1b$theta[[2]];vc2 # diagonal
+G = loadings %*% vc %*% t(loadings) + vc2 
+
+```
+
+As can be seen genotype BLUPs for all environments can be recovered by multiplying the loadings (Gamma) by the factor scores. This is a parsomonious way to model an unstructured covariance.
+
+## 10) Two stage analysis
+
+It is common then to fit a first model that accounts for the variation of random design elements, e.g., locations, years, blocks, and fixed genotype effects to obtain the estimated marginal means (EMMs) or best linear unbiased estimators (BLUEs) as adjusted entry means. These adjusted entry means are then used as the phenotype or response variable in GWAS and genomic prediction studies.
+
+```{r}
+
+##########
+## stage 1
+## use mmer for dense field trials
+##########
+data(DT_h2)
+DT <- DT_h2
+head(DT)
+envs <- unique(DT$Env)
+BLUEL <- list()
+XtXL <- list()
+for(i in 1:length(envs)){
+  ans1 <- mmer(y~Name-1,
+                random=~Block,
+                verbose=FALSE,
+                data=droplevels(DT[which(DT$Env == envs[i]),]
+               )
+  )
+  ans1$Beta$Env <- envs[i]
+  
+  BLUEL[[i]] <- ans1$Beta
+  # to be comparable to 1/(se^2) = 1/PEV = 1/Ci = 1/[(X'X)inv]
+  XtXL[[i]] <- solve(ans1$VarBeta) 
+}
+
+DT2 <- do.call(rbind, BLUEL)
+OM <- do.call(adiag1,XtXL)
+
+##########
+## stage 2
+## use mmec for sparse equation
+##########
+m <- matrix(1/var(DT2$Estimate, na.rm = TRUE))
+ans2 <- mmec(Estimate~Env,
+             random=~Effect + Env:Effect, 
+             rcov=~vsc(isc(units,thetaC = matrix(3), theta = m)),
+             W=OM, 
+             verbose=FALSE,
+             data=DT2
+             )
+summary(ans2)$varcomp
+
+```
+ 
+## Literature
+
+Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.
+
+Covarrubias-Pazaran G. 2018. Software update: Moving the R package sommer to multivariate mixed models for genome-assisted prediction. doi: https://doi.org/10.1101/354639
+
+Bernardo Rex. 2010. Breeding for quantitative traits in plants. Second edition. Stemma Press. 390 pp.
+
+Gilmour et al. 1995. Average Information REML: An efficient algorithm for variance parameter estimation in linear mixed models. Biometrics 51(4):1440-1450.
+
+Henderson C.R. 1975. Best Linear Unbiased Estimation and Prediction under a Selection Model. Biometrics vol. 31(2):423-447.
+
+Kang et al. 2008. Efficient control of population structure in model organism association mapping. Genetics 178:1709-1723.
+
+Lee, D.-J., Durban, M., and Eilers, P.H.C. (2013). Efficient two-dimensional smoothing with P-spline ANOVA mixed models and nested bases. Computational Statistics and Data Analysis, 61, 22 - 37.
+
+Lee et al. 2015. MTG2: An efficient algorithm for multivariate linear mixed model analysis based on genomic information. Cold Spring Harbor. doi: http://dx.doi.org/10.1101/027201.
+
+Maier et al. 2015. Joint analysis of psychiatric disorders increases accuracy of risk prediction for schizophrenia, bipolar disorder, and major depressive disorder. Am J Hum Genet; 96(2):283-294.
+
+Rodriguez-Alvarez, Maria Xose, et al. Correcting for spatial heterogeneity in plant breeding experiments with P-splines. Spatial Statistics 23 (2018): 52-71.
+
+Searle. 1993. Applying the EM algorithm to calculating ML and REML estimates of variance components. Paper invited for the 1993 American Statistical Association Meeting, San Francisco.
+
+Yu et al. 2006. A unified mixed-model method for association mapping that accounts for multiple levels of relatedness. Genetics 38:203-208.
+
+Tunnicliffe W. 1989. On the use of marginal likelihood in time series model estimation. JRSS 51(1):15-27.
