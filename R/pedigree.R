@@ -321,7 +321,7 @@ lmebreed <-
               length(names(pedigree)) == length(pedigree),
               all( sapply(pedigree, inherits, what = c("pedigree","matrix","dtCMatrix"))  ))
     
-    lmf <- eval(lmerc, parent.frame())
+    lmf <- eval(lmerc, parent.frame()) # lmerc$formula <- formula; lmerc$data <- data
 
     
     relfac <- pedigree          # copy the pedigree list for relfactor
@@ -341,8 +341,15 @@ lmebreed <-
           rowsi <- (ind[1]+1L):ind[2]
           # relfac[[i]] <- relfactor(pedigree[[i]], rownames(Zt)[rowsi]) # silenced to allow user to provide any relfac
           pick <- intersect( rownames(Zt), rownames(relfac[[i]])  )
-          relfac[[i]] <- relfac[[i]][pick,pick]
-          Zt[rowsi,] <- relfac[[i]] %*% Zt[rowsi,]
+          provRelFac <- relfac[[i]][pick,pick]
+          if(nrow(Zt[rowsi,]) == nrow(provRelFac)){ # regular model
+            Zt[rowsi,] <- provRelFac %*% Zt[rowsi,]
+          }else{ # unstructured model
+            # mm <- Matrix::Matrix(1, nrow=length(lmf@cnms[[pnms[i]]]), ncol = length(lmf@cnms[[pnms[i]]]))
+            mm <- Matrix::Diagonal( length(lmf@cnms[[pnms[i]]]) )
+            Zt[rowsi,] <- Matrix::kronecker(provRelFac, mm) %*% Zt[rowsi,]
+          }
+          
         }
     }
     reTrms <- list(Zt=Zt,theta=lmf@theta,Lambdat=pp$Lambdat,Lind=pp$Lind,

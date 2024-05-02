@@ -1,15 +1,15 @@
 ---
-title: "Fitting genotype by environment models in pedigreemm"
+title: "Fitting genotype by environment models in lmebreed"
 author: "Giovanny Covarrubias-Pazaran & Ana Inez Vazquez"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{GxE models in pedigreemm}
+  %\VignetteIndexEntry{GxE models in lmebreed}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the pedigreemm package:  
+The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the lmebreed package:  
 
 1) Multienvironment model: Main effect model
 2) Multienvironment model: Diagonal model (DG)
@@ -27,12 +27,12 @@ When the breeder decides to run a trial and apply selection in a single environm
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The main effect model assumes that GxE doesn't exist and that the main genotype effect plus the fixed effect for environment is enough to predict the genotype effect in all locations of interest.
 
 ```{r}
-library(pedigreemm)
+library(lmebreed)
 data(DT_example)
 DT <- DT_example
 A <- A_example
 
-ansMain <- pedigreemm(Yield ~ Env + (1|Name),
+ansMain <- lmebreed(Yield ~ Env + (1|Name),
                         pedigree = list(Name = Matrix::chol(A) ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
@@ -50,7 +50,7 @@ A multi-environment model is the one that is fitted when the breeding program ca
 Z <- with(DT, dsc(Env))$Z
 diagFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-ansDG <- pedigreemm(as.formula(diagFormula),
+ansDG <- lmebreed(as.formula(diagFormula),
                       pedigree = list(Name = Matrix::chol(A) ),
                       data=DT)
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
@@ -62,28 +62,15 @@ vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The compound symmetry model assumes that GxE exists and that a main genotype variance-covariance component is expressed across all location. In addition, it assumes that a main genotype-by-environment variance is expressed across all locations. The main drawback is that the model assumes the same variance and covariance among locations. The fixed effect for environment plus the main effect for BLUP plus genotype-by-environment effect is used to predict the genotype effect in each location of interest.
 
 ```{r}
-E <- diag(length(unique(DT$Env)))
-rownames(E) <- colnames(E) <- unique(DT$Env)
-EA <- kronecker(E,A, make.dimnames = TRUE)
-ansCS <- mmer(Yield~Env,
-              random= ~ vsr(Name, Gu=A) + vsr(Env:Name, Gu=EA),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansCS)
 
-## or
-E <- diag(length(unique(DT$Env)));rownames(E) <- colnames(E) <- unique(DT$Env)
-Ei <- solve(E)
-Ai <- solve(A)
-EAi <- kronecker(Ei,Ai, make.dimnames = TRUE)
-Ei <- as(Ei, Class="dgCMatrix")
-Ai <- as(Ai, Class="dgCMatrix")
-EAi <- as(EAi, Class="dgCMatrix")
-ansCS <- mmec(Yield~Env,
-              random= ~ vsc(isc(Name), Gu=Ai) + vsc(isc(Env:Name), Gu=EAi),
-              rcov= ~ units, 
-              data=DT, verbose = FALSE)
-summary(ansCS)
+DT$EnvName <- paste(DT$Env, DT$Name, sep = ":")
+E <- Matrix::Diagonal(length(unique(DT$Env)));
+colnames(E) <- rownames(E) <- unique(DT$Env);E
+EA <- Matrix::kronecker(E,A, make.dimnames = TRUE)
+ansCS <- lmebreed(Yield ~ Env + (1|Name) + (1|EnvName),
+                    pedigree = list(Name = Matrix::chol(A), EnvName=  Matrix::chol(EA) ),
+                    data=DT)
+vc <- VarCorr(ansCS); print(vc,comp=c("Variance"))
 
 ```
 
@@ -93,9 +80,9 @@ A multi-environment model is the one that is fitted when the breeding program ca
 
 ```{r}
 Z <- with(DT, dsc(Env))$Z
-diagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
+csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-ansCSDG <- pedigreemm(as.formula(diagFormula),
+ansCSDG <- lmebreed(as.formula(csdiagFormula),
                       pedigree = list(Name = Matrix::chol(A) ),
                       data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
@@ -107,22 +94,13 @@ A multi-environment model is the one that is fitted when the breeding program ca
 
 ```{r}
 
-ansUS <- mmer(Yield~Env,
-              random= ~ vsr(usr(Env),Name, Gu=A),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansUS)
-# adjust variance BLUPs by adding covariances
-# ansUS$U[1:6] <- unsBLUP(ansUS$U[1:6])
-
-# or
-Ai <- solve(A)
-Ai <- as(Ai, Class="dgCMatrix")
-ansUS <- mmec(Yield~Env,
-              random= ~ vsc(usc(Env),isc(Name), Gu=Ai),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansUS)
+Z <- with(DT, dsc(Env))$Z
+usFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansDG <- lmebreed(as.formula(usFormula),
+                    pedigree = list(Name = Matrix::chol(A) ),
+                    data=DT)
+vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
 
 ```
 
@@ -131,115 +109,67 @@ summary(ansUS)
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The random regression model assumes that the environment can be seen as a continuous variable and therefore a variance component for the intercept and a variance component for the slope can be fitted. The number of variance components will depend on the order of the Legendre polynomial fitted.
 
 ```{r}
+
 library(orthopolynom)
 DT$EnvN <- as.numeric(as.factor(DT$Env))
-ansRR <- mmer(Yield~Env,
-              random= ~ vsr(leg(EnvN,1),Name),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansRR)
-
-# or
-
-ansRR <- mmec(Yield~Env,
-              random= ~ vsc(dsc(leg(EnvN,1)),isc(Name)),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansRR)
+ 
+Z <- with(DT, dsc(leg(EnvN,1)) )$Z
+rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansRR <- lmebreed(as.formula(rrFormula),
+                  pedigree = list(Name = Matrix::chol(A) ),
+                  data=DT)
+vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
 
 ```
 
-In addition, an unstructured, diagonal or other variance-covariance structure can be put on top of the polynomial model:
+In addition, we an fit this without covariance:
 
 ```{r}
 library(orthopolynom)
 DT$EnvN <- as.numeric(as.factor(DT$Env))
-ansRR <- mmer(Yield~Env,
-              random= ~ vsr(usr(leg(EnvN,1)),Name),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansRR)
-
-# or
-
-ansRR <- mmec(Yield~Env,
-              random= ~ vsc(usc(leg(EnvN,1)),isc(Name)),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansRR)
+ Z <- with(DT, dsc(leg(EnvN,1)) )$Z
+rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansRR <- lmebreed(as.formula(rrFormula),
+                  pedigree = list(Name = Matrix::chol(A) ),
+                  data=DT)
+vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
 
 ```
 
-
-## 7) Other GxE covariance structures
-
-Although not very commonly used in GxE models, the autoregressive of order 1 (AR1) and other covariance structures could be used in the GxE modeling. Here we show how to do it (not recommending it).
-
-```{r}
-
-E <- AR1(DT$Env) # can be AR1() or CS(), etc.
-rownames(E) <- colnames(E) <- unique(DT$Env)
-EA <- kronecker(E,A, make.dimnames = TRUE)
-ansCS <- mmer(Yield~Env,
-              random= ~ vsr(Name, Gu=A) + vsr(Env:Name, Gu=EA),
-              rcov= ~ units,
-              data=DT, verbose = FALSE)
-summary(ansCS)
-
-```
-
-## 8) Finlay-Wilkinson regression
+## 7) Finlay-Wilkinson regression
 
 ```{r}
 
 data(DT_h2)
 DT <- DT_h2
-
 ## build the environmental index
 ei <- aggregate(y~Env, data=DT,FUN=mean)
 colnames(ei)[2] <- "envIndex"
 ei$envIndex <- ei$envIndex - mean(ei$envIndex,na.rm=TRUE) # center the envIndex to have clean VCs
 ei <- ei[with(ei, order(envIndex)), ]
-
 ## add the environmental index to the original dataset
 DT2 <- merge(DT,ei, by="Env")
-
-# numeric by factor variables like envIndex:Name can't be used in the random part like this
-# they need to come with the vsc() structure
 DT2 <- DT2[with(DT2, order(Name)), ]
-mix2 <- mmec(y~ envIndex,
-             random=~ Name + vsc(dsc(envIndex),isc(Name)), data=DT2,
-             rcov=~vsc(dsc(Name),isc(units)),
-             tolParConvNorm = .0001,
-             nIters = 50, verbose = FALSE
-)
-# summary(mix2)$varcomp
 
-b=mix2$uList$`vsc(dsc(envIndex), isc(Name))` # adaptability (b) or genotype slopes
-mu=mix2$uList$`vsc( isc( Name ) )` # general adaptation (mu) or main effect
-e=sqrt(summary(mix2)$varcomp[-c(1:2),1]) # error variance for each individual
+ansFW <- lmebreed(y~ Env + (envIndex || Name), data=DT2)
+vc <- VarCorr(ansFW); print(vc,comp=c("Variance"))
 
-## general adaptation (main effect) vs adaptability (response to better environments)
-plot(mu[,1]~b[,1], ylab="general adaptation", xlab="adaptability")
-text(y=mu[,1],x=b[,1], labels = rownames(mu), cex=0.5, pos = 1)
+```
 
-## prediction across environments
-Dt <- mix2$Dtable
-Dt[1,"average"]=TRUE
-Dt[2,"include"]=TRUE
-Dt[3,"include"]=TRUE
-pp <- predict(mix2,Dtable = Dt, D="Name")
-preds <- pp$pvals
-# preds[with(preds, order(-predicted.value)), ]
-## performance vs stability (deviation from regression line)
-plot(preds[,2]~e, ylab="performance", xlab="stability")
-text(y=preds[,2],x=e, labels = rownames(mu), cex=0.5, pos = 1)
+Alternatively, you can also add the covariance between both the main effect and the sensitivity
+
+```{r}
+
+ansFW2 <- lmebreed(y~ Env + (envIndex | Name), data=DT2)
+vc <- VarCorr(ansFW2); print(vc,comp=c("Variance"))
 
 ```
 
 ## 9) Factor analytic (reduced rank) model
 
-When the number of environments where genotypes are evaluated is big and we want to consider the genetic covariance between environments and location-specific variance components we cannot fit an unstructured covariance in the model since the number of parameters is too big and the matrix can become non-full rank leading to singularities. In those cases is suggested a dimensionality reduction technique. Among those the factor analytic structures proposed by many research groups (Piepho, Smith, Cullis, Thompson, Meyer, etc.) are the way to go. Sommer has a reduced-rank factor analytic implementation available through the rrc() function. Here we show an example of how to fit the model:
+When the number of environments where genotypes are evaluated is big and we want to consider the genetic covariance between environments and location-specific variance components we cannot fit an unstructured covariance in the model since the number of parameters is too big and the matrix can become non-full rank leading to singularities. In those cases is suggested a dimensionality reduction technique. Among those the factor analytic structures proposed by many research groups (Piepho, Smith, Cullis, Thompson, Meyer, etc.) are the way to go. lme4breeding has a reduced-rank factor analytic implementation available through the rrc() function. Here we show an example of how to fit the model:
 
 ```{r}
 
@@ -248,35 +178,37 @@ DT <- DT_h2
 DT=DT[with(DT, order(Env)), ]
 
 # fit diagonal model first to produce H matrix
-ans1a <- mmec(y~Env,
-              random=~ vsc(dsc(Env), isc(Name)),
-              rcov=~units, nIters = 100,
-              # we recommend giving more EM iterations at the beggining
-              emWeight = c(rep(1,10),logspace(10,1,.05), rep(.05,80)),
-              data=DT)
+Z <- with(DT, dsc(Env))$Z
+diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ans1a <- lmebreed(as.formula(diagFormula),
+                  pedigree = list(Name = Matrix::chol(A) ),
+                  data=DT)
+vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
+H0 <- ranef(ans1a)$Name # GxE table
 
-H0 <- ans1a$uList$`vsc(dsc(Env), isc(Name))` # GxE table
 # reduced rank model
-ans1b <- mmec(y~Env,
-              random=~vsc( dsc(rrc(Env, H = H0, nPC = 3)) , isc(Name)) + # rr
-                vsc(dsc(Env), isc(Name)), # diag
-              rcov=~units,
-              # we recommend giving more iterations to these models
-              nIters = 100,
-              # we recommend giving more EM iterations at the beggining
-              emWeight = c(rep(1,10),logspace(10,1,.05), rep(.05,80)),
-              data=DT)
+Z <- with(DT,  dsc(rrc(Env, H = H0, nPC = 3)) )$Z
+Zd <- with(DT, dsc(Env))$Z
+faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansFA <- lmebreed(as.formula(faFormula),
+                  pedigree = list(Name = Matrix::chol(A) ),
+                  data=DT)
+vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
 
-## get the loadings
-loadings=with(DT, rrc(Env, nPC = 3, H = wide0, returnGamma = T) )$Gamma
-## extract factor scores from the model
-scores <- ans1b$uList[[1]];
-## BLUPs for all environments
-E= scores %*% t(loadings)  
-## Extract the covariance matrix
-vc <- ans1b$theta[[1]];vc # rr
-vc2 <- ans1b$theta[[2]];vc2 # diagonal
-G = loadings %*% vc %*% t(loadings) + vc2 
+loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = T) )$Gamma
+Gint <- loadings %*% vc$Name %*% t(loadings)
+Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
+G <- Gint + Gspec
+lattice::levelplot(cov2cor(G))
+colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
+hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
+
+u <- ranef(ansFA)$Name
+uInter <- as.matrix(u[,1:3]) %*% t(as.matrix(loadings))
+uSpec <- as.matrix(u[,-c(1:3)])
+u <- uSpec + uInter
 
 ```
 
@@ -290,44 +222,36 @@ It is common then to fit a first model that accounts for the variation of random
 
 ##########
 ## stage 1
-## use mmer for dense field trials
 ##########
 data(DT_h2)
 DT <- DT_h2
 head(DT)
 envs <- unique(DT$Env)
-BLUEL <- list()
-XtXL <- list()
+vals <- list()
 for(i in 1:length(envs)){
-  ans1 <- mmer(y~Name-1,
-                random=~Block,
-                verbose=FALSE,
-                data=droplevels(DT[which(DT$Env == envs[i]),]
-               )
-  )
-  ans1$Beta$Env <- envs[i]
-  
-  BLUEL[[i]] <- ans1$Beta
-  # to be comparable to 1/(se^2) = 1/PEV = 1/Ci = 1/[(X'X)inv]
-  XtXL[[i]] <- solve(ans1$VarBeta) 
+  ans1 <- lmebreed(y~Name + (1|Block), data= droplevels(DT[which(DT$Env == envs[i]),]) )
+  b <- fixef(ans1) 
+  b[2:length(b)] <- b[2:length(b)] + b[1]
+  ids <- colnames(model.matrix(~Name-1, data=droplevels(DT[which(DT$Env == envs[i]),]) ))
+  ids <- gsub("Name","",ids)
+  vals[[i]] <- data.frame(Estimate=b , stdError= diag( vcov(ans1)), Effect= ids, Env= envs[i])
 }
-
-DT2 <- do.call(rbind, BLUEL)
-OM <- do.call(adiag1,XtXL)
+DT2 <- do.call(rbind, vals)
 
 ##########
 ## stage 2
-## use mmec for sparse equation
 ##########
-m <- matrix(1/var(DT2$Estimate, na.rm = TRUE))
-ans2 <- mmec(Estimate~Env,
-             random=~Effect + Env:Effect, 
-             rcov=~vsc(isc(units,thetaC = matrix(3), theta = m)),
-             W=OM, 
-             verbose=FALSE,
-             data=DT2
-             )
-summary(ans2)$varcomp
+DT2$w <- 1/DT2$stdError
+ans2 <- lmebreed(Estimate~Env + (1|Effect) + (1|Env:Effect), weights = w,data=DT2, 
+                 control = lmerControl(
+                   # optimizer="bobyqa",
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 )
+                 )
+vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
+
 
 ```
  
