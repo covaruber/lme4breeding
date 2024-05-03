@@ -123,7 +123,8 @@ setMethod("ranef", signature(object = "lmebreed"),
                   dm <- data.matrix(ans[[nm]])
                   cn <- colnames(dm)
                   rn <- rownames(dm)
-                  dm <- as.matrix(rf[[nm]][rn,rn] %*% dm)
+                  # dm <- as.matrix(rf[[nm]] %*% dm) # this is definitely wrong
+                  dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] ))
                   colnames(dm) <- cn
                   rownames(dm) <- rn
                   ans[[nm]] <- data.frame(dm, check.names = FALSE)
