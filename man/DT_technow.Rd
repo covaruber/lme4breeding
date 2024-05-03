@@ -62,7 +62,7 @@ data(DT_technow)
 # Z <- with(DT, overlay(dent,flint) )
 # # inital values for incidence matrix but irrelevant
 # # since these will be replaced by admat argument
-# fema <- (rep(colnames(Z), nrow(Z)))[1:nrow(Z)]
+# fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 # #### model using overlay without relationship matrix
 # ans2 <- lmebreed(GY ~ (1|fema),
 #                  addmat = list(fema=Z),

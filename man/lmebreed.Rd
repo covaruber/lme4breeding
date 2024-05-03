@@ -13,14 +13,15 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
            x = TRUE, ...)
 }
 \arguments{
-  \item{relmat}{a named list of relationship factors (relfactors) 
+  \item{relmat}{an optional named list of relationship factors (relfactors) 
      or matrix decompositions (e.g., cholesky).
     The names of the elements must correspond to the names of grouping factors for
     random-effects terms in the \code{formula} argument.}
-  \item{addmat}{a named list of customized incidence matrices 
-     linking to .
+  \item{addmat}{an optional named list of customized incidence matrices.
     The names of the elements must correspond to the names of grouping factors for
-    random-effects terms in the \code{formula} argument.}
+    random-effects terms in the \code{formula} argument. Depending on the use-case
+    the element in the list may be a single matrix or a list of matrices. Please see
+    examples and vignettes to learn how to use it.}
   \item{formula}{as in \code{\link[lme4]{lmer}}}
   \item{data}{as in \code{\link[lme4]{lmer}}}
   \item{family}{as in \code{\link[lme4]{glmer}}}
@@ -47,6 +48,12 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   to the observed levels and applied to the model matrix for that term. The incidence
   matrices in the addmat argument must match the dimensions of the final fit (pay 
   attention to missing data in responses).
+  
+  It is important to remember that when you use the \code{relmat} argument you are providing
+  the square root of the relationship matrix and to recover the correct BLUPs for those effects
+  you need to use the \code{\link{ranef}} function which internally multiple those BLUPs the 
+  square root of the relationship matrix one more time to recover the correct BLUPs.
+  
   
   \strong{Example Datasets}
 
@@ -84,6 +91,9 @@ Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear 
   
 Covarrubias-Pazaran G. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 2016, 11(6): doi:10.1371/journal.pone.0156744
    
+}
+\author{
+  Giovanny Covarrubias-Pazaran
 }
 \examples{
 
