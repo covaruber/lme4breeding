@@ -26,7 +26,7 @@ lmebreed <-
     lmerc[[1]] <- if (gaus) as.name("lmer") else as.name("glmer")
     lmerc$relmat <- NULL
     lmerc$addmat <- NULL
-    if (!gaus) lmerc$REML <- NULL
+    if (!gaus) {lmerc$REML <- NULL}
 
     if (!length(relmat) & !length(addmat))  {
       return(eval.parent(lmerc))
@@ -47,17 +47,27 @@ lmebreed <-
     fl <- lmf@flist
     stopifnot(all(pnms %in% names(fl)))
     asgn <- attr(fl, "assign")
-    Zt <- pp$Zt
+    Zt <- pp$Zt # Matrix::image(Zt)  Matrix::image(as(addmat[[1]], Class="dgCMatrix"))
+    ##############################
     ## replace additional matrices
     for (i in seq_along(addmat)) {
       tn0 <- which(match(pnms2[i], names(fl)) == asgn)
       for(j in 1:length(tn0)){ # diagonal and unstructured models require to multiple all matrices by the same relfactor
         ind <- (lmf@Gp)[tn0[j]:(tn0[j]+1L)]
         rowsi <- (ind[1]+1L):ind[2]
-        provZt <- t(addmat[[i]])
-        Zt[rowsi,] <- provZt[rownames(Zt[rowsi,]),]
+        covariate <- unlist(lmf@cnms[tn0])[j]
+        if(covariate %in% names(data)){ # if is a random regression
+          covariateZ <- Matrix::sparse.model.matrix(as.formula(paste("~",covariate,"-1")), data=data)
+          covariateZ <- covariateZ %*% Matrix::Matrix(1, nrow=1, ncol=ncol(addmat[[i]]))
+          provZt <- t(addmat[[i]]*covariateZ)
+          Zt[rowsi,] <- provZt[rownames(Zt[rowsi,]),]
+        }else{ # is an intercept
+          provZt <- t(addmat[[i]])
+          Zt[rowsi,] <- provZt[rownames(Zt[rowsi,]),]
+        }
       }
     }
+    #############################
     ## use the relfactors
     for (i in seq_along(relmat)) {
         tn <- which(match(pnms[i], names(fl)) == asgn)
@@ -99,19 +109,21 @@ lmebreed <-
 setMethod("ranef", signature(object = "lmebreed"),
           function(object, postVar = FALSE, drop = FALSE, whichel = names(ans), relmat = TRUE, ...)
       {
-          if ((postVar <- as.logical(postVar)) && (relmat <- as.logical(relmat)))
-              stop("code for applying relmat and posterior variances not yet written")
+          if ((postVar <- as.logical(postVar)) && (relmat <- as.logical(relmat))){
+            stop("code for applying relmat and posterior variances not yet written")
+          }
           ans <- ranef(as(object, "merMod"), postVar, drop = FALSE)
           ans <- ans[whichel]
           if (relmat) {
-              if (postVar)
-                  stop("postVar and relmat cannot both be true")
+              if (postVar){
+                stop("postVar and relmat cannot both be true")
+              }
               rf <- object@relfac
               for (nm in names(rf)) {
                   dm <- data.matrix(ans[[nm]])
                   cn <- colnames(dm)
                   rn <- rownames(dm)
-                  dm <- as.matrix(rf[[nm]] %*% dm)
+                  dm <- as.matrix(rf[[nm]][rn,rn] %*% dm)
                   colnames(dm) <- cn
                   rownames(dm) <- rn
                   ans[[nm]] <- data.frame(dm, check.names = FALSE)

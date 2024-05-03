@@ -23,12 +23,13 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 }
 \examples{
 
+
 # ####=========================================####
 # #### For CRAN time limitations most lines in the
 # #### examples are silenced with one '#' mark,
 # #### remove them and run the examples
 # ####=========================================####
-# data(DT_mohring)
+ data(DT_mohring)
 # DT <- DT_mohring
 # head(DT)
 # DT2 <- add.diallel.vars(DT,par1="Par1", par2="Par2")
@@ -37,30 +38,20 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 # # is.self denotes an inbred (1)
 # # cross.type denotes one way (-1, e.g. AxB) and reciprocal (1, e.g., BxA) and no cross (0)
 # # cross.id denotes the name of the cross (same name for direct & reciprocal)
-#
+# 
 # # GRIFFING MODEL 2 with reciprocal effects ###########################
-# mod1h <- mmer(Ftime ~ 1, data=DT2,
-#               random = ~ Block
-#               # GCA male & female overlayed
-#               + overlay(Par1, Par2)
-#               # SCA effects (includes cross and selfs)
-#               + cross.id
-#               # SCAR reciprocal effects (remaining variance in crosses; 
-#               # if zero there's no reciprocal effects)
-#               + cross.id:cross.type)
-# summary(mod1h)$varcomp
-#
-# mod1hb <- mmec(Ftime ~ 1, data=DT2,
-#                random = ~ Block
-#                # GCA male & female overlayed
-#                + vsc(isc(overlay(Par1, Par2)))
-#                # SCA effects (includes cross and selfs)
-#                + cross.id
-#                # SCAR reciprocal effects (remaining variance in crosses; 
-#                # if zero there's no reciprocal effects)
-#                + vsc(dsc(cross.type), isc(cross.id)) )
-# summary(mod1hb)$varcomp
-#
+# # overlay matrix to be added to the addmat argument
+# Z <- with(DT, overlay(Par1, Par2) )
+# fema <- (rep(colnames(Z), nrow(Z)))[1:nrow(Z)]
+# mod1h <- lmebreed(Ftime ~ 1 + (1|Block) +   
+#                     # GCA male & female overlayed
+#                     (1|fema) +
+#                     # SCA effects (includes cross and selfs)
+#                     (cross.type||cross.id), 
+#                   addmat=list(fema=Z),
+#                   data=DT2 )
+# vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
+# 
 # ##                                    VarComp VarCompSE   Zratio
 # ## Block.Ftime-Ftime                  0.00000   9.32181 0.000000
 # ## overlay(Par1, Par2).Ftime-Ftime 1276.73089 750.17269 1.701916
@@ -69,27 +60,16 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 # ## units.Ftime-Ftime                418.47949  74.56442 5.612321
 # ##
 # # GRIFFING MODEL 2, no reciprocal effects ##############################
-# mod1h <- mmer(Ftime ~ Block + is.cross, data=DT2,
-#               random = ~
-#                # GCA effect for all (hybrids and inbreds)
-#                 overlay(Par1, Par2)
-#               # GCA effect (calculated only in hybrids; remaining variance)
-#               + overlay(Par1, Par2):is.cross
-#               # SCA effect (calculated in hybrids only)
-#               + cross.id:is.cross)
-# summary(mod1h)$varcomp
-#
-# mod1h <- mmec(Ftime ~ Block + is.cross, data=DT2, nIters = 50,
-#               random = ~
-#                 # GCA effects for all (hybrids and inbreds)
-#                 vsc(isc(overlay(Par1, Par2)))
-#               # GCA effect (calculated only in hybrids; remaining variance)
-#               + vsc(isc(is.cross),isc(overlay(Par1, Par2)))
-#               # SCA effect (calculated in hybrids only)
-#               + vsc(isc(is.cross), isc(cross.id))
-#               )
-# summary(mod1h)$varcomp
-#
+# mod1h <- lmebreed(Ftime ~ Block + is.cross +
+#                     # GCA male & female overlayed main and rr
+#                     # GCA effect (calculated only in hybrids; remaining variance)
+#                     (is.cross||fema) +
+#                     # SCA effect (calculated in hybrids only)
+#                     (0+is.cross||cross.id),
+#                   addmat=list(fema=Z),
+#                   data=DT2 )
+# vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
+# 
 # ##                                           VarComp  VarCompSE   Zratio
 # ## overlay(Par1, Par2).Ftime-Ftime          2304.1781 1261.63193 1.826347
 # ## overlay(Par1, Par2):is.cross.Ftime-Ftime  613.6040  402.74347 1.523560
@@ -97,26 +77,17 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 # ## units.Ftime-Ftime                         501.6275   74.36075 6.745864
 # ##
 # # GRIFFING MODEL 3, no reciprocal effects ###############################
-# mod1h <- mmer(Ftime ~ Block + is.cross, data=DT2,
-#               random = ~
-#                 # GCAC (only for hybrids)
-#                 overlay(Par1, Par2):is.cross
-#               # male GCA (only for inbreds)
-#               + Par1:is.self
-#               # SCA (for hybrids only)
-#               + cross.id:is.cross)
-# summary(mod1h)$varcomp
-#
-# mod1h <- mmec(Ftime ~ Block + is.cross, data=DT2, nIters = 100,
-#               random = ~
-#                 # GCAC (only for hybrids)
-#                 vsc(isc(is.cross),isc(overlay(Par1, Par2)))
-#               # male GCA (only for inbreds)
-#               + vsc(isc(is.self),isc(Par1))
-#               # SCA (for hybrids only)
-#               + vsc(isc(is.cross), isc(cross.id))
-#               )
-# summary(mod1h)$varcomp
+# mod1h <- lmebreed(Ftime ~ Block + is.cross +
+#                     # GCAC (only for hybrids)
+#                     (0+is.cross||fema) +
+#                     # male GCA (only for inbreds)
+#                     (0+is.self||Par1) +
+#                     # SCA (for hybrids only)
+#                     (0+is.cross||cross.id),
+#                   addmat=list(fema=Z),
+#                   data=DT2 )
+# vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
+# 
 # ##                                           VarComp  VarCompSE   Zratio
 # ## overlay(Par1, Par2):is.cross.Ftime-Ftime  927.7895  537.91218 1.724797
 # ## Par1:is.self.Ftime-Ftime                 9960.9247 5456.58188 1.825488
@@ -125,31 +96,19 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 # ##
 # # GRIFFING MODEL 2, with reciprocal effects #############################
 # # In Mohring: mixed model 3 reduced
-# mod1h <- mmer(Ftime ~ Block + is.cross, data=DT2,
-#               random = ~
-#                 # GCAC (for hybrids only)
-#                 overlay(Par1, Par2):is.cross
-#               # male GCA (for selfs only)
-#               + Par1:is.self
-#               # SCA (for hybrids only)
-#               + cross.id:is.cross
-#               # SCAR reciprocal effects (remaning SCA variance)
-#               + cross.id:cross.type)
-# summary(mod1h)$varcomp
-#
-# mod1h <- mmec(Ftime ~ Block + is.cross, data=DT2, nIters = 100,
-#               random = ~
-#                 # GCAC (for hybrids only)
-#                 vsc(isc(is.cross),isc(overlay(Par1, Par2)))
-#               # male GCA (for selfs only)
-#               + vsc(isc(is.self),isc(Par1))
-#               # SCA (for hybrids only)
-#               + vsc(isc(is.cross), isc(cross.id))
-#               # SCAR reciprocal effects (remaning SCA variance)
-#               + vsc(isc(cross.type), isc(cross.id))
-#               )
-# summary(mod1h)$varcomp
-#
+# mod1h <- lmebreed(Ftime ~ Block + is.cross +
+#                     # GCAC (for hybrids only)
+#                     (0+is.cross||fema) +
+#                     # male GCA (for selfs only)
+#                     (0+is.self||Par1) +
+#                     # SCA (for hybrids only)
+#                     (0+is.cross||cross.id)+
+#                     # SCAR reciprocal effects (remaning SCA variance)
+#                     (0+cross.type||cross.id),
+#                   addmat=list(fema=Z),
+#                   data=DT2 )
+# vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
+# 
 # ##                                             VarComp  VarCompSE   Zratio
 # ## overlay(Par1, Par2):is.cross.Ftime-Ftime   927.78742  537.89981 1.724833
 # ## Par1:is.self.Ftime-Ftime                 10001.78854 5456.47578 1.833013
@@ -159,35 +118,21 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 # ##
 # # GRIFFING MODEL 3, with RGCA + RSCA ####################################
 # # In Mohring: mixed model 3
-# mod1h <- mmer(Ftime ~ Block + is.cross, data=DT2,
-#               random = ~
+# mod1h <- lmebreed(Ftime ~ Block + is.cross +
 #                 # GCAC (for hybrids only)
-#                 overlay(Par1,Par2):is.cross
+#                   (0+is.cross||fema) +
 #               # RGCA: exclude selfs (to identify reciprocal GCA effects)
-#               + overlay(Par1,Par2):cross.type
+#                 (0+cross.type||fema) +
 #               # male GCA (for selfs only)
-#               + Par1:is.self
-#               # SCA (for hybrids only)
-#               + cross.id:is.cross
-#               # SCAR: exclude selfs (if zero there's no reciprocal SCA effects)
-#               + cross.id:cross.type)
-# summary(mod1h)$varcomp
-#
-# mod1h <- mmec(Ftime ~ Block + is.cross, data=DT2,nIters = 100,
-#               random = ~
-#                 # GCAC (for hybrids only)
-#                 vsc(isc(is.cross),isc(overlay(Par1, Par2)))
-#               # RGCA: exclude selfs (to identify reciprocal GCA effects)
-#               + vsc(isc(cross.type),isc(overlay(Par1, Par2)))
-#               # male GCA (for selfs only)
-#               + vsc(isc(is.self),isc(Par1))
-#               # SCA (for hybrids only)
-#               + vsc(isc(is.cross), isc(cross.id))
-#               # SCAR: exclude selfs (if zero there's no reciprocal SCA effects)
-#               + vsc(isc(cross.type), isc(cross.id))
-#               )
-# summary(mod1h)$varcomp
-#
+#                 (0+is.self||Par1) +
+#                 # SCA (for hybrids only)
+#                 (0+is.cross||cross.id)+
+#                 # SCAR reciprocal effects (remaning SCA variance)
+#                 (0+cross.type||cross.id),
+#               addmat=list(fema=Z),
+#               data=DT2 )
+# vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
+# 
 # ##                                            VarComp  VarCompSE    Zratio
 # ## overlay(Par1, Par2):is.cross.Ftime-Ftime   927.7843  537.88164 1.7248857
 # ## Par1:is.self.Ftime-Ftime                 10001.7570 5456.30125 1.8330654
@@ -195,6 +140,7 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 # ## overlay(Par1, Par2):cross.type.Ftime-Ftime  17.9799   19.92428 0.9024114
 # ## cross.id:cross.type.Ftime-Ftime             30.9519   46.43908 0.6665054
 # ## units.Ftime-Ftime                         416.09922  447.2101 0.93043333
+
 
 
 
