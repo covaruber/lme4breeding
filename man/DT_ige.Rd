@@ -24,43 +24,36 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 
 }
 \examples{
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples
-####=========================================####
-####=========================================####
-#### EXAMPLES
-#### Different models with sommer
-####=========================================####
 
-data(DT_ige)
-DT <- DT_ige
+# 
+# ####=========================================####
+# #### For CRAN time limitations most lines in the 
+# #### examples are silenced with one '#' mark, 
+# #### remove them and run the examples
+# ####=========================================####
+# ####=========================================####
+# #### EXAMPLES
+# #### Different models with sommer
+# ####=========================================####
+# data(DT_ige)
+# DT <- DT_ige
 # # Indirect genetic effects model without covariance between DGE and IGE
-# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
-#                random = ~ focal + neighbour,
-#                rcov = ~ units, nIters=100,
+# modIGE <- lmebreed(trait ~ block + (1|focal) + (1|neighbour),
 #               data = DT)
-# summary(modIGE)$varcomp
-# pmonitor(modIGE)
+# vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
+# 
+# # Add relationship matrices
+# A_ige <- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
+# modIGE <- lmebreed(trait ~ block + (1|focal) + (1|neighbour),
+#                    relmat = list(focal=Matrix::chol(A_ige),
+#                                  neighbour=Matrix::chol(A_ige)),
+#                    data = DT)
+# vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
 # 
 # # Indirect genetic effects model with covariance between DGE and IGE using relationship matrices
-# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
-#                random = ~ covc( vsc(isc(focal)), vsc(isc(neighbour)) ),
-#                rcov = ~ units, nIters=100,
-#               data = DT)
-# summary(modIGE)$varcomp
-# pmonitor(modIGE)
+# # TBD
 # 
-# # form relationship matrix
-# Ai <- as( solve(A_ige + diag(1e-5, nrow(A_ige),nrow(A_ige) )), Class="dgCMatrix")
-# # Indirect genetic effects model with covariance between DGE and IGE using relationship matrices
-# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
-#                random = ~ covc( vsc(isc(focal), Gu=Ai), vsc(isc(neighbour), Gu=Ai) ),
-#                rcov = ~ units, nIters=100,
-#               data = DT)
-# summary(modIGE)$varcomp
-# pmonitor(modIGE)
+
 
 
 }

@@ -2,7 +2,7 @@
 \alias{dsc}
 \title{diagonal covariance structure}
 \description{
-  \code{dsc} creates a diagonal covariance structure for the levels of the random effect  to be used with the \code{\link{mmec}} solver.
+  \code{dsc} creates a diagonal covariance structure for the levels of the random effect  to be used with the \code{\link{lmebreed}} solver.
 }
 \usage{
   dsc(x, thetaC=NULL, theta=NULL)
@@ -48,16 +48,6 @@
 \examples{
 x <- as.factor(c(1:5,1:5,1:5));x
 dsc(x)
-## how to use the theta and thetaC arguments:
-# data(DT_example)
-# DT <- DT_example
-# theta <- diag(3)*2; theta # initial VCs
-# thetaC <- diag(3)*3; thetaC # fixed VCs
-# ans1 <- mmec(Yield~Env,
-#              random= ~ vsc( dsc(Env,theta = theta,thetaC = thetaC),isc(Name) ),
-#              rcov= ~ units,
-#              data=DT)
-# summary(ans1)$varcomp
 
 }
-\seealso{See the function \code{\link{vsc}} to know how to use \code{dsc} in the \code{\link{mmec}} solver.}
+\seealso{The \code{\link{lmebreed}} solver.}

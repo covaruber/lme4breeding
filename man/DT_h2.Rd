@@ -22,30 +22,31 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 
 }
 \examples{
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples
-####=========================================####
-data(DT_h2)
-DT <- DT_h2
-head(DT)
-####=========================================####
-#### fit the mixed model (very heavy model)
-####=========================================####
-# ans1 <- mmer(y~Env,
-#               random=~vsr(dsr(Env),Name) + vsr(dsr(Env),Block),
-#               rcov=~vsr(dsr(Env),units),
-#               data=DT)
-# summary(ans1)$varcomp
 # 
+# ####=========================================####
+# #### For CRAN time limitations most lines in the 
+# #### examples are silenced with one '#' mark, 
+# #### remove them and run the examples
+# ####=========================================####
+ data(DT_h2)
+# DT <- DT_h2
+# head(DT)
+# ####=========================================####
+# #### fit the mixed model (very heavy model)
+# ####=========================================####
 # DT=DT[with(DT, order(Env)), ]
-# ans1b <- mmec(y~Env,
-#              random=~vsc(dsc(Env),isc(Name)) + vsc(dsc(Env),isc(Block)),
-#              rcov=~vsc(dsc(Env),isc(units)),
-#              data=DT)
-# summary(ans1b)$varcomp
+# 
+# Z <- with(DT, dsc(Env))$Z
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# csdiagFormula <- paste0( "y ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
+# blockFormula <- paste0( "(0+", paste(colnames(Z), collapse = "+"), "|| Block)")
+# form <- paste(csdiagFormula , blockFormula, sep="+")
+# 
+# ans1b <- lmebreed(as.formula(form),
+#                   data=DT)
+# vc <- VarCorr(ans1b); print(vc,comp=c("Variance"))
+
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} and \code{\link{mmec}} }
+\seealso{The core function of the package \code{\link{lmebreed}} }

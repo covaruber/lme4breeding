@@ -1,15 +1,15 @@
 ---
-title: "Fitting genotype by environment models in lmebreed"
-author: "Giovanny Covarrubias-Pazaran & Ana Inez Vazquez"
+title: "Fitting genotype by environment models in lme4breeding"
+author: "Giovanny Covarrubias-Pazaran"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{GxE models in lmebreed}
+  %\VignetteIndexEntry{GxE models in lme4breeding}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the lmebreed package:  
+The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the lme4breeding package:  
 
 1) Multienvironment model: Main effect model
 2) Multienvironment model: Diagonal model (DG)
@@ -27,13 +27,13 @@ When the breeder decides to run a trial and apply selection in a single environm
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The main effect model assumes that GxE doesn't exist and that the main genotype effect plus the fixed effect for environment is enough to predict the genotype effect in all locations of interest.
 
 ```{r}
-library(lmebreed)
+library(lme4breeding)
 data(DT_example)
 DT <- DT_example
 A <- A_example
 
 ansMain <- lmebreed(Yield ~ Env + (1|Name),
-                        pedigree = list(Name = Matrix::chol(A) ),
+                        relmat = list(Name = Matrix::chol(A) ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
 
@@ -50,8 +50,9 @@ A multi-environment model is the one that is fitted when the breeding program ca
 Z <- with(DT, dsc(Env))$Z
 diagFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+print(as.formula(diagFormula))
 ansDG <- lmebreed(as.formula(diagFormula),
-                      pedigree = list(Name = Matrix::chol(A) ),
+                      relmat = list(Name = Matrix::chol(A) ),
                       data=DT)
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
 
@@ -68,7 +69,7 @@ E <- Matrix::Diagonal(length(unique(DT$Env)));
 colnames(E) <- rownames(E) <- unique(DT$Env);E
 EA <- Matrix::kronecker(E,A, make.dimnames = TRUE)
 ansCS <- lmebreed(Yield ~ Env + (1|Name) + (1|EnvName),
-                    pedigree = list(Name = Matrix::chol(A), EnvName=  Matrix::chol(EA) ),
+                    relmat = list(Name = Matrix::chol(A), EnvName=  Matrix::chol(EA) ),
                     data=DT)
 vc <- VarCorr(ansCS); print(vc,comp=c("Variance"))
 
@@ -82,8 +83,9 @@ A multi-environment model is the one that is fitted when the breeding program ca
 Z <- with(DT, dsc(Env))$Z
 csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+print(as.formula(csdiagFormula))
 ansCSDG <- lmebreed(as.formula(csdiagFormula),
-                      pedigree = list(Name = Matrix::chol(A) ),
+                      relmat = list(Name = Matrix::chol(A) ),
                       data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 ```
@@ -97,8 +99,9 @@ A multi-environment model is the one that is fitted when the breeding program ca
 Z <- with(DT, dsc(Env))$Z
 usFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+print(as.formula(usFormula))
 ansDG <- lmebreed(as.formula(usFormula),
-                    pedigree = list(Name = Matrix::chol(A) ),
+                    relmat = list(Name = Matrix::chol(A) ),
                     data=DT)
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
 
@@ -110,31 +113,31 @@ A multi-environment model is the one that is fitted when the breeding program ca
 
 ```{r}
 
-library(orthopolynom)
-DT$EnvN <- as.numeric(as.factor(DT$Env))
- 
-Z <- with(DT, dsc(leg(EnvN,1)) )$Z
-rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name)")
-for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-ansRR <- lmebreed(as.formula(rrFormula),
-                  pedigree = list(Name = Matrix::chol(A) ),
-                  data=DT)
-vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
+# library(orthopolynom)
+# DT$EnvN <- as.numeric(as.factor(DT$Env))
+#  
+# Z <- with(DT, dsc(leg(EnvN,1)) )$Z
+# rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name)")
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# ansRR <- lmebreed(as.formula(rrFormula),
+#                   relmat = list(Name = Matrix::chol(A) ),
+#                   data=DT)
+# vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
 
 ```
 
 In addition, we an fit this without covariance:
 
 ```{r}
-library(orthopolynom)
-DT$EnvN <- as.numeric(as.factor(DT$Env))
- Z <- with(DT, dsc(leg(EnvN,1)) )$Z
-rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
-for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-ansRR <- lmebreed(as.formula(rrFormula),
-                  pedigree = list(Name = Matrix::chol(A) ),
-                  data=DT)
-vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
+# library(orthopolynom)
+# DT$EnvN <- as.numeric(as.factor(DT$Env))
+#  Z <- with(DT, dsc(leg(EnvN,1)) )$Z
+# rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# ansRR <- lmebreed(as.formula(rrFormula),
+#                   relmat = list(Name = Matrix::chol(A) ),
+#                   data=DT)
+# vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
 
 ```
 
@@ -181,8 +184,9 @@ DT=DT[with(DT, order(Env)), ]
 Z <- with(DT, dsc(Env))$Z
 diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+print(as.formula(diagFormula))
 ans1a <- lmebreed(as.formula(diagFormula),
-                  pedigree = list(Name = Matrix::chol(A) ),
+                  relmat = list(Name = Matrix::chol(A) ),
                   data=DT)
 vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
 H0 <- ranef(ans1a)$Name # GxE table
@@ -192,8 +196,9 @@ Z <- with(DT,  dsc(rrc(Env, H = H0, nPC = 3)) )$Z
 Zd <- with(DT, dsc(Env))$Z
 faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+print(as.formula(faFormula))
 ansFA <- lmebreed(as.formula(faFormula),
-                  pedigree = list(Name = Matrix::chol(A) ),
+                  relmat = list(Name = Matrix::chol(A) ),
                   data=DT)
 vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
 

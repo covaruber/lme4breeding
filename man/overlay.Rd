@@ -48,4 +48,4 @@ with(DT, overlay(femalef,malef, sparse = TRUE))
 with(DT, overlay(femalef,malef, sparse = FALSE))
 
 }
-\seealso{The core functions of the package \code{\link{mmer}} and a function for creating dummy variables for diallel models named \code{\link{add.diallel.vars}}. }
+\seealso{The core function of the package \code{\link{lmebreed}} and a function for creating dummy variables for diallel models named \code{\link{add.diallel.vars}}. }

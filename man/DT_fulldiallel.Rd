@@ -23,40 +23,17 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 }
 \examples{
 
-####=========================================####
-#### For CRAN time limitations most lines in the
-#### examples are silenced with one '#' mark,
-#### remove them and run the examples
-####=========================================####
-data(DT_fulldiallel)
-DT <- DT_fulldiallel
-head(DT)
-mix <- mmer(stems~1, random=~female+male, data=DT)
-summary(mix)
-
-mixb <- mmec(stems~1, random=~female+male, data=DT)
-summary(mixb)$varcomp
-
-####=========================================####
-####=========================================####
-#### Multivariate model example
-####=========================================####
-####=========================================####
-
-data(DT_fulldiallel)
-DT <- DT_fulldiallel
-head(DT)
-
-mix <- mmer(cbind(stems,pods,seeds)~1,
-             random=~vsr(female) + vsr(male),
-             rcov=~vsr(units),
-             data=DT)
-summary(mix)
-#### genetic variance covariance
-cov2cor(mix$sigma$`u:female`)
-cov2cor(mix$sigma$`u:male`)
-cov2cor(mix$sigma$`u:units`)
+# ####=========================================####
+# #### For CRAN time limitations most lines in the
+# #### examples are silenced with one '#' mark,
+# #### remove them and run the examples
+# ####=========================================####
+ data(DT_fulldiallel)
+# DT <- DT_fulldiallel
+# head(DT)
+# mix <- lmebreed(stems~1 + (1|female)+(1|male), data=DT)
+# vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} and \code{\link{mmec}} }
+\seealso{The core function of the package \code{\link{lmebreed}} }

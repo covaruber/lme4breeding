@@ -23,35 +23,31 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 }
 \examples{
 
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples
-####=========================================####
-
 data("DT_halfdiallel")
-DT <- DT_halfdiallel
-head(DT)
-DT$femalef <- as.factor(DT$female)
-DT$malef <- as.factor(DT$male)
-DT$genof <- as.factor(DT$geno)
-
-A <- diag(7); colnames(A) <- rownames(A) <- 1:7;A # if you want to provide a covariance matrix
-#### model using overlay
-modh <- mmer(sugar~1, 
-             random=~vsr(overlay(femalef,malef, sparse = FALSE), Gu=A) 
-             + genof,
-             data=DT)
-summary(modh)$varcomp
-
-Ai <- as(solve(A + diag(1e-4,ncol(A),ncol(A))), Class="dgCMatrix")
-modhb <- mmec(sugar~1, 
-             random=~vsc(isc(overlay(femalef,malef, sparse = TRUE)), Gu=Ai) 
-             + genof,
-             data=DT)
-summary(modhb)$varcomp
-
+# DT <- DT_halfdiallel
+# head(DT)
+# DT$femalef <- as.factor(DT$female)
+# DT$malef <- as.factor(DT$male)
+# DT$genof <- as.factor(DT$geno)
+# # relationship matrix to be added to the relmat argument
+# A <- diag(7); colnames(A) <- rownames(A) <- 1:7;A 
+# # overlay matrix to be added to the addmat argument
+# Z <- with(DT, overlay(femalef,malef) ) 
+# # inital values for incidence matrix but irrelevant 
+# # since these will be replaced by admat argument
+# fema <- (rep(colnames(Z), nrow(Z)))[1:nrow(Z)]
+# #### model using overlay without relationship matrix
+# modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
+#                  addmat = list(fema=Z),
+#              data=DT)
+# vc <- VarCorr(modh); print(vc,comp=c("Variance"))
+# #### model using overlay with relationship matrix
+# modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
+#                  addmat = list(fema=Z),
+#                  relmat = list(fema=Matrix::chol(A)),
+#                  data=DT)
+# vc <- VarCorr(modh); print(vc,comp=c("Variance"))
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} and \code{\link{mmec}} }
+\seealso{The core function of the package \code{\link{lmebreed}} }

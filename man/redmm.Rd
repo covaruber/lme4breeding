@@ -48,19 +48,19 @@
 ####=========================================####
 
 data(DT_technow)
-DT <- DT_technow
-Md <- Md_technow
-
-M <- tcrossprod(Md)
-xx = with(DT, redmm(x=dent, M=M, nPC=10))
-
-# ans <- mmec(GY~1,
-#             # new model matrix instead of dent
-#             random=~vsc(isc(xx$Z)),
-#             rcov=~units,
+# DT <- DT_technow
+# Md <- Md_technow
+# 
+# M <- tcrossprod(Md)
+# Z = with(DT, redmm(x=dent, M=M, nPC=10))
+# custom <- (rep(colnames(Z), nrow(Z)))[1:nrow(Z)]
+# ans <- lmebreed(GY ~ (1|custom),
+#                 addmat = list(custom=Z),
 #             data=DT)
-# summary(ans)$varcomp
-# u = xx$Lam * ans$uList[[1]] # change * for matrix product
+# vc <- VarCorr(ans); print(vc,comp=c("Variance"))
+# 
+# xx <- with(DT, redmm(x=dent, M=M, nPC=10, returnLam = TRUE))
+# u = tcrossprod(xx$Lam, t(as.matrix( ranef(ans)[[1]] ) ))
 
 }
-\seealso{The core functions of the package \code{\link{mmec}} }
+\seealso{The core function of the package \code{\link{lmebreed}} }

@@ -28,14 +28,13 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 }
 \examples{
 
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples using
-#### command + shift + C |OR| control + shift + C
-####=========================================####
-
-data(DT_polyploid)
+# ####=========================================####
+# #### For CRAN time limitations most lines in the 
+# #### examples are silenced with one '#' mark, 
+# #### remove them and run the examples using
+# #### command + shift + C |OR| control + shift + C
+# ####=========================================####
+ data(DT_polyploid)
 # DT <- DT_polyploid
 # GT <- GT_polyploid
 # MP <- MP_polyploid
@@ -67,18 +66,17 @@ data(DT_polyploid)
 # ###=========================================####
 # ### run as mixed model
 # ###=========================================####
-# ans <- mmer(tuber_shape~1,
-#             random=~vsr(Name, Gu=A),
-#             data=DT2)
-# summary(ans)$varcomp
-# 
-# Ai <- as(solve(A + diag(1e-4,ncol(A),ncol(A))), Class="dgCMatrix")
-# ansb <- mmec(tuber_shape~1,
-#             random=~vsc(isc(Name), Gu=Ai),
-#             data=DT2)
-# summary(ansb)$varcomp
-# 
+# A <- A + diag(1e-4,ncol(A),ncol(A))
+# ans <- lmebreed(tuber_shape~ (1|Name),
+#                 relmat = list(Name=Matrix::chol(A)),
+#                 control = lmerControl(
+#                   check.nobs.vs.nlev = "ignore",
+#                   check.nobs.vs.rankZ = "ignore",
+#                   check.nobs.vs.nRE="ignore"
+#                 ),
+#                 data=DT2)
+# vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} }
+\seealso{The core functions of the package \code{\link{lmebreed}} }

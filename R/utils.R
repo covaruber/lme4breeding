@@ -85,15 +85,6 @@ overlay<- function (..., rlist = NULL, prefix = NULL, sparse=FALSE){
   return(S3)
 }
 
-replace.values <- function(Values,Search,Replace){
-  dd0 <- data.frame(Values)
-  vv <- which(Values%in%Search)
-  dd <- data.frame(Search,Replace)
-  rownames(dd) <- Search
-  dd0[vv,"Values"] <- as.character(dd[Values[vv],"Replace"])
-  return(dd0[,1])
-}
-
 
 ## VS structures for lmebreed
 redmm <- function (x, M = NULL, Lam=NULL, nPC=50, cholD=FALSE, returnLam=FALSE) {

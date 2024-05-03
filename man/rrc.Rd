@@ -2,7 +2,7 @@
 \alias{rrc}
 \title{reduced rank covariance structure}
 \description{
-  \code{rrc} creates a reduced rank factor analytic covariance structure by selecting the n vectors of the L matrix of the Cholesky decomposition or the U vectors of the SVD decomposition (loadings or latent covariates) to create a new incidence matrix of latent covariates that can be used with the \code{\link{mmec}} solver to fit random regressions on the latent covariates.
+  \code{rrc} creates a reduced rank factor analytic covariance structure by selecting the n vectors of the L matrix of the Cholesky decomposition or the U vectors of the SVD decomposition (loadings or latent covariates) to create a new incidence matrix of latent covariates that can be used with the \code{\link{lmebreed}} solver to fit random regressions on the latent covariates.
 }
 \usage{
   rrc(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE)
@@ -84,43 +84,43 @@ The resulting loadings (Gamma) and factor scores can be thought as an equivalent
 
 \examples{
 
-data(DT_h2)
+# data(DT_h2)
 # DT <- DT_h2
 # DT=DT[with(DT, order(Env)), ]
 # 
 # # fit diagonal model first to produce H matrix
-# ans1a <- mmec(y~Env,
-#               random=~ vsc(dsc(Env), isc(Name)),
-#               rcov=~units, nIters = 100,
-#               # we recommend giving more EM iterations at the beggining
-#               emWeight = c(rep(1,10),logspace(10,1,.05), rep(.05,80)),
-#               data=DT)
+# Z <- with(DT, dsc(Env))$Z
+# diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# ans1a <- lmebreed(as.formula(diagFormula),
+#                   pedigree = list(Name = Matrix::chol(A) ),
+#                   data=DT)
+# vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
+# H0 <- ranef(ans1a)$Name # GxE table
 # 
-# H0 <- ans1a$uList$`vsc(dsc(Env), isc(Name))` # GxE table
 # # reduced rank model
-# ans1b <- mmec(y~Env,
-#               random=~vsc( dsc(rrc(Env, H = H0, nPC = 3)) , isc(Name)) + # rr
-#                 vsc(dsc(Env), isc(Name)), # diag
-#               rcov=~units,
-#               # we recommend giving more iterations to these models
-#               nIters = 100,
-#               # we recommend giving more EM iterations at the beggining
-#               emWeight = c(rep(1,10),logspace(10,1,.05), rep(.05,80)),
-#               data=DT)
+# Z <- with(DT,  dsc(rrc(Env, H = H0, nPC = 3)) )$Z
+# Zd <- with(DT, dsc(Env))$Z
+# faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# ansFA <- lmebreed(as.formula(faFormula),
+#                   pedigree = list(Name = Matrix::chol(A) ),
+#                   data=DT)
+# vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
 # 
-# ## get the loadings
-# loadings=with(DT, rrc(Env, nPC = 3, H = wide0, returnGamma = T) )$Gamma
-# ## extract factor scores from the model
-# scores <- ans1b$uList[[1]];
-# ## BLUPs for all environments
-# E= scores * t(loadings)  # change * for matrix product
-# ## Extract the covariance matrix
-# vc <- ans1b$theta[[1]];vc # rr
-# vc2 <- ans1b$theta[[2]];vc2 # diagonal
-# G = loadings * vc * t(loadings) + vc2 # change * for matrix product
+# loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = T) )$Gamma
+# Gint <- loadings * vc$Name * t(loadings) # replace * by matrix product
+# Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
+# G <- Gint + Gspec
 # lattice::levelplot(cov2cor(G))
-# lattice::levelplot(G)
+# colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
+# hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
+# 
+# u <- ranef(ansFA)$Name
+# uInter <- as.matrix(u[,1:3]) * t(as.matrix(loadings)) # replace * by matrix product
+# uSpec <- as.matrix(u[,-c(1:3)])
+# u <- uSpec + uInter
 
 
 }
-\seealso{The function \code{\link{vsc}} to know how to use \code{rrc} in the \code{\link{mmec}} solver.}
+\seealso{The \code{\link{lmebreed}} solver.}

@@ -1,19 +1,13 @@
-useDynLib(lme4Breeding, .registration=TRUE)
 
 import("methods")
 import("Matrix")
 import("lme4")
 
-export("Dmat", "inbreeding", "relfactor", "pedigree", "lmebreed", "editPed", "getA", "getAInv")
-
-exportClasses("pedigree", "lmebreed")
+export( "lmebreed", "dsc", "rrc", "redmm", "overlay", "add.diallel.vars")
 
 exportMethods(
               "coerce",
               "fitted",
-              "head",
               "ranef",
-              "residuals",
-              "show",
-              "tail"
+              "residuals"
               )

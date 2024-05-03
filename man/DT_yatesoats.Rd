@@ -38,18 +38,12 @@
 ### ========================== ###
 ### ========================== ###
 data(DT_yatesoats)
-DT <- DT_yatesoats
-head(DT)
-# m3 <- mmer(fixed=Y ~ V + N + V:N,
-#            random = ~ B + B:MP,
-#            rcov=~units,
+# DT <- DT_yatesoats
+# head(DT)
+# m3 <- lmebreed(Y ~ V + N + V:N +
+#              (1|B) + (1|B:MP),
 #            data = DT)
-# summary(m3)$varcomp
-# 
-# m3b <- mmec(fixed=Y ~ V + N + V:N,
-#            random = ~ B + B:MP,
-#            rcov=~units,
-#            data = DT)
-# summary(m3b)$varcomp
+# vc <- VarCorr(m3); print(vc,comp=c("Variance"))
+
 }
 

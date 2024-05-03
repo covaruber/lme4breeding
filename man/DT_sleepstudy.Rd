@@ -30,51 +30,25 @@ Gregory Belenky et al. (2003) Patterns of performance degradation and restoratio
 #### examples are silenced with one '#' mark,
 #### remove them and run the examples
 ####=========================================####
-# library(lme4)
 data(DT_sleepstudy)
-DT <- DT_sleepstudy
-head(DT)
-##################################
-## lme4
-# fm1 <- lmer(Reaction ~ Days + (1 | Subject), data=DT)
+# DT <- DT_sleepstudy
+# head(DT)
+# ##################################
+# fm1 <- lmebreed(Reaction ~ Days + (1 | Subject), data=DT)
 # vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-## sommer
-fm2 <- mmer(Reaction ~ Days,
-            random= ~ Subject, 
-            data=DT, tolParInv = 1e-6, verbose = FALSE)
-summary(fm2)$varcomp
+# 
+# ##################################
+# fm1 <- lmebreed(Reaction ~ Days + (Days || Subject), data=DT)
+# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
+# 
+# ##################################
+# fm1 <- lmebreed(Reaction ~ Days + (Days | Subject), data=DT)
+# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
+# 
+# ##################################
+# fm1 <- lmebreed(Reaction ~ Days + (0 + Days | Subject), data=DT)
+# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
 
-##################################
-## lme4
-# fm1 <- lmer(Reaction ~ Days + (Days || Subject), data=DT)
-# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-## sommer
-fm2 <- mmer(Reaction ~ Days,
-            random= ~ Subject + vsr(Days, Subject), 
-            data=DT, tolParInv = 1e-6, verbose = FALSE)
-summary(fm2)$varcomp
-
-##################################
-## lme4
-# fm1 <- lmer(Reaction ~ Days + (Days | Subject), data=DT)
-# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-## sommer
-## no equivalence in sommer to find the correlation between the 2 vc
-## this is the most similar which is equivalent to (intercept || slope)
-fm2 <- mmer(Reaction ~ Days,
-            random= ~ Subject + vsr(Days, Subject), 
-            data=DT, tolParInv = 1e-6, verbose = FALSE)
-summary(fm2)$varcomp
-
-##################################
-## lme4
-# fm1 <- lmer(Reaction ~ Days + (0 + Days | Subject), data=DT)
-# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-## sommer
-fm2 <- mmer(Reaction ~ Days,
-            random= ~ vsr(Days, Subject), 
-            data=DT, tolParInv = 1e-6, verbose = FALSE)
-summary(fm2)$varcomp
 
 }
 \keyword{datasets}

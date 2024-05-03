@@ -22,25 +22,20 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 
 }
 \examples{
+
 # ###=========================================####
 # ### AUGMENTED DESIGN EXAMPLE
 # ###=========================================####
-# data(DT_augment)
+data(DT_augment)
 # DT <- DT_augment
 # head(DT)
 # ####=========================================####
 # #### fit the mixed model and check summary
 # ####=========================================####
-# mix1 <- mmer(TSW ~ Check.Gen,
-#              random = ~ Block + Genotype:Check,
+# mix1 <- lmebreed(TSW ~ Check.Gen + (1|Block) + (1|Genotype:Check),
 #              data=DT)
-# summary(mix1)$varcomp
-# 
-# mix2 <- mmec(TSW ~ Check.Gen,
-#              random = ~ Block + Genotype:Check,
-#              data=DT)
-# summary(mix2)$varcomp
+# vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} and \code{\link{mmec}} }
+\seealso{The core functions of the package \code{\link{lmebreed}} }

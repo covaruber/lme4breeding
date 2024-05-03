@@ -25,7 +25,7 @@
 }
 
 \source{
-  Datasets and more detail about them can be found in the agricolae package. Here we just show the datasets and how to analyze them using the \code{\link{sommer}} package.
+  Datasets and more detail about them can be found in the agricolae package. Here we just show the datasets and how to analyze them using the \code{\link{lme4breeding}} package.
 }
 
 \references{
@@ -37,7 +37,7 @@
 # #### =================================== ####
 # #### ===== Augmented Block Design 1 ==== ####
 # #### =================================== ####
-# data(DT_expdesigns)
+data(DT_expdesigns)
 # DT <- DT_expdesigns
 # names(DT)
 # data1 <- DT$au1
@@ -47,17 +47,9 @@
 # ## blocking factor: "block"
 # ## treatments, personal names for replicated and non-replicated: "trt"
 # ## check no check indicator: "new"
-# mix1 <- mmer(yield~entryc,
-#              random=~block+trt,
-#              rcov=~units, tolpar = 1e-6,
+# mix1 <- lmebreed(yield~entryc + (1|block)+(1|trt),
 #              data=data1)
-# summary(mix1)$varcomp
-# 
-# mix1b <- mmec(yield~entryc,
-#              random=~block+trt,
-#              rcov=~units, tolParConv = 1e-6,
-#              data=data1)
-# summary(mix1b)$varcomp
+# vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 
 }
 

@@ -51,41 +51,35 @@ A platform for meta-analysis of rice crop data. \emph{Plant Physiology} \bold{13
 }
 \examples{
 
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples using
-#### command + shift + C |OR| control + shift + C
-####=========================================####
-# data(DT_wheat)
+###=========================================####
+### For CRAN time limitations most lines in the
+### examples are silenced with one '#' mark,
+### remove them and run the examples using
+### command + shift + C |OR| control + shift + C
+###=========================================####
+data(DT_wheat)
 # DT <- DT_wheat
 # GT <- GT_wheat
-# DTlong <- data.frame(pheno=as.vector(DT), 
-#                      env=sort(rep(1:4,nrow(DT))), 
+# DTlong <- data.frame(pheno=as.vector(DT),
+#                      env=sort(rep(1:4,nrow(DT))),
 #                      id=rep(rownames(DT),4))
 # DT <- as.data.frame(DT);colnames(DT) <- paste0("x",1:4);DT$line <- rownames(DT);
 # rownames(GT) <- DT$line
 # K <- A.mat(GT) # additive relationship matrix
 # K[1:4,1:4]
 # ###=========================================####
-# ###=========================================####
-# ### using formula based 'mmer'
-# ###=========================================####
-# ###=========================================####
 # head(DT)
 # #### univariate
-# mix0 <- mmer(x1~1,
-#              random = ~vsr(line,Gu=K),
-#              rcov=~units,
-#              data=DT)
-# summary(mix0)$varcomp
-# 
-# Ki <- as(solve(K + diag(1e-4,ncol(K),ncol(K))), Class="dgCMatrix")
-# mix0b <- mmec(x1~1,
-#              random = ~vsc(isc(line),Gu=Ki),
-#              rcov=~units,
-#              data=DT)
-# summary(mix0b)$varcomp
+# mix0 <- lmebreed(x1 ~ (1|line),
+#                  relmat = list(line=Matrix::chol(K)),
+#                  control = lmerControl(
+#                    check.nobs.vs.nlev = "ignore",
+#                    check.nobs.vs.rankZ = "ignore",
+#                    check.nobs.vs.nRE="ignore"
+#                  ),
+#                  data=DT)
+# vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
+
 
 
 }

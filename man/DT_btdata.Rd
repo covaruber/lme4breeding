@@ -22,49 +22,17 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 \examples{
 
 # ####=========================================####
-# #### For CRAN time limitations most lines in the 
-# #### examples are silenced with one '#' mark, 
+# #### For CRAN time limitations most lines in the
+# #### examples are silenced with one '#' mark,
 # #### remove them and run the examples
 # ####=========================================####
-# ####=========================================####
-# ####=========================================####
-# #### EXAMPLE 1
-# #### simple example
-# ####=========================================####
-# ####=========================================####
-# data(DT_btdata)
+data(DT_btdata)
 # DT <- DT_btdata
 # head(DT)
-# mix4 <- mmer(tarsus ~ sex,
-#              random = ~ dam + fosternest,
-#              rcov=~units,
+# mix4 <- lmebreed(tarsus ~ sex + (1|dam) + (1|fosternest),
 #              data = DT)
-# summary(mix4)$varcomp
-# 
-# mix5 <- mmec(tarsus ~ sex,
-#              random = ~ dam + fosternest,
-#              rcov=~units,
-#              data = DT)
-# summary(mix5)$varcomp
-# 
-# ####=========================================####
-# ####=========================================####
-# ####=========================================####
-# #### EXAMPLE 2
-# #### more complex multivariate model
-# ####=========================================####
-# ####=========================================####
-# data(DT_btdata)
-# DT <- DT_btdata
-# mix3 <- mmer(cbind(tarsus, back) ~ sex,
-#                 random = ~ vsr(dam) + vsr(fosternest),
-#                 rcov= ~ vsr(units, Gtc=diag(2)),
-#                 data = DT)
-# summary(mix3)
-# #### calculate the genetic correlation
-# cov2cor(mix3$sigma$`u:dam`)
-# cov2cor(mix3$sigma$`u:fosternest`)
+# vc <- VarCorr(mix4); print(vc,comp=c("Variance"))
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}}, \code{\link{mmec}}}
+\seealso{The core function of the package \code{\link{lmebreed}} }

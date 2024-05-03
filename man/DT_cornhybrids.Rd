@@ -31,39 +31,30 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 }
 \examples{
 
+# 
 # ####=========================================####
-# #### For CRAN time limitations most lines in the 
-# #### examples are silenced with one '#' mark, 
+# #### For CRAN time limitations most lines in the
+# #### examples are silenced with one '#' mark,
 # #### remove them and run the examples using
 # #### command + shift + C |OR| control + shift + C
 # ####=========================================####
 # 
-# data(DT_cornhybrids)
+ data(DT_cornhybrids)
 # DT <- DT_cornhybrids
-# DTi <- DTi_cornhybrids
 # GT <- GT_cornhybrids
-# hybrid2 <- DT # extract cross data
 # A <- GT
-# K1 <- A[levels(hybrid2$GCA1), levels(hybrid2$GCA1)]; dim(K1)
-# K2 <- A[levels(hybrid2$GCA2), levels(hybrid2$GCA2)]; dim(K2)
+# K1 <- A[levels(DT$GCA1), levels(DT$GCA1)]; dim(K1)
+# K2 <- A[levels(DT$GCA2), levels(DT$GCA2)]; dim(K2)
 # S <- kronecker(K1, K2) ; dim(S)
-# rownames(S) <- colnames(S) <- levels(hybrid2$SCA)
+# rownames(S) <- colnames(S) <- levels(DT$SCA)
 # 
-# ans <- mmer(Yield ~ Location,
-#              random = ~ vsr(GCA1,Gu=K1) + vsr(GCA2,Gu=K2), # + vsr(SCA,Gu=S),
-#              rcov=~units,
-#              data=hybrid2)
-# summary(ans)$varcomp
+# ans <- lmebreed(Yield ~ Location + (1| GCA1) + (1|GCA2),
+#                 relmat = list(GCA1=Matrix::chol(K1),
+#                               GCA2=Matrix::chol(K2)),
+#                 data=DT)
+# vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 # 
-# ## mmec uses the inverse of the relationship matrix
-# K1i <- as(solve(K1 + diag(1e-4,ncol(K1),ncol(K1))), Class="dgCMatrix")
-# K2i <- as(solve(K2 + diag(1e-4,ncol(K2),ncol(K2))), Class="dgCMatrix")
-# Si <- as(solve(S + diag(1e-4,ncol(S),ncol(S))), Class="dgCMatrix")
-# ans2 <- mmec(Yield ~ Location,
-#             random = ~ vsc(isc(GCA1),Gu=K1i) + vsc(isc(GCA2),Gu=K2i), # + vsc(isc(SCA),Gu=Si),
-#             rcov=~units,
-#             data=hybrid2)
-# summary(ans2)$varcomp
+
 
 
 }

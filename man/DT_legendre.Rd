@@ -5,7 +5,7 @@
 Simulated data for random regression
 }
 \description{
-A data frame with 4 columns; SUBJECT, X, Xf and Y to show how to use the Legendre polynomials in the mmer function using a numeric variable X and a response variable Y. 
+A data frame with 4 columns; SUBJECT, X, Xf and Y to show how to use the Legendre polynomials in the lmebreed function using a numeric variable X and a response variable Y. 
 
 }
 \usage{data("DT_legendre")}
@@ -22,28 +22,28 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
  
 }
 \examples{
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples using
-#### command + shift + C |OR| control + shift + C
-####=========================================####
-# you need to install the orthopolynom library to do random regression models
+# ####=========================================####
+# #### For CRAN time limitations most lines in the 
+# #### examples are silenced with one '#' mark, 
+# #### remove them and run the examples using
+# #### command + shift + C |OR| control + shift + C
+# ####=========================================####
+# # you need to install the orthopolynom library to do random regression models
 # library(orthopolynom)
-# data(DT_legendre)
+data(DT_legendre)
 # DT <- DT_legendre
-# mRR2<-mmer(Y~ 1 + Xf
-#            , random=~ vsr(usr(leg(X,1)),SUBJECT)
-#            , rcov=~vsr(units)
-#            , data=DT)
-# summary(mRR2)$varcomp
 # 
-# mRR2b<-mmec(Y~ 1 + Xf
-#            , random=~ vsc(usc(leg(X,1)),isc(SUBJECT))
-#            , rcov=~vsc(isc(units))
+# Z <- with(DT, dsc(leg(X,1)) )$Z
+# # diagonal random regression
+# form <- paste0( "Y ~ Xf + (0+", paste(colnames(Z), collapse = "+"), "|| SUBJECT)")
+# # unstructured random regression
+# form <- paste0( "Y ~ Xf + (0+", paste(colnames(Z), collapse = "+"), "| SUBJECT)")
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# mRR2b<-lmebreed(as.formula(form),
 #            , data=DT)
-# summary(mRR2b)$varcomp
+# vc <- VarCorr(mRR2b); print(vc,comp=c("Variance"))
+
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} }
+\seealso{The core function of the package \code{\link{lmebreed}} }

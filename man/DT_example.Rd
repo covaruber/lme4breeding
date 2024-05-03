@@ -24,69 +24,41 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 }
 \examples{
 
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples
-####=========================================####
-####=========================================####
-#### EXAMPLES
-#### Different models with sommer
-####=========================================####
-
+# ####=========================================####
+# #### For CRAN time limitations most lines in the 
+# #### examples are silenced with one '#' mark, 
+# #### remove them and run the examples
+# ####=========================================####
+# ####=========================================####
+# #### EXAMPLES
+# #### Different models with sommer
+# ####=========================================####
 data(DT_example)
-DT <- DT_example
-A <- A_example
-head(DT)
-
-####=========================================####
-#### Univariate homogeneous variance models  ####
-####=========================================####
-
-## Compound simmetry (CS) model
-ans1 <- mmer(Yield~Env,
-             random= ~ Name + Env:Name,
-             rcov= ~ units,
-             data=DT)
-summary(ans1)$varcomp
-
-ans1b <- mmec(Yield~Env,
-             random= ~ Name + Env:Name,
-             rcov= ~ units,
-             data=DT)
-summary(ans1b)$varcomp
-
+# DT <- DT_example
+# A <- A_example
+# head(DT)
+# 
+# ####=========================================####
+# #### Univariate homogeneous variance models  ####
+# ####=========================================####
+# ## Compound simmetry (CS) model
+# ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
+#              data=DT)
+# vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
+# 
 # ####===========================================####
 # #### Univariate heterogeneous variance models  ####
 # ####===========================================####
-# 
 # ## Compound simmetry (CS) + Diagonal (DIAG) model
-# ans2 <- mmer(Yield~Env,
-#              random= ~Name + vsr(dsr(Env),Name),
-#              rcov= ~ vsr(dsr(Env),units),
-#              data=DT)
-# summary(ans2)
-# 
-# DT=DT[with(DT, order(Env)), ]
-# ans2b <- mmec(Yield~Env,
-#              random= ~Name + vsc(dsc(Env),isc(Name)) +
-#                       vsc(atc(Env, c("CA.2011") ),isc(Block)) ,
-#              rcov= ~ vsc(dsc(Env),isc(units)),
-#              data=DT)
-# summary(ans2b)
-# 
-# ####==========================================####
-# #### Multivariate homogeneous variance models ####
-# ####==========================================####
-# 
-# ## Multivariate Compound simmetry (CS) model
-# DT$EnvName <- paste(DT$Env,DT$Name)
-# ans4 <- mmer(cbind(Yield, Weight) ~ Env,
-#               random= ~ vsr(Name) + vsr(EnvName),
-#               rcov= ~ vsr(units),
-#               data=DT)
-# summary(ans4)
+# Z <- with(DT, dsc(Env))$Z
+# csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# ansCSDG <- lmebreed(as.formula(csdiagFormula),
+#                     relmat = list(Name = Matrix::chol(A) ),
+#                     data=DT)
+# vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
+
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} and \code{\link{mmec}} }
+\seealso{The core functions of the package \code{\link{lmebreed}} }
