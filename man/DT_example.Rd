@@ -41,7 +41,7 @@ data(DT_example)
 # ####=========================================####
 # #### Univariate homogeneous variance models  ####
 # ####=========================================####
-# ## Compound simmetry (CS) model
+# ## Compound simmetry (CS) model 
 # ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
 #              data=DT)
 # vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
@@ -50,11 +50,31 @@ data(DT_example)
 # #### Univariate heterogeneous variance models  ####
 # ####===========================================####
 # ## Compound simmetry (CS) + Diagonal (DIAG) model
+# ## with relationship matrix
 # Z <- with(DT, dsc(Env))$Z
 # csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
 # for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 # ansCSDG <- lmebreed(as.formula(csdiagFormula),
 #                     relmat = list(Name = Matrix::chol(A) ),
+#                     data=DT)
+# vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
+# ####===========================================####
+# ## Compound simmetry (CS) + Diagonal (DIAG) model
+# ## with diagonal residuals
+# ## with relationship matrix
+# Z <- with(DT, dsc(Env))$Z
+# DT$units <- as.factor(1:nrow(DT))
+# csdiagFormula <- paste0( "Yield ~ Env",
+#                         "+(", paste(colnames(Z), collapse = "+"), "|| Name)",
+#                         "+(0+ ",paste(colnames(Z), collapse = "+"), "|| units)")
+# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+# ansCSDG <- lmebreed(csdiagFormula,
+#                     relmat = list(Name = Matrix::chol(A) ),
+#                     control = lmerControl(
+#                       check.nobs.vs.nlev = "ignore",
+#                       check.nobs.vs.rankZ = "ignore",
+#                       check.nobs.vs.nRE="ignore"
+#                     ),
 #                     data=DT)
 # vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 

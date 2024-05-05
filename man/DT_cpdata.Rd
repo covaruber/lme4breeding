@@ -52,7 +52,18 @@ data(DT_cpdata)
 #                  ),
 #                  data=DT)
 # vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
-
+# # run one last iteration with imputed data
+# # to make sure you get predictions for everyone
+# DT2 <- DT
+# DT2$Yield <- imputev(DT2$Yield)
+# mix1b <- update(mix1, data=DT2, 
+#                 control=lmerControl(
+#   check.nobs.vs.nlev = "ignore",
+#   check.nobs.vs.rankZ = "ignore",
+#   check.nobs.vs.nRE="ignore",
+#   optCtrl=list(maxfun=1)
+# ))
+# rex <- ranef(mix1b)
 
 }
 \keyword{datasets}

@@ -1,0 +1,720 @@
+---
+title: "Quantitative genetics using the lme4breeding package"
+author: "Giovanny Covarrubias-Pazaran"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Quantitative genetics using the lme4breeding package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+lme4breeding is nice wrapper of the lme4 package that enables the use of especialized plant and animal breeding models that include relationship matrices among individuals (e.g., genomic relationship matrices) and complex covariance structures between factors (e.g., factor analytic structures). It uses all the lme4 machinery for linear and non-linear models, for different response distributions opening a world of possibilities.
+
+The vignettes aim to provide several examples in how to use the lme4breeding package under different scenarios. We will spend the rest of the space providing examples for: 
+
+
+**SECTION 1: Basic topics in quantitative genetics **
+
+1) Heritability ($h^2$) calculation
+2) Specifying heterogeneous variances in mixed models
+3) Half and full diallel designs (using the overlay)
+4) Genomic selection (predicting mendelian sampling)
+    + GBLUP
+    + rrBLUP
+5) Indirect genetic effects
+6) GCA models and single cross prediction (hybrid prediction)
+7) Spatial modeling (using the 2-dimensional splines)
+8) Multivariate genetic models and genetic correlations
+
+**SECTION 2: Special topics in quantitative genetics**
+
+1) Partitioned model
+2) UDU' decomposition
+3) Mating designs
+5) GWAS by GBLUP
+
+## SECTION 1: Basic topics in quantitative genetics 
+
+### 1) Marker and non-marker based heritability calculation 
+
+Heritability is one of the most popular parameters among the breeding and genetics communities because of the insight it provides in the inheritance of the trait and potential selection response. Heritability is usually estimated as narrow sense ($h^2$; only additive variance in the numerator $\sigma^2_A$), and broad sense ($H^2$; all genetic variance in the numerator $\sigma^2_G$).
+
+In a classical breeding experiment with no molecular markers, special designs are performed to estimate and dissect the additive ($\sigma^2_A$) and non-additive (e.g., dominance $\sigma^2_D$, and epistatic $\sigma^2_E$) variance along with environmental variability. Designs such as generation analysis, North Carolina designs are used to dissect $\sigma^2_A$ and $\sigma^2_D$ to estimate the narrow sense heritability ($h^2$) using only $\sigma^2_A$ in the numerator. When no special design is available we can still disect the genetic variance ($\sigma^2_G$) and estimate the broad sense heritability. In this first example we will show the broad sense estimation which doesn't use covariance matrices for the genotypic effect (e.g., genomic-additive relationship matrices).
+
+The following dataset has 41 potato lines evaluated in 5 locations across 3 years in an RCBD design. We show how to fit the model and extract the variance components to calculate the $h^2$.
+
+```{r}
+library(lme4breeding)
+data(DT_example)
+DT <- DT_example
+A <- A_example
+
+ans1 <- lmebreed(Yield~ (1|Name) + (1|Env) + 
+                   (1|Env:Name) + (1|Env:Block),
+             data=DT)
+vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
+ve <- attr(VarCorr(ans1), "sc")^2
+n.env <- length(levels(DT$Env))
+H2=vc$Name / ( vc$Name + (vc$`Env:Name`/n.env) + (ve/(n.env*2)) )
+H2
+```
+
+That is an estimate of broad-sense heritability.
+
+Recently with markers becoming cheaper, thousand of markers can be run in the breeding materials. When markers are available, a special design is not neccesary to dissect the additive genetic variance. The availability of the additive, dominance and epistatic relationship matrices allow us to estimate $\sigma^2_A$, $\sigma^2_D$ and $\sigma^2_I$, although given that A, D and E are not orthogonal the interpretation of models that fit more than the A matrix at the same time becomes cumbersome.
+
+Assume you have a population (even unreplicated) in the field but in addition we have genetic markers. Now we can fit the model and estimate the genomic heritability that explains a portion of the additive genetic variance (with high marker density $\sigma^2_A$ = $\sigma^2_{markers}$)
+
+```{r}
+data(DT_cpdata)
+DT <- DT_cpdata
+GT <- GT_cpdata
+MP <- MP_cpdata
+#### create the variance-covariance matrix
+A <- A.mat(GT) # additive relationship matrix
+A <- A + diag(1e-4, ncol(A), ncol(A))
+#### look at the data and fit the model
+head(DT)
+mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+                 relmat=list(id=Matrix::chol(A)),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+ve <- attr(VarCorr(mix1), "sc")^2
+h2= vc$id / ( vc$id + ve )
+as.numeric(h2)
+```
+
+In this example we showed how to estimate the additive ($\sigma^2_A$) variance components based on markers and estimate narrow-sense heritability ($h^2$). Notice that we used the `relmat` argument which indicates that the random effect inside the parenthesis (i.e. `id`) has a covariance matrix (A), that will be specified as the Cholesky of the relationship matrix. Please DO NOT provide the inverse to the Cholesky, but rather the original covariance matrix.
+
+### 2) Specifying heterogeneous variances in univariate models
+
+Very often in multi-environment trials, the assumption that genetic variance is the same across locations may be too naive. Because of that, specifying a general genetic component and a location-specific genetic variance is the way to go.
+
+We estimate variance components for specific environments.
+
+```{r, fig.show='hold'}
+data(DT_example)
+DT <- DT_example
+A <- A_example
+head(DT)
+## Compound simmetry (CS) + Diagonal (DIAG) model
+Z <- with(DT, dsc(Env))$Z
+csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansCSDG <- lmebreed(as.formula(csdiagFormula),
+                    relmat = list(Name = Matrix::chol(A) ),
+                    data=DT)
+vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
+```
+
+In the previous example we showed how the left side of the formulae to specify the covariance structure and the effect on the right side `(covStructure | effect)` in the `lmebreed()` solver. By specifying `( CA.2011+CA.2012+CA.2013 || Name)` we declare a covariance structure for Name between environments. The `||` indicates that we do not want to fit covariance between these environments This is considered a CS + DIAG (compound symmetry + diagonal) model.
+
+### 3) Half and full diallel designs (use of the overlay)
+
+When breeders are looking for the best single-cross combinations, diallel designs have been by far the most used design in crops like maize. There are 4 types of diallel designs depending on whether reciprocal and self-crosses (omission of parents) are performed (full diallel with parents n^2; full diallel without parents n(n-1); half diallel with parents 1/2 * n(n+1); half diallel without parents 1/2 * n(n-1) ). In this example we will show a full diallel design (reciprocal crosses are performed) and half diallel designs (only one of the directions is performed).
+
+In the first data set we show a full diallel among 40 lines from 2 heterotic groups, 20 in each. Therefore 400 possible hybrids are possible. We have pehnotypic data for 100 of them across 4 locations. We use the data available to fit a model of the form:
+
+<br>
+
+$y = X\beta + Zu_1 + Zu_2 + Zu_S + \epsilon$ 
+
+<br>
+
+We estimate variance components for $GCA_1$, $GCA_2$ and $SCA$ and use them to estimate heritability. Additionally BLUPs for GCA and SCA effects can be used to predict crosses.
+
+```{r}
+data(DT_cornhybrids)
+DT <- DT_cornhybrids
+DTi <- DTi_cornhybrids
+GT <- GT_cornhybrids
+
+modFD <- mmec(Yield~Location, 
+              random=~GCA1+GCA2+SCA, 
+              rcov=~units, nIters=3,
+              data=DT, verbose = FALSE)
+(suma <- summary(modFD)$varcomp)
+Vgca <- sum(suma[1:2,1])
+Vsca <- suma[3,1]
+Ve <- suma[4,1]
+Va = 4*Vgca
+Vd = 4*Vsca
+Vg <- Va + Vd
+(H2 <- Vg / (Vg + (Ve)) )
+(h2 <- Va / (Vg + (Ve)) )
+```
+Don't worry too much about the `h2` value, the data was simulated to be mainly dominance variance, therefore the `Va` was simulated extremely small leading to such value of narrow sense `h2`.
+
+
+In the second data set we show a small half diallel with 7 parents crossed in one direction. There are n(n-1)/2 possible crosses; 7(6)/2 = 21 unique crosses. Parents appear as males or females indistictly. Each with two replications in a CRD. For a half diallel design a single GCA variance component for both males and females can be estimated and an SCA as well ($\sigma^2_GCA$ and $\sigma^2_SCA$ respectively), and BLUPs for GCA and SCA of the parents can be extracted. We will show first how to do so with the `mmer()` function using the `overlay()` function. The specific model here is:
+
+$y = X\beta + Zu_g + Zu_s + \epsilon$ 
+
+```{r}
+data("DT_halfdiallel")
+DT <- DT_halfdiallel
+head(DT)
+DT$femalef <- as.factor(DT$female)
+DT$malef <- as.factor(DT$male)
+DT$genof <- as.factor(DT$geno)
+#### model using overlay
+modh <- mmec(sugar~1, 
+             random=~vsc(isc(overlay(femalef,malef)) )
+             + genof, nIters=3,
+             data=DT, verbose = FALSE)
+summary(modh)$varcomp
+```
+
+Notice how the `overlay()` argument makes the overlap of incidence matrices possible making sure that male and female are joint into a single random effect.
+
+### 5) Genomic selection: predicting mendelian sampling
+
+In this section we will use wheat data from CIMMYT to show how genomic selection is performed. This is the case of prediction of specific individuals within a population. It basically uses a similar model of the form:
+
+<br>
+
+$y = X\beta + Zu + \epsilon$ 
+
+<br>
+
+and takes advantage of the variance covariance matrix for the genotype effect known as the additive relationship matrix (A) and calculated using the `A.mat` function to establish connections among all individuals and predict the BLUPs for individuals that were not measured. The prediction accuracy depends on several factors such as the heritability ($h^2$), training population used (TP), size of TP, etc.
+
+```{r}
+data(DT_wheat)
+DT <- DT_wheat
+GT <- GT_wheat[,1:200]
+colnames(DT) <- paste0("X",1:ncol(DT))
+DT <- as.data.frame(DT);DT$id <- as.factor(rownames(DT))
+# select environment 1
+rownames(GT) <- rownames(DT)
+K <- A.mat(GT) # additive relationship matrix
+colnames(K) <- rownames(K) <- rownames(DT)
+# GBLUP pedigree-based approach
+set.seed(12345)
+y.trn <- DT
+vv <- sample(rownames(DT),round(nrow(DT)/5))
+y.trn[vv,"X1"] <- NA
+head(y.trn)
+## GBLUP
+ans <- mmer(X1~1,
+            random=~vsr(id,Gu=K), 
+            rcov=~units,nIters=3,
+            data=y.trn, verbose = FALSE) # kinship based
+ans$U$`u:id`$X1 <- as.data.frame(ans$U$`u:id`$X1)
+rownames(ans$U$`u:id`$X1) <- gsub("id","",rownames(ans$U$`u:id`$X1))
+cor(ans$U$`u:id`$X1[vv,],DT[vv,"X1"], use="complete")
+
+## rrBLUP
+ans2 <- mmer(X1~1,
+             random=~vsr(list(GT), buildGu = FALSE), 
+             rcov=~units, getPEV = FALSE, nIters=3,
+             data=y.trn, verbose = FALSE) # kinship based
+
+u <- GT %*% as.matrix(ans2$U$`u:GT`$X1) # BLUPs for individuals
+rownames(u) <- rownames(GT)
+cor(u[vv,],DT[vv,"X1"]) # same correlation
+# the same can be applied in multi-response models in GBLUP or rrBLUP
+```
+
+Please notice that when specifying the marker matrix as a random effect we used the argument 'buildGu=FALSE' to inform the 'mmer' function that a covariance matrix for the levels of the random effect shouldn't be built. Imagine a model with 100,000 markers, that would imply a relationship matrix of 100,000 x 100,000. If that matrix is a diagonal it would only compromise the speed and memory of the function. By setting  'buildGu=FALSE' the mmer solver will avoid the matrix multiplications using that huge diagonal matrix. If you want to specify a relationship matrix for the marker matrix then you cannot use that 'buildGu' argument.
+
+### 6) Indirect genetic effects
+
+General variance structures can be used to fit indirect genetic effects. Here, we use an example dataset to show how we can fit the variance and covariance components between two or more different random effects.
+
+We first fit a direct genetic effects model:
+```{r}
+# data(DT_ige)
+# DT <- DT_ige
+# Af <- A_ige
+# An <- A_ige
+
+## Direct genetic effects model
+# modDGE <- mmec(trait ~ block,
+#                random = ~ focal,
+#                rcov = ~ units, nIters=3,
+#                data = DT, verbose=FALSE)
+# summary(modDGE)$varcomp
+
+```
+
+We now fit the indirect genetic effects model without covariance between DGE and IGE:
+
+```{r}
+# data(DT_ige)
+# DT <- DT_ige
+# A <- A_ige
+# 
+# ## Indirect genetic effects model
+# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
+#                random = ~ focal + neighbour, verbose = FALSE,
+#                rcov = ~ units, nIters=100,
+#               data = DT)
+# summary(modIGE)$varcomp
+
+```
+
+We now fit the indirect genetic effects model with covariance between DGE and IGE for which we will use the `gvsr()` function:
+
+```{r}
+
+# ### Indirect genetic effects model
+# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
+#                random = ~ covc( vsc(isc(focal)), vsc(isc(neighbour)) ),
+#                rcov = ~ units, nIters=100, verbose = FALSE,
+#               data = DT)
+# summary(modIGE)$varcomp
+
+```
+
+On top of that we can include a relationship matrix for the two random effects that are being forced to co-vary
+
+```{r}
+
+### Indirect genetic effects model
+# Ai <- as( solve(A_ige + diag(1e-5, nrow(A_ige),nrow(A_ige) )), Class="dgCMatrix")
+# # Indirect genetic effects model with covariance between DGE and IGE using relationship matrices
+# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
+#                random = ~ covc( vsc(isc(focal), Gu=Ai), vsc(isc(neighbour), Gu=Ai) ),
+#                rcov = ~ units, nIters=100, verbose = FALSE,
+#               data = DT)
+# summary(modIGE)$varcomp
+
+```
+
+### 7) Genomic selection: single cross prediction
+
+When doing prediction of single cross performance the phenotype can be dissected in three main components, the general combining abilities (GCA) and specific combining abilities (SCA). This can be expressed with the same model analyzed in the diallel experiment mentioned before:
+
+<br>
+
+$y = X\beta + Zu_1 + Zu_2 + Zu_S + \epsilon$ 
+
+<br>
+
+with:
+
+<br>
+
+$u_1$ ~ N(0, $K_1$$\sigma^2_u1$)
+
+$u_2$ ~ N(0, $K_2$$\sigma^2_u2$)
+
+$u_s$ ~ N(0, $K_3$$\sigma^2_us$)
+
+<br>
+
+And we can specify the K matrices. The main difference between this model and the full and half diallel designs is the fact that this model will include variance covariance structures in each of the three random effects (GCA1, GCA2 and SCA) to be able to predict the crosses that have not ocurred yet. We will use the data published by Technow et al. (2015) to show how to do prediction of single crosses.
+
+```{r}
+data(DT_technow)
+DT <- DT_technow
+Md <- (Md_technow*2) - 1
+Mf <- (Mf_technow*2) - 1
+Ad <- A.mat(Md)
+Af <- A.mat(Mf)
+Adi <- as(solve(Ad + diag(1e-4,ncol(Ad),ncol(Ad))), Class="dgCMatrix")
+Afi <- as(solve(Af + diag(1e-4,ncol(Af),ncol(Af))), Class="dgCMatrix")
+# RUN THE PREDICTION MODEL
+y.trn <- DT
+vv1 <- which(!is.na(DT$GY))
+vv2 <- sample(vv1, 100)
+y.trn[vv2,"GY"] <- NA
+anss2 <- mmec(GY~1, 
+              random=~vsc(isc(dent),Gu=Adi) + vsc(isc(flint),Gu=Afi), 
+              rcov=~units, nIters=15,
+              data=y.trn, verbose = FALSE) 
+summary(anss2)$varcomp
+
+# zu1 <- model.matrix(~dent-1,y.trn) %*% anss2$uList$`vsc(isc(dent), Gu = Adi)`
+# zu2 <- model.matrix(~flint-1,y.trn) %*% anss2$uList$`vsc(isc(flint), Gu = Afi)`
+# u <- zu1+zu2+as.vector(anss2$b)
+# cor(u[vv2,], DT$GY[vv2])
+```
+
+In the previous model we only used the GCA effects (GCA1 and GCA2) for practicity, altough it's been shown that the SCA effect doesn't actually help that much in increasing prediction accuracy, but does increase a lot the computation intensity required since the variance covariance matrix for SCA is the kronecker product of the variance covariance matrices for the GCA effects, resulting in a 10578 x 10578 matrix that increases in a very intensive manner the computation required.
+
+A model without covariance structures would show that the SCA variance component is insignificant compared to the GCA effects. This is why including the third random effect doesn't increase the prediction accuracy.
+
+### 8) Spatial modeling: using the 2-dimensional spline
+
+We will use the CPdata to show the use of 2-dimensional splines for accomodating spatial effects in field experiments. In early generation variety trials the availability of seed is low, which makes the use of unreplicated designs a neccesity more than anything else. Experimental designs such as augmented designs and partially-replicated (p-rep) designs are becoming ever more common these days. 
+
+In order to do a good job modeling the spatial trends happening in the field, special covariance structures have been proposed to accomodate such spatial trends (i.e. autoregressive residuals; ar1). Unfortunately, some of these covariance structures make the modeling rather unstable. More recently, other research groups have proposed the use of 2-dimensional splines to overcome such issues and have a more robust modeling of the spatial terms (Lee et al. 2013; Rodríguez-Álvarez et al. 2018).
+
+In this example we assume an unreplicated population where row and range information is available which allows us to fit a 2 dimensional spline model.
+
+```{r}
+data(DT_cpdata)
+DT <- DT_cpdata
+GT <- GT_cpdata
+MP <- MP_cpdata
+### mimic two fields
+A <- A.mat(GT)
+mix <- mmer(Yield~1,
+            random=~vsr(id, Gu=A) +
+              vsr(Rowf) +
+              vsr(Colf) +
+              spl2Da(Row,Col), nIters=3,
+            rcov=~vsr(units),
+            data=DT, verbose = FALSE)
+summary(mix)
+# make a plot to observe the spatial effects found by the spl2D()
+W <- with(DT,spl2Da(Row,Col)) # 2D spline incidence matrix
+DT$spatial <- W$Z$`A:all`%*%mix$U$`A:all`$Yield # 2D spline BLUPs
+# lattice::levelplot(spatial~Row*Col, data=DT) # plot the spatial effect by row and column
+```
+
+Notice that the job is done by the `spl2Da()` function that takes the `Row` and `Col` information to fit a spatial kernel. 
+
+
+### 9) Multivariate genetic models and genetic correlations
+
+Sometimes is important to estimate genetic variance-covariance among traits--multi-reponse models are very useful for such a task. Let see an example with 3 traits (`color`, `Yield`, and `Firmness`) and a single random effect (genotype; `id`) although multiple effects can be modeled as well. We need to use a variance covariance structure for the random effect to be able to obtain the genetic covariance among traits.
+
+```{r}
+# data(DT_cpdata)
+# DT <- DT_cpdata
+# GT <- GT_cpdata
+# MP <- MP_cpdata
+# A <- A.mat(GT)
+# ans.m <- mmer(cbind(Yield,color)~1,
+#                random=~ vsr(id, Gu=A, Gtc=unsm(2))
+#                + vsr(Rowf,Gtc=diag(2))
+#                + vsr(Colf,Gtc=diag(2)),
+#                rcov=~ vsr(units, Gtc=unsm(2)), nIters=3,
+#                data=DT, verbose = FALSE)
+```
+
+Now you can extract the BLUPs using `randef(ans.m)` or simply `ans.m$U`. Also, genetic correlations and heritabilities can be calculated easily. 
+
+```{r}
+# cov2cor(ans.m$sigma$`u:id`)
+```
+
+## SECTION 2: Special topics in Quantitative genetics
+
+### 1) Partitioned model
+
+The partitioned model was popularized by () to show that marker effects can be obtained by fitting a GBLUP model to reduce the computational burden and then recover them by creating some special matrices MM' for GBLUP and  M'(M'M)- to recover marker effects. Here we show a very easy example using the DT_cpdata:
+
+```{r}
+library(lme4breeding)
+data("DT_cpdata")
+DT <- DT_cpdata
+M <- GT_cpdata
+
+################
+# MARKER MODEL
+################
+mix.marker <- mmer(color~1,
+                   random=~Rowf+vsr(M),
+                   rcov=~units,data=DT, 
+                   verbose = FALSE)
+
+
+me.marker <- mix.marker$U$`u:M`$color
+
+################
+# PARTITIONED GBLUP MODEL
+################
+
+MMT <-tcrossprod(M) ## MM' = additive relationship matrix 
+MMTinv<-solve(MMT) ## inverse
+MTMMTinv<-t(M)%*%MMTinv # M' %*% (M'M)-
+
+mix.part <- mmer(color~1,
+                 random=~Rowf+vsr(id, Gu=MMT),
+                 rcov=~units,data=DT,
+                 verbose = FALSE)
+
+#convert BLUPs to marker effects me=M'(M'M)- u
+me.part<-MTMMTinv%*%matrix(mix.part$U$`u:id`$color,ncol=1)
+
+# compare marker effects between both models
+plot(me.marker,me.part)
+
+```
+
+As can be seen, these two models are equivalent with the exception that the partitioned model is more computationally efficient.
+
+
+### 2) UDU' decomposition
+
+Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix A=UDU' together with a transformation of the response and fixed effects Uy = Ux + UZ + e, to fit a model where the phenotypic variance matrix V is a diagonal because the relationship matrix is the diagonal matrix D from the decomposition that can be inverted easily and make multitrait models more feasible.
+
+```{r}
+
+# data("DT_wheat")
+# rownames(GT_wheat) <- rownames(DT_wheat)
+# G <- A.mat(GT_wheat)
+# Y <- data.frame(DT_wheat)
+# 
+# # make the decomposition
+# UD<-eigen(G) # get the decomposition: G = UDU'
+# U<-UD$vectors
+# D<-diag(UD$values)# This will be our new 'relationship-matrix'
+# rownames(D) <- colnames(D) <- rownames(G)
+# X<-model.matrix(~1, data=Y) # here: only one fixed effect (intercept)
+# UX<-t(U)%*%X # premultiply X and y by U' 
+# UY <- t(U) %*% as.matrix(Y) # multivariate
+# 
+# # dataset for decomposed model
+# DTd<-data.frame(id = rownames(G) ,UY, UX =UX[,1])
+# DTd$id<-as.character(DTd$id)
+# 
+# modeld <- mmer(cbind(X1,X2) ~ UX - 1, 
+#               random = ~vsr(id,Gu=D), 
+#               rcov = ~vsr(units),
+#               data=DTd, verbose = FALSE)
+# 
+# # dataset for normal model
+# DTn<-data.frame(id = rownames(G) , DT_wheat)
+# DTn$id<-as.character(DTn$id)
+# 
+# modeln <- mmer(cbind(X1,X2) ~ 1, 
+#               random = ~vsr(id,Gu=G), 
+#               rcov = ~vsr(units),
+#               data=DTn, verbose = FALSE)
+# 
+# ## compare regular and transformed blups
+# plot(x=(solve(t(U)))%*%modeld$U$`u:id`$X2[colnames(D)], 
+#      y=modeln$U$`u:id`$X2[colnames(D)], xlab="UDU blup",
+#      ylab="blup")
+
+```
+
+As can be seen, the two models are equivalent. Despite the fact that lme4breeding doesn't take a great advantage of this trick because it was built for dense matrices using the Armadillo library. Other software may be better using this trick.
+
+### 3) Mating designs
+
+Estimating variance components has been a topic of interest for the breeding community for a long time. Here we show how to calculate additive and dominance variance using the North Carolina Design I (Nested design) and North Carolina Design II (Factorial design) using the classical Expected Mean Squares method and the REML methods from lme4breeding and how these two are equivalent.
+
+#### North Carolina Design I (Nested design)
+
+```{r}
+
+data(DT_expdesigns)
+DT <- DT_expdesigns$car1
+DT <- aggregate(yield~set+male+female+rep, data=DT, FUN = mean)
+DT$setf <- as.factor(DT$set)
+DT$repf <- as.factor(DT$rep)
+DT$malef <- as.factor(DT$male)
+DT$femalef <- as.factor(DT$female)
+#levelplot(yield~male*female|set, data=DT, main="NC design I")
+##############################
+## Expected Mean Square method
+##############################
+mix1 <- lm(yield~ setf + setf:repf + femalef:malef:setf + malef:setf, data=DT)
+MS <- anova(mix1); MS
+ms1 <- MS["setf:malef","Mean Sq"]
+ms2 <- MS["setf:femalef:malef","Mean Sq"]
+mse <- MS["Residuals","Mean Sq"]
+nrep=2
+nfem=2
+Vfm <- (ms2-mse)/nrep
+Vm <- (ms1-ms2)/(nrep*nfem)
+
+## Calculate Va and Vd
+Va=4*Vm # assuming no inbreeding (4/(1+F))
+Vd=4*(Vfm-Vm) # assuming no inbreeding(4/(1+F)^2)
+Vg=c(Va,Vd); names(Vg) <- c("Va","Vd"); Vg
+##############################
+## REML method
+##############################
+mix2 <- mmer(yield~ setf + setf:repf,
+            random=~femalef:malef:setf + malef:setf, nIters=3,
+            data=DT, verbose = FALSE)
+vc <- summary(mix2)$varcomp; vc
+Vfm <- vc[1,"VarComp"]
+Vm <- vc[2,"VarComp"]
+
+## Calculate Va and Vd
+Va=4*Vm # assuming no inbreeding (4/(1+F))
+Vd=4*(Vfm-Vm) # assuming no inbreeding(4/(1+F)^2)
+Vg=c(Va,Vd); names(Vg) <- c("Va","Vd"); Vg
+
+```
+
+As can be seen the REML method is easier than manipulating the MS and we arrive to the same results.
+
+#### North Carolina Design II (Factorial design)
+
+```{r}
+DT <- DT_expdesigns$car2
+DT <- aggregate(yield~set+male+female+rep, data=DT, FUN = mean)
+DT$setf <- as.factor(DT$set)
+DT$repf <- as.factor(DT$rep)
+DT$malef <- as.factor(DT$male)
+DT$femalef <- as.factor(DT$female)
+#levelplot(yield~male*female|set, data=DT, main="NC desing II")
+head(DT)
+
+N=with(DT,table(female, male, set))
+nmale=length(which(N[1,,1] > 0))
+nfemale=length(which(N[,1,1] > 0))
+nrep=table(N[,,1])
+nrep=as.numeric(names(nrep[which(names(nrep) !=0)]))
+
+##############################
+## Expected Mean Square method
+##############################
+
+mix1 <- lm(yield~ setf + setf:repf + 
+             femalef:malef:setf + malef:setf + femalef:setf, data=DT)
+MS <- anova(mix1); MS
+ms1 <- MS["setf:malef","Mean Sq"]
+ms2 <- MS["setf:femalef","Mean Sq"]
+ms3 <- MS["setf:femalef:malef","Mean Sq"]
+mse <- MS["Residuals","Mean Sq"]
+nrep=length(unique(DT$rep))
+nfem=length(unique(DT$female))
+nmal=length(unique(DT$male))
+Vfm <- (ms3-mse)/nrep; 
+Vf <- (ms2-ms3)/(nrep*nmale); 
+Vm <- (ms1-ms3)/(nrep*nfemale); 
+
+Va=4*Vm; # assuming no inbreeding (4/(1+F))
+Va=4*Vf; # assuming no inbreeding (4/(1+F))
+Vd=4*(Vfm); # assuming no inbreeding(4/(1+F)^2)
+Vg=c(Va,Vd); names(Vg) <- c("Va","Vd"); Vg
+
+##############################
+## REML method
+##############################
+
+mix2 <- mmer(yield~ setf + setf:repf ,
+            random=~femalef:malef:setf + malef:setf + femalef:setf, 
+            nIters=3,
+            data=DT, verbose = FALSE)
+vc <- summary(mix2)$varcomp; vc
+Vfm <- vc[1,"VarComp"]
+Vm <- vc[2,"VarComp"]
+Vf <- vc[3,"VarComp"]
+
+Va=4*Vm; # assuming no inbreeding (4/(1+F))
+Va=4*Vf; # assuming no inbreeding (4/(1+F))
+Vd=4*(Vfm); # assuming no inbreeding(4/(1+F)^2)
+Vg=c(Va,Vd); names(Vg) <- c("Va","Vd"); Vg
+
+```
+
+As can be seen, the REML method is easier than manipulating the MS and we arrive to the same results.
+
+### 4) GWAS by GBLUP
+
+Gualdron-Duarte et al. (2014) and Bernal-Rubio et al. (2016) proved that in (SingleStep)GBLUP or RRBLUP/SNP-BLUP, dividing the estimate of the marker effect by its standard error is mathematically equivalent to fixed regression EMMAX GWAS, even if markers are estimated as random effects in GBLUP and as fixed effects in EMMAX. That way fitting a GBLUP model is enough to perform GWAS for additive and on-additive effects.
+
+Let us use the DT_cpdata dataset to explore the GWAS by GBLUP method
+```{r}
+data(DT_cpdata)
+DT <- DT_cpdata
+GT <- GT_cpdata[,1:200]
+MP <- MP_cpdata
+#### create the variance-covariance matrix
+A <- A.mat(GT) # additive relationship matrix
+n <- nrow(DT) # to be used for degrees of freedom
+k <- 1 # to be used for degrees of freedom (number of levels in fixed effects)
+```
+First we fit a regular GWAS/EMMAX using the GWAS function available in lme4breeding that first calculates variance components and then fits a regression marker by marker as a fixed effect.
+
+```{r}
+###########################
+#### Regular GWAS/EMMAX approach
+###########################
+mix2 <- GWAS(color~1,
+             random=~vsr(id, Gu=A) + Rowf + Colf,
+             rcov=~units, M=GT, gTerm = "u:id",
+             verbose = FALSE, nIters=3,
+             data=DT)
+```
+
+To compare EMMAX to the approach proposed by Gualdron-Duarte et al. (2014) and Bernal-Rubio et al. (2016) we will start fitting an RRBLUP/SNP-BLUP model to show that the estimate of the marker effect by its standard error is mathematically equivalent to fixed regression EMMAX GWAS.
+
+```{r}
+###########################
+#### GWAS by RRBLUP approach
+###########################
+Z <- GT[as.character(DT$id),]
+mixRRBLUP <- mmer(color~1,
+              random=~vsr(Z) + Rowf + Colf,
+              rcov=~units, nIters=3,
+              verbose = FALSE,
+              data=DT)
+
+a <- mixRRBLUP$U$`u:Z`$color # marker effects
+se.a <- sqrt(diag(kronecker(diag(ncol(Z)),mixRRBLUP$sigma$`u:Z`) - mixRRBLUP$PevU$`u:Z`$color)) # SE of marker effects
+t.stat <- a/se.a # t-statistic
+pvalRRBLUP <- dt(t.stat,df=n-k-1) # -log10(pval)
+```
+Instead of fitting the RRBLUP/SNP-BLUP model we can fit a GBLUP model which is less computationally demanding and recover marker effects and their standard errors from the genotype effects.
+
+```{r}
+###########################
+#### GWAS by GBLUP approach
+###########################
+M<- GT
+MMT <-tcrossprod(M) ## MM' = additive relationship matrix
+MMTinv<-solve(MMT + diag(1e-6, ncol(MMT), ncol(MMT))) ## inverse of MM'
+MTMMTinv<-t(M)%*%MMTinv # M' %*% (M'M)-
+mixGBLUP <- mmer(color~1,
+             random=~vsr(id, Gu=MMT) + Rowf + Colf,
+             rcov=~units, nIters=3,
+             verbose = FALSE,
+             data=DT)
+a.from.g <-MTMMTinv%*%matrix(mixGBLUP$U$`u:id`$color,ncol=1)
+var.g <- kronecker(MMT,mixGBLUP$sigma$`u:id`) - mixGBLUP$PevU$`u:id`$color
+var.a.from.g <- t(M)%*%MMTinv%*% (var.g) %*% t(MMTinv)%*%M
+se.a.from.g <- sqrt(diag(var.a.from.g))
+t.stat.from.g <- a.from.g/se.a.from.g # t-statistic
+pvalGBLUP <- dt(t.stat.from.g,df=n-k-1) # -log10(pval)
+```
+Now we can look at the p-values coming from the 3 approaches to indeed show that results are equivalent.
+
+```{r}
+###########################
+#### Compare results
+###########################
+# plot(mix2$scores[,1], main="GWAS")
+plot(-log(pvalRRBLUP), main="GWAS by RRBLUP/SNP-BLUP") 
+plot(-log(pvalGBLUP), main="GWAS by GBLUP")
+
+```
+
+### Final remarks
+
+Keep in mind that mmer uses a direct inversion (DI) algorithm which can be very slow for large datasets with many records. When datasets have more records than coefficients to be estimated please shift to the use of the mmec function.
+
+## Literature
+
+Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package lme4breeding. PLoS ONE 11(6):1-15.
+
+Covarrubias-Pazaran G. 2018. Software update: Moving the R package lme4breeding to multivariate mixed models for genome-assisted prediction. doi: https://doi.org/10.1101/354639
+
+Bernardo Rex. 2010. Breeding for quantitative traits in plants. Second edition. Stemma Press. 390 pp.
+
+Gilmour et al. 1995. Average Information REML: An efficient algorithm for variance parameter estimation in linear mixed models. Biometrics 51(4):1440-1450.
+
+Henderson C.R. 1975. Best Linear Unbiased Estimation and Prediction under a Selection Model. Biometrics vol. 31(2):423-447.
+
+Kang et al. 2008. Efficient control of population structure in model organism association mapping. Genetics 178:1709-1723.
+
+Lee, D.-J., Durban, M., and Eilers, P.H.C. (2013). Efficient two-dimensional smoothing with P-spline ANOVA mixed models and nested bases. Computational Statistics and Data Analysis, 61, 22 - 37.
+
+Lee et al. 2015. MTG2: An efficient algorithm for multivariate linear mixed model analysis based on genomic information. Cold Spring Harbor. doi: http://dx.doi.org/10.1101/027201.
+
+Maier et al. 2015. Joint analysis of psychiatric disorders increases accuracy of risk prediction for schizophrenia, bipolar disorder, and major depressive disorder. Am J Hum Genet; 96(2):283-294.
+
+Rodriguez-Alvarez, Maria Xose, et al. Correcting for spatial heterogeneity in plant breeding experiments with P-splines. Spatial Statistics 23 (2018): 52-71.
+
+Searle. 1993. Applying the EM algorithm to calculating ML and REML estimates of variance components. Paper invited for the 1993 American Statistical Association Meeting, San Francisco.
+
+Yu et al. 2006. A unified mixed-model method for association mapping that accounts for multiple levels of relatedness. Genetics 38:203-208.
+
+Tunnicliffe W. 1989. On the use of marginal likelihood in time series model estimation. JRSS 51(1):15-27.

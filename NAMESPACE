@@ -3,7 +3,12 @@ import("methods")
 import("Matrix")
 import("lme4")
 
-export( "lmebreed", "dsc", "rrc", "redmm", "overlay", "add.diallel.vars")
+importFrom("stats", "as.formula", "cov", "model.matrix", "na.omit",
+             "na.pass")
+importFrom("utils", "setTxtProgressBar", "txtProgressBar")
+
+export( "lmebreed", "dsc", "rrc", "redmm", "overlay", "add.diallel.vars",
+        "build.HMM","bbasis","tps","A.mat","atcg1234","imputev", "getMME")
 
 exportMethods(
               "coerce",

@@ -101,7 +101,8 @@ The resulting loadings (Gamma) and factor scores can be thought as an equivalent
 # # reduced rank model
 # Z <- with(DT,  dsc(rrc(Env, H = H0, nPC = 3)) )$Z
 # Zd <- with(DT, dsc(Env))$Z
-# faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
+# faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"),
+#              "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
 # for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 # ansFA <- lmebreed(as.formula(faFormula),
 #                   pedigree = list(Name = Matrix::chol(A) ),

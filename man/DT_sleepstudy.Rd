@@ -52,4 +52,4 @@ data(DT_sleepstudy)
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{mmer}} }
+\seealso{The core function of the package \code{\link{lmebreed}} }
