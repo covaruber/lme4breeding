@@ -135,14 +135,13 @@ DT <- DT_cornhybrids
 DTi <- DTi_cornhybrids
 GT <- GT_cornhybrids
 
-modFD <- mmec(Yield~Location, 
-              random=~GCA1+GCA2+SCA, 
-              rcov=~units, nIters=3,
-              data=DT, verbose = FALSE)
-(suma <- summary(modFD)$varcomp)
-Vgca <- sum(suma[1:2,1])
-Vsca <- suma[3,1]
-Ve <- suma[4,1]
+modFD <- lmebreed(Yield~Location + (1|GCA1)+(1|GCA2)+(1|SCA),
+              data=DT)
+
+vc <- VarCorr(modFD); print(vc,comp=c("Variance"))
+Vgca <- vc$GCA1 + vc$GCA2
+Vsca <- vc$SCA
+Ve <- attr(vc, "sc")^2
 Va = 4*Vgca
 Vd = 4*Vsca
 Vg <- Va + Vd
@@ -152,7 +151,7 @@ Vg <- Va + Vd
 Don't worry too much about the `h2` value, the data was simulated to be mainly dominance variance, therefore the `Va` was simulated extremely small leading to such value of narrow sense `h2`.
 
 
-In the second data set we show a small half diallel with 7 parents crossed in one direction. There are n(n-1)/2 possible crosses; 7(6)/2 = 21 unique crosses. Parents appear as males or females indistictly. Each with two replications in a CRD. For a half diallel design a single GCA variance component for both males and females can be estimated and an SCA as well ($\sigma^2_GCA$ and $\sigma^2_SCA$ respectively), and BLUPs for GCA and SCA of the parents can be extracted. We will show first how to do so with the `mmer()` function using the `overlay()` function. The specific model here is:
+In the second data set we show a small half diallel with 7 parents crossed in one direction. There are n(n-1)/2 possible crosses; 7(6)/2 = 21 unique crosses. Parents appear as males or females indistictly. Each with two replications in a CRD. For a half diallel design a single GCA variance component for both males and females can be estimated and an SCA as well ($\sigma^2_GCA$ and $\sigma^2_SCA$ respectively), and BLUPs for GCA and SCA of the parents can be extracted. We will show how to do so using the `overlay()` function. The specific model here is:
 
 $y = X\beta + Zu_g + Zu_s + \epsilon$ 
 
@@ -163,17 +162,23 @@ head(DT)
 DT$femalef <- as.factor(DT$female)
 DT$malef <- as.factor(DT$male)
 DT$genof <- as.factor(DT$geno)
-#### model using overlay
-modh <- mmec(sugar~1, 
-             random=~vsc(isc(overlay(femalef,malef)) )
-             + genof, nIters=3,
-             data=DT, verbose = FALSE)
-summary(modh)$varcomp
+# overlay matrix to be added to the addmat argument
+Z <- with(DT, overlay(femalef,malef) )
+Z <- Z[which(!is.na(DT$sugar)),]
+# create inital values for incidence matrix but irrelevant
+# since these will be replaced by admat argument
+fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
+#### model using overlay without relationship matrix
+modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
+                 addmat = list(fema=Z),
+             data=DT)
+vc <- VarCorr(modh); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2;ve
 ```
 
 Notice how the `overlay()` argument makes the overlap of incidence matrices possible making sure that male and female are joint into a single random effect.
 
-### 5) Genomic selection: predicting mendelian sampling
+### 4) Genomic selection: predicting mendelian sampling
 
 In this section we will use wheat data from CIMMYT to show how genomic selection is performed. This is the case of prediction of specific individuals within a population. It basically uses a similar model of the form:
 
@@ -190,7 +195,7 @@ data(DT_wheat)
 DT <- DT_wheat
 GT <- GT_wheat[,1:200]
 colnames(DT) <- paste0("X",1:ncol(DT))
-DT <- as.data.frame(DT);DT$id <- as.factor(rownames(DT))
+DT <- as.data.frame(DT);DT$line <- as.factor(rownames(DT))
 # select environment 1
 rownames(GT) <- rownames(DT)
 K <- A.mat(GT) # additive relationship matrix
@@ -202,93 +207,84 @@ vv <- sample(rownames(DT),round(nrow(DT)/5))
 y.trn[vv,"X1"] <- NA
 head(y.trn)
 ## GBLUP
-ans <- mmer(X1~1,
-            random=~vsr(id,Gu=K), 
-            rcov=~units,nIters=3,
-            data=y.trn, verbose = FALSE) # kinship based
-ans$U$`u:id`$X1 <- as.data.frame(ans$U$`u:id`$X1)
-rownames(ans$U$`u:id`$X1) <- gsub("id","",rownames(ans$U$`u:id`$X1))
-cor(ans$U$`u:id`$X1[vv,],DT[vv,"X1"], use="complete")
+K <- K + diag(1e-4, ncol(K), ncol(K) )
+ans <- lmebreed(X1 ~ (1|line), 
+                relmat = list(line=Matrix::chol(K)),
+                control = lmerControl(
+                  check.nobs.vs.nlev = "ignore",
+                  check.nobs.vs.rankZ = "ignore",
+                  check.nobs.vs.nRE="ignore"
+                ),
+                data=y.trn)
+vc <- VarCorr(ans); print(vc,comp=c("Variance"))
+
+# take a extended dataset and fit a dummy model 
+# just to get required matrices
+y.tst <- y.trn; y.tst$X1 <- imputev(y.tst$X1)
+ans2 <- update(ans, 
+               start = getME(ans, "theta"),
+               data = y.tst,
+               control = lmerControl(check.nobs.vs.nlev = "ignore",
+                                     check.nobs.vs.rankZ = "ignore",
+                                     check.nobs.vs.nRE="ignore",
+                                     optCtrl = list(maxeval= 1),
+                                     calc.derivs = FALSE))
+# compute predictive ability
+cor(ranef(ans2)$line[vv,],DT[vv,"X1"], use="complete")
+# # other approach
+# mme <- getMME(ans2, vc=vc, recordsToKeep = which(!is.na(y.trn$X1)))
+# cor(mme$bu[vv,],DT[vv,"X1"], use="complete")
 
 ## rrBLUP
-ans2 <- mmer(X1~1,
-             random=~vsr(list(GT), buildGu = FALSE), 
-             rcov=~units, getPEV = FALSE, nIters=3,
-             data=y.trn, verbose = FALSE) # kinship based
-
-u <- GT %*% as.matrix(ans2$U$`u:GT`$X1) # BLUPs for individuals
-rownames(u) <- rownames(GT)
-cor(u[vv,],DT[vv,"X1"]) # same correlation
-# the same can be applied in multi-response models in GBLUP or rrBLUP
+M <- tcrossprod(GT)
+xx <- with(DT, redmm(x=line, M=M, nPC=100, returnLam = TRUE))
+Z <- xx$Z[which(!is.na(DT$X1)),]
+custom <- (rep(colnames(Z), nrow(Z)))[1:nrow(Z)]
+ansRRBLUP <- lmebreed(X1 ~ (1|custom),
+                addmat = list(custom=Z),
+            data=DT)
+re <- ranef(ans)$custom
+u = tcrossprod(xx$Lam, t(as.matrix( re[colnames(xx$Lam),] ) ))
+cor(u[vv,],DT[vv,"X1"], use="complete")
 ```
 
-Please notice that when specifying the marker matrix as a random effect we used the argument 'buildGu=FALSE' to inform the 'mmer' function that a covariance matrix for the levels of the random effect shouldn't be built. Imagine a model with 100,000 markers, that would imply a relationship matrix of 100,000 x 100,000. If that matrix is a diagonal it would only compromise the speed and memory of the function. By setting  'buildGu=FALSE' the mmer solver will avoid the matrix multiplications using that huge diagonal matrix. If you want to specify a relationship matrix for the marker matrix then you cannot use that 'buildGu' argument.
+### 5) Indirect genetic effects
 
-### 6) Indirect genetic effects
-
-General variance structures can be used to fit indirect genetic effects. Here, we use an example dataset to show how we can fit the variance and covariance components between two or more different random effects.
-
-We first fit a direct genetic effects model:
-```{r}
-# data(DT_ige)
-# DT <- DT_ige
-# Af <- A_ige
-# An <- A_ige
-
-## Direct genetic effects model
-# modDGE <- mmec(trait ~ block,
-#                random = ~ focal,
-#                rcov = ~ units, nIters=3,
-#                data = DT, verbose=FALSE)
-# summary(modDGE)$varcomp
-
-```
-
-We now fit the indirect genetic effects model without covariance between DGE and IGE:
-
-```{r}
-# data(DT_ige)
-# DT <- DT_ige
-# A <- A_ige
-# 
-# ## Indirect genetic effects model
-# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
-#                random = ~ focal + neighbour, verbose = FALSE,
-#                rcov = ~ units, nIters=100,
-#               data = DT)
-# summary(modIGE)$varcomp
-
-```
-
-We now fit the indirect genetic effects model with covariance between DGE and IGE for which we will use the `gvsr()` function:
+General variance structures can be used to fit indirect genetic effects. Here, we use an example dataset to show how we can fit the variance and covariance components between two or more different random effects. We now fit the indirect genetic effects model with covariance between DGE and IGE. On top of that we can include a relationship matrix for the two random effects that are being forced to co-vary
 
 ```{r}
 
-# ### Indirect genetic effects model
-# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
-#                random = ~ covc( vsc(isc(focal)), vsc(isc(neighbour)) ),
-#                rcov = ~ units, nIters=100, verbose = FALSE,
-#               data = DT)
-# summary(modIGE)$varcomp
+data(DT_ige)
+DT <- DT_ige
+A_ige <- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
+# Define 2 dummy variables to make a fake covariance
+# for two different random effects
+DT$fn <- DT$nn <- 1
+# Create the incidence matrix for the first random effect
+Zf <- Matrix::sparse.model.matrix( ~ focal-1, data=DT )
+colnames(Zf) <- gsub("focal","", colnames(Zf))
+Zf <- Zf[which(!is.na(DT$trait)),]
+# Create the incidence matrix for the second random effect
+Zn <- Matrix::sparse.model.matrix( ~ neighbour-1, data=DT )
+colnames(Zn) <- gsub("neighbour","", colnames(Zn))
+Zn <- Zn[which(!is.na(DT$trait)),]
+# Make inital values for incidence matrix but irrelevant
+# since these will be replaced by the addmat argument
+both <- (rep(colnames(Zf), nrow(DT)))[1:nrow(DT)]
+# Fit the model
+modIGE <- lmebreed(trait ~ block + (0+fn+nn|both),
+                   addmat = list(both=list(Zf,Zn)),
+                   relmat = list(both=Matrix::chol(A_ige)),
+                   data = DT)
+vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
+blups <- ranef(modIGE)
+pairs(blups$both)
+cov2cor(vc$both)
+
 
 ```
 
-On top of that we can include a relationship matrix for the two random effects that are being forced to co-vary
-
-```{r}
-
-### Indirect genetic effects model
-# Ai <- as( solve(A_ige + diag(1e-5, nrow(A_ige),nrow(A_ige) )), Class="dgCMatrix")
-# # Indirect genetic effects model with covariance between DGE and IGE using relationship matrices
-# modIGE <- mmec(trait ~ block, dateWarning = FALSE,
-#                random = ~ covc( vsc(isc(focal), Gu=Ai), vsc(isc(neighbour), Gu=Ai) ),
-#                rcov = ~ units, nIters=100, verbose = FALSE,
-#               data = DT)
-# summary(modIGE)$varcomp
-
-```
-
-### 7) Genomic selection: single cross prediction
+### 6) Genomic selection: single cross prediction
 
 When doing prediction of single cross performance the phenotype can be dissected in three main components, the general combining abilities (GCA) and specific combining abilities (SCA). This can be expressed with the same model analyzed in the diallel experiment mentioned before:
 
@@ -319,23 +315,45 @@ Md <- (Md_technow*2) - 1
 Mf <- (Mf_technow*2) - 1
 Ad <- A.mat(Md)
 Af <- A.mat(Mf)
-Adi <- as(solve(Ad + diag(1e-4,ncol(Ad),ncol(Ad))), Class="dgCMatrix")
-Afi <- as(solve(Af + diag(1e-4,ncol(Af),ncol(Af))), Class="dgCMatrix")
-# RUN THE PREDICTION MODEL
+Ad <- Ad + diag(1e-4, ncol(Ad), ncol(Ad))
+Af <- Af + diag(1e-4, ncol(Af), ncol(Af))
+# simulate some missing hybrids to predict
 y.trn <- DT
 vv1 <- which(!is.na(DT$GY))
-vv2 <- sample(vv1, 100)
-y.trn[vv2,"GY"] <- NA
-anss2 <- mmec(GY~1, 
-              random=~vsc(isc(dent),Gu=Adi) + vsc(isc(flint),Gu=Afi), 
-              rcov=~units, nIters=15,
-              data=y.trn, verbose = FALSE) 
-summary(anss2)$varcomp
+vv2 <- sample(DT[vv1,"hy"], 100)
+y.trn[which(y.trn$hy %in% vv2),"GY"] <- NA
+ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
+             relmat = list(dent=Matrix::chol(Ad),
+                           flint=Matrix::chol(Af)),
+             data=y.trn)
+vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 
-# zu1 <- model.matrix(~dent-1,y.trn) %*% anss2$uList$`vsc(isc(dent), Gu = Adi)`
-# zu2 <- model.matrix(~flint-1,y.trn) %*% anss2$uList$`vsc(isc(flint), Gu = Afi)`
-# u <- zu1+zu2+as.vector(anss2$b)
-# cor(u[vv2,], DT$GY[vv2])
+# take a extended dataset and fit a dummy model 
+# just to get required matrices
+y.tst <- y.trn; y.tst$GY <- imputev(y.tst$GY)
+ans2p <- update(ans2, 
+               start = getME(ans2, "theta"),
+               data = y.tst,
+               control = lmerControl(check.nobs.vs.nlev = "ignore",
+                                     check.nobs.vs.rankZ = "ignore",
+                                     check.nobs.vs.nRE="ignore",
+                                     optCtrl = list(maxeval= 1),
+                                     calc.derivs = FALSE))
+
+re <- ranef(ans2p)
+
+Pdent <- as.matrix(re$dent[,1,drop=FALSE]) %*% Matrix(1, ncol=nrow(re$flint), nrow=1)
+Pflint <- as.matrix(re$flint[,1,drop=FALSE]) %*% Matrix(1, ncol=nrow(re$dent), nrow=1)
+P <- Pdent + t(Pflint); colnames(P) <- rownames(re$flint)
+# lattice::levelplot(as.matrix(P))
+preds <- real <- numeric()
+for(iHyb in vv2){ 
+  parents <- strsplit(iHyb,":")[[1]]
+  preds[iHyb] <- P[which(rownames(P) %in% parents),which(colnames(P) %in% parents)]
+  real[iHyb] <- DT[which(DT$hy == iHyb),"GY"]
+}
+plot(preds, real)
+cor(preds, real)
 ```
 
 In the previous model we only used the GCA effects (GCA1 and GCA2) for practicity, altough it's been shown that the SCA effect doesn't actually help that much in increasing prediction accuracy, but does increase a lot the computation intensity required since the variance covariance matrix for SCA is the kronecker product of the variance covariance matrices for the GCA effects, resulting in a 10578 x 10578 matrix that increases in a very intensive manner the computation required.
@@ -353,22 +371,28 @@ In this example we assume an unreplicated population where row and range informa
 ```{r}
 data(DT_cpdata)
 DT <- DT_cpdata
-GT <- GT_cpdata
-MP <- MP_cpdata
-### mimic two fields
-A <- A.mat(GT)
-mix <- mmer(Yield~1,
-            random=~vsr(id, Gu=A) +
-              vsr(Rowf) +
-              vsr(Colf) +
-              spl2Da(Row,Col), nIters=3,
-            rcov=~vsr(units),
-            data=DT, verbose = FALSE)
-summary(mix)
-# make a plot to observe the spatial effects found by the spl2D()
-W <- with(DT,spl2Da(Row,Col)) # 2D spline incidence matrix
-DT$spatial <- W$Z$`A:all`%*%mix$U$`A:all`$Yield # 2D spline BLUPs
-# lattice::levelplot(spatial~Row*Col, data=DT) # plot the spatial effect by row and column
+# add the units column
+DT$units <- as.factor(1:nrow(DT))
+# get spatial incidence matrix
+Zs <- with(DT, tps(Row, Col))$All
+rownames(Zs) <- DT$units
+# reduce the matrix to its PCs
+Z = with(DT, redmm(x=units, M=Zs, nPC=100))
+# make sure dimensions will be correct
+Z <- Z[which(!is.na(DT$Yield)),]
+# create dummy variable
+spatial <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
+# fit model
+mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
+                 addmat =list(spatial=Z),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+
 ```
 
 Notice that the job is done by the `spl2Da()` function that takes the `Row` and `Col` information to fit a spatial kernel. 

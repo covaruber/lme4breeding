@@ -10,7 +10,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
            relmat = list(), addmat = list(), control = list(),
            start = NULL, verbose = FALSE, subset, weights,
            na.action, offset, contrasts = NULL, model = TRUE,
-           x = TRUE, dateWarning=TRUE, ...)
+           x = TRUE, dateWarning=TRUE, returnParams=FALSE, ...)
 }
 \arguments{
   \item{relmat}{an optional named list of relationship factors (relfactors) 
@@ -24,6 +24,8 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
     examples and vignettes to learn how to use it.}
   \item{dateWarning}{an logical value indicating if you want to be warned when a new 
   version of lme4breeding is available on CRAN.}
+  \item{returnParams}{an logical value indicating if you want to only get the incidence 
+  matrices of the model.}
   \item{formula}{as in \code{\link[lme4]{lmer}}}
   \item{data}{as in \code{\link[lme4]{lmer}}}
   \item{family}{as in \code{\link[lme4]{glmer}}}

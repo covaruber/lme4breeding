@@ -7,7 +7,7 @@ lmebreed <-
            # initDerivs=NULL, initCov=NULL,
            control = list(), start = NULL, verbose = FALSE, 
            subset, weights, na.action, offset, contrasts = NULL,
-           model = TRUE, x = TRUE, dateWarning=TRUE, ...)
+           model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, ...)
   {
     my.date <- "2024-09-01" # expiry date
     your.date <- Sys.Date()
@@ -37,6 +37,8 @@ lmebreed <-
     lmerc[[1]] <- if (gaus){as.name("lmer")}else{as.name("glmer")} 
     lmerc$relmat <- NULL
     lmerc$addmat <- NULL
+    lmerc$dateWarning <- NULL
+    lmerc$returnParams <- NULL
     # lmerc$initDerivs <- NULL
     # lmerc$initCov <- NULL
     if (!gaus) {lmerc$REML <- NULL}
@@ -107,23 +109,28 @@ lmebreed <-
     reTrms <- list(Zt=Zt,theta=lmf@theta,Lambdat=pp$Lambdat,Lind=pp$Lind,
                    lower=lmf@lower,flist=lmf@flist,cnms=lmf@cnms, Gp=lmf@Gp)
     dfl <- list(fr=lmf@frame, X=pp$X, reTrms=reTrms, start=lmf@theta)
-    if (gaus) {
-      dfl$REML = resp$REML > 0L
-      devfun <- do.call(mkLmerDevfun,dfl)
-      opt <- optimizeLmer(devfun, optimizer="Nelder_Mead",...)
-    } else {
-      dfl$family <- family
-      devfun <- do.call(mkGlmerDevfun,dfl)
-      opt <- optimizeGlmer(devfun, optimizer="Nelder_Mead",...)
+    if(returnParams){
+      return(dfl)
+    }else{
+      if (gaus) {
+        dfl$REML = resp$REML > 0L
+        devfun <- do.call(mkLmerDevfun,dfl)
+        opt <- optimizeLmer(devfun, optimizer="Nelder_Mead",...)
+      } else {
+        dfl$family <- family
+        devfun <- do.call(mkGlmerDevfun,dfl)
+        opt <- optimizeGlmer(devfun, optimizer="Nelder_Mead",...)
+      }
+      mm <- mkMerMod(environment(devfun), opt, reTrms, lmf@frame, mc)
+      cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
+      ans <- do.call(new, list(Class=cls, relfac=relfac,
+                               frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
+                               theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
+                               devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
+      ans@call <- evalq(mc)
+      return(ans)
     }
-    mm <- mkMerMod(environment(devfun), opt, reTrms, lmf@frame, mc)
-    cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
-    ans <- do.call(new, list(Class=cls, relfac=relfac,
-                             frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
-                             theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
-                             devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
-    ans@call <- evalq(mc)
-    ans
+    
   }
 
 setMethod("ranef", signature(object = "lmebreed"),

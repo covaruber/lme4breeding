@@ -29,8 +29,6 @@ data("DT_halfdiallel")
 # DT$femalef <- as.factor(DT$female)
 # DT$malef <- as.factor(DT$male)
 # DT$genof <- as.factor(DT$geno)
-# # relationship matrix to be added to the relmat argument
-# A <- diag(7); colnames(A) <- rownames(A) <- 1:7;A
 # # overlay matrix to be added to the addmat argument
 # Z <- with(DT, overlay(femalef,malef) )
 # Z <- Z[which(!is.na(DT$sugar)),]
@@ -43,6 +41,8 @@ data("DT_halfdiallel")
 #              data=DT)
 # vc <- VarCorr(modh); print(vc,comp=c("Variance"))
 # #### model using overlay with relationship matrix
+# # relationship matrix to be added to the relmat argument
+# A <- diag(7); colnames(A) <- rownames(A) <- 1:7;A
 # modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
 #                  addmat = list(fema=Z),
 #                  relmat = list(fema=Matrix::chol(A)),

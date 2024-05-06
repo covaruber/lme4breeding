@@ -55,6 +55,7 @@ ansDG <- lmebreed(as.formula(diagFormula),
                       relmat = list(Name = Matrix::chol(A) ),
                       data=DT)
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2; ve
 
 ```
 
@@ -72,7 +73,7 @@ ansCS <- lmebreed(Yield ~ Env + (1|Name) + (1|EnvName),
                     relmat = list(Name = Matrix::chol(A), EnvName=  Matrix::chol(EA) ),
                     data=DT)
 vc <- VarCorr(ansCS); print(vc,comp=c("Variance"))
-
+ve <- attr(vc, "sc")^2; ve
 ```
 
 ## 4) MET: compund symmetry model + diagonal (CS+DG)
@@ -88,6 +89,7 @@ ansCSDG <- lmebreed(as.formula(csdiagFormula),
                       relmat = list(Name = Matrix::chol(A) ),
                       data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2; ve
 ```
 
 ## 5) MET: unstructured model (US)
@@ -104,6 +106,7 @@ ansDG <- lmebreed(as.formula(usFormula),
                     relmat = list(Name = Matrix::chol(A) ),
                     data=DT)
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2; ve
 
 ```
 
@@ -123,6 +126,7 @@ A multi-environment model is the one that is fitted when the breeding program ca
 #                   relmat = list(Name = Matrix::chol(A) ),
 #                   data=DT)
 # vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
+# ve <- attr(vc, "sc")^2; ve
 
 ```
 
@@ -138,6 +142,7 @@ In addition, we an fit this without covariance:
 #                   relmat = list(Name = Matrix::chol(A) ),
 #                   data=DT)
 # vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
+# ve <- attr(vc, "sc")^2; ve
 
 ```
 
@@ -158,6 +163,7 @@ DT2 <- DT2[with(DT2, order(Name)), ]
 
 ansFW <- lmebreed(y~ Env + (envIndex || Name), data=DT2)
 vc <- VarCorr(ansFW); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2; ve
 
 ```
 
@@ -167,6 +173,7 @@ Alternatively, you can also add the covariance between both the main effect and 
 
 ansFW2 <- lmebreed(y~ Env + (envIndex | Name), data=DT2)
 vc <- VarCorr(ansFW2); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2; ve
 
 ```
 
@@ -201,6 +208,7 @@ ansFA <- lmebreed(as.formula(faFormula),
                   relmat = list(Name = Matrix::chol(A) ),
                   data=DT)
 vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2; ve
 
 loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = T) )$Gamma
 Gint <- loadings %*% vc$Name %*% t(loadings)
@@ -256,7 +264,7 @@ ans2 <- lmebreed(Estimate~Env + (1|Effect) + (1|Env:Effect), weights = w,data=DT
                  )
                  )
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
-
+ve <- attr(vc, "sc")^2; ve
 
 ```
  

@@ -38,10 +38,8 @@ Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits u
 ####=========================================####
 data(DT_technow)
 # DT <- DT_technow
-# Md <- Md_technow
-# Mf <- Mf_technow
-# Md <- (Md*2) - 1
-# Mf <- (Mf*2) - 1
+# Md <- (Md_technow*2) - 1
+# Mf <- (Mf_technow*2) - 1
 # Ad <- A.mat(Md)
 # Af <- A.mat(Mf)
 # Ad <- Ad + diag(1e-4, ncol(Ad), ncol(Ad))

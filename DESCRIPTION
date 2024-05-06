@@ -5,7 +5,7 @@ Title: Relationship-Based Mixed-Effects Models
 Author: Giovanny Covarrubias-Pazaran
 Maintainer: Giovanny Covarrubias-Pazaran <cova_ruber@live.com.mx>
 Description: Fit relationship-based mixed-effects models with complex variance-covariance structures.
-Depends: R(>= 3.0.0), lme4 (>= 1.0), Matrix (>= 1.0), methods
+Depends: R(>= 3.0.0), lme4 (>= 1.0), Matrix (>= 1.0), methods, stats, crayon
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
