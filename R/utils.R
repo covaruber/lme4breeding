@@ -1,5 +1,27 @@
+##################################################################################################
+#Startup function
+#this function is executed once the library is loaded
+.onAttach = function(library, pkg)
+{
+  Rv = R.Version()
+  if(!exists("getRversion", baseenv()) || (getRversion() < "3.5.0"))
+    stop("This package requires R 3.5.0 or later")
+  if(interactive()) {
+    packageStartupMessage(blue(paste("[]==================================================================[]")),appendLF=TRUE)
+    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.1 (2024-05) []",sep="")),appendLF=TRUE)
+    packageStartupMessage(paste0(blue("[]   Author: Giovanny Covarrubias-Pazaran",paste0(bgGreen(white(" ")), bgWhite(magenta("*")), bgRed(white(" "))),"                      []")),appendLF=TRUE)
+    packageStartupMessage(blue("[]   Dedicated to the University of Chapingo and UW-Madison         []"),appendLF=TRUE)
+    packageStartupMessage(blue("[]   Type 'vignette('lmebreed.gxe')' for a short tutorial           []"),appendLF=TRUE)
+    packageStartupMessage(blue("[]   Type 'citation('lme4breeding')' to know how to cite it         []"),appendLF=TRUE)
+    packageStartupMessage(blue(paste("[]==================================================================[]")),appendLF=TRUE)
+    packageStartupMessage(blue("lme4breeding is updated on CRAN every 4-months due to CRAN policies"),appendLF=TRUE)
+    packageStartupMessage(blue("Source code is available at https://github.com/covaruber/lme4breeding"),appendLF=TRUE)
+  }
+  invisible()
+}
 
-getMME <- function(object, vc=NULL){
+####
+getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   if(is.null(vc)){
     vc <- VarCorr(object) #object %>% VarCorr %>% as_tibble # extract estimated variance components (vc)
   }
@@ -14,6 +36,12 @@ getMME <- function(object, vc=NULL){
   Z <- getME(object, "Z") #%>% as.matrix # Design matrix random effects
   y <- getME(object, "y") #%>% as.matrix # Design matrix random effects
   
+  if(!is.null(recordsToKeep)){
+    X <- X[recordsToKeep,, drop=FALSE]
+    Z <- Z[recordsToKeep,, drop=FALSE]
+    y <- y[recordsToKeep]
+    Ri <- Ri[recordsToKeep,recordsToKeep]
+  }
   # Mixed Model Equation (HENDERSON 1986; SEARLE et al. 2006)
   C11 <- t(X) %*% Ri %*% X
   C12 <- t(X) %*% Ri %*% Z

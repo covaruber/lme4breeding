@@ -7,8 +7,16 @@ lmebreed <-
            # initDerivs=NULL, initCov=NULL,
            control = list(), start = NULL, verbose = FALSE, 
            subset, weights, na.action, offset, contrasts = NULL,
-           model = TRUE, x = TRUE, ...)
+           model = TRUE, x = TRUE, dateWarning=TRUE, ...)
   {
+    my.date <- "2024-09-01" # expiry date
+    your.date <- Sys.Date()
+    ## if your month is greater than my month you are outdated
+    if(dateWarning){
+      if (your.date > my.date) {
+        cat("Version out of date. Please update lme4breeding to the newest version using:\ninstall.packages('lme4breeding') in a new session\n Use the 'dateWarning' argument to disable the warning message.")
+      }
+    }
     gaus <- FALSE
     if (is.null(family)) {
       gaus <- TRUE
@@ -135,21 +143,35 @@ setMethod("ranef", signature(object = "lmebreed"),
                 for(kCol in 1:ncol(ans[[nm]])){
                   ans[[nm]][[kCol]] <- as.numeric(dm[,kCol])# data.frame(dm[[kCol]], check.names = FALSE)
                 }
-                ## replace postVar if condVar=TRUE
+                # replace postVar if condVar=TRUE
                 if (condVar){
-                  Ci <- getMME(object)$Ci
-                  tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  for(j in 1:length(tn)){
-                    ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-                    rowsi <- (ind[1]+1L):ind[2]
-                    if(is.list(attr(ans[[nm]], which="postVar"))){
-                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci[rowsi,rowsi])
-                    }else{
-                      attr(ans[[nm]], which="postVar")[,,] <- diag(Ci[rowsi,rowsi])
+                  # if(simpleCondVar){
+                  #   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
+                  #   for(j in 1:length(tn)){
+                  #     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+                  #     rowsi <- (ind[1]+1L):ind[2]
+                  #     if(is.list(attr(ans[[nm]], which="postVar"))){
+                  #       prov <- t(rf[[nm]][rn,rn]) %*% diag(attr(ans[[nm]], which="postVar")[[j]][,,]) %*% (rf[[nm]][rn,rn])
+                  #       attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(prov)
+                  #     }else{
+                  #       prov <- t(rf[[nm]][rn,rn]) %*% diag(attr(ans[[nm]], which="postVar")[,,]) %*% (rf[[nm]][rn,rn])
+                  #       attr(ans[[nm]], which="postVar")[,,] <- prov
+                  #     }
+                  #   }
+                  # }else{
+                    Ci <- getMME(object)$Ci
+                    tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
+                    for(j in 1:length(tn)){
+                      ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+                      rowsi <- (ind[1]+1L):ind[2]
+                      if(is.list(attr(ans[[nm]], which="postVar"))){
+                        attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci[rowsi,rowsi])
+                      }else{
+                        attr(ans[[nm]], which="postVar")[,,] <- diag(Ci[rowsi,rowsi])
+                      }
                     }
-                  }
+                  # }
                 }
-                
               }
             }
             return(ans)
