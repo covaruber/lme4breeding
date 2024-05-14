@@ -14,11 +14,12 @@ The purpose of this vignette is to show how to fit different genotype by environ
 1) Multienvironment model: Main effect model
 2) Multienvironment model: Diagonal model (DG)
 3) Multienvironment model: Compund symmetry model (CS)
+3.2) Multienvironment model: Compund symmetry model + Diagonal (CS+DG)
 4) Multienvironment model: Unstructured model (US)
 5) Multienvironment model: Random regression model (RR)
-6) Multienvironment model: Finlay-Wilkinson regression
-7) Multienvironment model: Factor analytic (reduced rank) model (FA)
-8) Two stage analysis
+5.2) Multienvironment model: Finlay-Wilkinson regression
+6) Multienvironment model: Factor analytic (reduced rank) model (FA)
+7) Two stage analysis
 
 When the breeder decides to run a trial and apply selection in a single environment (whether because the amount of seed is a limitation or there's no availability for a location) the breeder takes the risk of selecting material for a target population of environments (TPEs) using an environment that is not representative of the larger TPE. Therefore, many breeding programs try to base their selection decision on multi-environment trial (MET) data. Models could be adjusted by adding additional information like spatial information, experimental design information, etc. In this tutorial we will focus mainly on the covariance structures for GxE and the incorporation of relationship matrices for the genotype effect.
 
@@ -76,7 +77,7 @@ vc <- VarCorr(ansCS); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
 ```
 
-## 4) MET: compund symmetry model + diagonal (CS+DG)
+### 3.2) MET: compund symmetry model + diagonal (CS+DG)
 
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The compound symmetry model assumes that GxE exists and that a main genotype variance-covariance component is expressed across all location. In addition, it assumes that a main genotype-by-environment variance is expressed across all locations. The main drawback is that the model assumes the same variance and covariance among locations. The fixed effect for environment plus the main effect for BLUP plus genotype-by-environment effect is used to predict the genotype effect in each location of interest.
 
@@ -92,7 +93,7 @@ vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
 ```
 
-## 5) MET: unstructured model (US)
+## 4) MET: unstructured model (US)
 
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The unstructured model is the most flexible model assuming that GxE exists and that an environment-specific variance exists in addition to as many covariances for each environment-to-environment combinations. The main drawback is that is difficult to make this models converge because of the large number of variance components, the fact that some of these variance or covariance components are zero, and the difficulty in choosing good starting values. The fixed effect for environment plus the environment specific BLUP (adjusted by covariances) is used to predict the genotype effect in each location of interest.
 
@@ -110,7 +111,7 @@ ve <- attr(vc, "sc")^2; ve
 
 ```
 
-## 6) MET: random regression model
+## 5) MET: random regression model
 
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The random regression model assumes that the environment can be seen as a continuous variable and therefore a variance component for the intercept and a variance component for the slope can be fitted. The number of variance components will depend on the order of the Legendre polynomial fitted.
 
@@ -146,7 +147,7 @@ In addition, we an fit this without covariance:
 
 ```
 
-## 7) Finlay-Wilkinson regression
+### 5.2) Finlay-Wilkinson regression
 
 ```{r}
 
@@ -177,7 +178,7 @@ ve <- attr(vc, "sc")^2; ve
 
 ```
 
-## 9) Factor analytic (reduced rank) model
+## 6) Factor analytic (reduced rank) model
 
 When the number of environments where genotypes are evaluated is big and we want to consider the genetic covariance between environments and location-specific variance components we cannot fit an unstructured covariance in the model since the number of parameters is too big and the matrix can become non-full rank leading to singularities. In those cases is suggested a dimensionality reduction technique. Among those the factor analytic structures proposed by many research groups (Piepho, Smith, Cullis, Thompson, Meyer, etc.) are the way to go. lme4breeding has a reduced-rank factor analytic implementation available through the rrc() function. Here we show an example of how to fit the model:
 
@@ -214,9 +215,9 @@ loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = T) )$Gamma
 Gint <- loadings %*% vc$Name %*% t(loadings)
 Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
 G <- Gint + Gspec
-lattice::levelplot(cov2cor(G))
-colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
-hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
+# lattice::levelplot(cov2cor(G))
+# colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
+# hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
 
 u <- ranef(ansFA)$Name
 uInter <- as.matrix(u[,1:3]) %*% t(as.matrix(loadings))
@@ -227,7 +228,7 @@ u <- uSpec + uInter
 
 As can be seen genotype BLUPs for all environments can be recovered by multiplying the loadings (Gamma) by the factor scores. This is a parsomonious way to model an unstructured covariance.
 
-## 10) Two stage analysis
+## 7) Two stage analysis
 
 It is common then to fit a first model that accounts for the variation of random design elements, e.g., locations, years, blocks, and fixed genotype effects to obtain the estimated marginal means (EMMs) or best linear unbiased estimators (BLUEs) as adjusted entry means. These adjusted entry means are then used as the phenotype or response variable in GWAS and genomic prediction studies.
 
@@ -270,9 +271,9 @@ ve <- attr(vc, "sc")^2; ve
  
 ## Literature
 
-Covarrubias-Pazaran G. 2016. Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6):1-15.
+Covarrubias-Pazaran Giovanny & Aparicio-Arce Johan. 2024.  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
-Covarrubias-Pazaran G. 2018. Software update: Moving the R package sommer to multivariate mixed models for genome-assisted prediction. doi: https://doi.org/10.1101/354639
+Bates Douglas, Maechler Martin, Bolker Ben, Walker Steve. 2015. Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
 Bernardo Rex. 2010. Breeding for quantitative traits in plants. Second edition. Stemma Press. 390 pp.
 

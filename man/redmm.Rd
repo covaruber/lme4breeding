@@ -32,7 +32,9 @@
 }
 \references{
   
-  Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744 
+ Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48. 
   
 }
 \author{
@@ -41,26 +43,21 @@
 
 \examples{
   
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples
-####=========================================####
-
 data(DT_technow)
-# DT <- DT_technow
-# Md <- Md_technow
-# 
-# M <- tcrossprod(Md)
-# Z = with(DT, redmm(x=dent, M=M, nPC=10))
-# custom <- (rep(colnames(Z), nrow(Z)))[1:nrow(Z)]
-# ans <- lmebreed(GY ~ (1|custom),
-#                 addmat = list(custom=Z),
-#             data=DT)
-# vc <- VarCorr(ans); print(vc,comp=c("Variance"))
-# 
-# xx <- with(DT, redmm(x=dent, M=M, nPC=10, returnLam = TRUE))
-# u = tcrossprod(xx$Lam, t(as.matrix( ranef(ans)[[1]] ) ))
+DT <- DT_technow
+Md <- Md_technow
+
+M <- tcrossprod(Md)
+Z = with(DT, redmm(x=dent, M=M, nPC=10))
+custom <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
+ans <- lmebreed(GY ~ (1|custom),
+                addmat = list(custom=Z),
+            data=DT)
+vc <- VarCorr(ans); print(vc,comp=c("Variance"))
+
+xx <- with(DT, redmm(x=dent, M=M, nPC=10, returnLam = TRUE))
+u = tcrossprod(xx$Lam, t(as.matrix( ranef(ans)[[1]] ) ))
+
 
 }
 \seealso{The core function of the package \code{\link{lmebreed}} }

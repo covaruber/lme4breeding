@@ -29,32 +29,35 @@ Rice Diversity Org. Program. The lines are genotyped with 36,901 SNP markers and
 
 Keyan Zhao, Chih-Wei Tung, Georgia C. Eizenga, Mark H. Wright, M. Liakat Ali, Adam H. Price, Gareth J. Norton, M. Rafiqul Islam, Andy Reynolds, Jason Mezey, Anna M. McClung, Carlos D. Bustamante & Susan R. McCouch (2011). Genome-wide association mapping reveals a rich genetic architecture of complex traits in Oryza sativa. Nat Comm 2:467 DOI: 10.1038/ncomms1467, Published Online 13 Sep 2011.
 
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+
 }
 \examples{
 
-####=========================================####
-#### For CRAN time limitations most lines in the 
-#### examples are silenced with one '#' mark, 
-#### remove them and run the examples using
-#### command + shift + C |OR| control + shift + C
-####=========================================####
 data(DT_rice)
-# DT <- DT_rice
-# GT <- GT_rice
-# GTn <- GTn_rice
-# head(DT)
-# M <- atcg1234(GT)
-# A <- A.mat(M$M)
-# A <- A + diag(1e-4, ncol(A), ncol(A))
-# mix <- lmebreed(Protein.content ~ (1|geno),
-#                 relmat = list(geno=Matrix::chol(A)),
-#                 control = lmerControl(
-#                   check.nobs.vs.nlev = "ignore",
-#                   check.nobs.vs.rankZ = "ignore",
-#                   check.nobs.vs.nRE="ignore"
-#                 ),
-#                 data=DT)
-# vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+DT <- DT_rice
+GT <- GT_rice
+GTn <- GTn_rice
+head(DT)
+M <- atcg1234(GT)
+
+\donttest{
+
+A <- A.mat(M$M)
+A <- A + diag(1e-4, ncol(A), ncol(A))
+mix <- lmebreed(Protein.content ~ (1|geno),
+                relmat = list(geno=Matrix::chol(A)),
+                control = lmerControl(
+                  check.nobs.vs.nlev = "ignore",
+                  check.nobs.vs.rankZ = "ignore",
+                  check.nobs.vs.nRE="ignore"
+                ),
+                data=DT)
+vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+
+}
 
 
 }

@@ -52,7 +52,9 @@ It returns the marker matrix for hybrids coded as additive (-1,0,1; homo,het,hom
 
 \references{
 
-Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744 
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
 Nishio M and Satoh M. 2014. Including Dominance Effects in the Genomic BLUP Method for Genomic Evaluation. Plos One 9(1), doi:10.1371/journal.pone.0085792
 
@@ -61,14 +63,12 @@ Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive 
 }
 
 \examples{
-####=========================================####
-#### use Technow data as example
-####=========================================####
+
+## use Technow data as example
 data(DT_technow)
 DT <- DT_technow
 Md <- (Md_technow * 2) - 1
 Mf <- (Mf_technow * 2) - 1
-
 
 ## first get all possible hybrids
 res1 <- build.HMM(Md, Mf, 
@@ -82,9 +82,11 @@ res2 <- build.HMM(Md, Mf,
 res2$HMM.add[1:5,1:5]
 res2$HMM.dom[1:5,1:5]
 
+\donttest{
 ## now you can use the A.mat()
-# M <- res2$HMM.add
-# A <- A.mat(M)
+M <- res2$HMM.add
+A <- A.mat(M)
+}
 
 }
 \seealso{\code{\link{lmebreed}}-- the core function of the package }

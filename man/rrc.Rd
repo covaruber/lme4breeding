@@ -73,7 +73,9 @@ The resulting loadings (Gamma) and factor scores can be thought as an equivalent
 }
 \references{
 
-  Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744
+  Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
   
   Meyer K (2009) Factor analytic models for genotype by environment type problems and structured covariance matrices. Genetics Selection Evolution, 41:21
   
@@ -84,43 +86,51 @@ The resulting loadings (Gamma) and factor scores can be thought as an equivalent
 
 \examples{
 
-# data(DT_h2)
-# DT <- DT_h2
-# DT=DT[with(DT, order(Env)), ]
-# 
-# # fit diagonal model first to produce H matrix
-# Z <- with(DT, dsc(Env))$Z
-# diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
-# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-# ans1a <- lmebreed(as.formula(diagFormula),
-#                   pedigree = list(Name = Matrix::chol(A) ),
-#                   data=DT)
-# vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
-# H0 <- ranef(ans1a)$Name # GxE table
-# 
-# # reduced rank model
-# Z <- with(DT,  dsc(rrc(Env, H = H0, nPC = 3)) )$Z
-# Zd <- with(DT, dsc(Env))$Z
-# faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"),
-#              "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
-# for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-# ansFA <- lmebreed(as.formula(faFormula),
-#                   pedigree = list(Name = Matrix::chol(A) ),
-#                   data=DT)
-# vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
-# 
-# loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = T) )$Gamma
-# Gint <- loadings * vc$Name * t(loadings) # replace * by matrix product
-# Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
-# G <- Gint + Gspec
-# lattice::levelplot(cov2cor(G))
-# colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
-# hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
-# 
-# u <- ranef(ansFA)$Name
-# uInter <- as.matrix(u[,1:3]) * t(as.matrix(loadings)) # replace * by matrix product
-# uSpec <- as.matrix(u[,-c(1:3)])
-# u <- uSpec + uInter
+data(DT_h2)
+DT <- DT_h2
+DT=DT[with(DT, order(Env)), ]
+head(DT)
+indNames <- na.omit(unique(DT$Name))
+A <- diag(length(indNames))
+rownames(A) <- colnames(A) <- indNames
+
+\donttest{
+  
+  # fit diagonal model first to produce H matrix
+  Z <- with(DT, dsc(Env))$Z
+  diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
+  for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+  ans1a <- lmebreed(as.formula(diagFormula),
+                    relmat = list(Name = Matrix::chol(A) ),
+                    data=DT)
+  vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
+  H0 <- ranef(ans1a)$Name # GxE table
+  
+  # reduced rank model
+  Z <- with(DT,  dsc(rrc(Env, H = H0, nPC = 3)) )$Z
+  Zd <- with(DT, dsc(Env))$Z
+  faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"),
+                       "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
+  for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+  ansFA <- lmebreed(as.formula(faFormula),
+                    relmat = list(Name = Matrix::chol(A) ),
+                    data=DT)
+  vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
+  
+  loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = T) )$Gamma
+  Gint <- loadings %*% vc$Name %*% t(loadings) ## replace * by matrix product
+  Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
+  G <- Gint + Gspec
+  ## lattice::levelplot(cov2cor(G))
+  colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
+  hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
+  
+  u <- ranef(ansFA)$Name
+  uInter <- as.matrix(u[,1:3]) %*% t(as.matrix(loadings)) ## replace * by matrix product
+  uSpec <- as.matrix(u[,-c(1:3)])
+  u <- uSpec + uInter
+  
+}
 
 
 }

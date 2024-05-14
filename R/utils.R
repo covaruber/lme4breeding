@@ -20,6 +20,30 @@
   invisible()
 }
 
+###
+leg <- function(x,n=1,u=-1,v=1, intercept=TRUE, intercept1=FALSE){
+  
+  init0 <- as.character(substitute(list(x)))[-1L]
+  
+  if(system.file(package = "orthopolynom") == ""){
+    stop("Please install the orthopolynom package to use this function.",call. = FALSE)
+  }
+  requireNamespace("orthopolynom",quietly=TRUE)
+  (leg4coef <- orthopolynom::legendre.polynomials(n=n, normalized=TRUE))
+  leg4 <- as.matrix(as.data.frame(orthopolynom::polynomial.values(polynomials=leg4coef,
+                                                                  x=orthopolynom::scaleX(x, u=u, v=v))))
+  colnames(leg4) <- paste("leg",0:(ncol(leg4)-1),sep="")
+  if(!intercept){
+    leg4 <- leg4[, 2:ncol(leg4), drop = FALSE]
+  }
+  if(intercept1){
+    leg4 <- leg4*sqrt(2)
+    # leg4[,1] <- leg4[,1]*sqrt(2)
+  }
+  attr(leg4,"variables") <- c(init0)
+  return(leg4)
+}
+
 ####
 getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   if(is.null(vc)){
@@ -56,6 +80,7 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   RHS <- rbind(RHS1, RHS2)
   # G = varcov-matrx for all random effects
   # subset of G regarding genotypic effects
+  # is a diagonal matrix because Z has the relationship incorporated
   fl <- object@flist
   asgn <- attr(fl, "assign")
   pnms <- names(object@flist)# names(object@relfac)
@@ -68,7 +93,11 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
       ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
       rowsi <- (ind[1]+1L):ind[2]
       LLt <- Matrix::Diagonal(length(rowsi))
-      Gi[rowsi,rowsi] <- kronecker( LLt , solve( vc[[iFac]] ) )
+      if(sum(diag(vc[[iFac]])) > 0){
+        Gi[rowsi,rowsi] <- kronecker( LLt , solve( vc[[iFac]] ) )
+      }else{
+        Gi[rowsi,rowsi] <- kronecker( LLt ,  vc[[iFac]]  )
+      }
     }
   }
   # incomplete block part of G matrix = I * vc.b
@@ -107,6 +136,32 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   }
   
   
+}
+
+stackTrait <- function(data, traits){
+  
+  dataScaled <- data
+  traits <- intersect(traits, colnames(data) )
+  idvars <- setdiff(colnames(data), traits)
+  for(iTrait in traits){
+    dataScaled[,iTrait] <- scale(dataScaled[,iTrait])
+  }
+  columnTypes <- unlist(lapply(data[idvars],class)) 
+  columnTypes <- columnTypes[which(columnTypes %in% c("factor","character","integer"))]
+  idvars <- intersect(idvars,names(columnTypes))
+  data2 <- reshape(data, idvar = idvars, varying = traits,
+                   timevar = "trait",
+                   times = traits,v.names = "value", direction = "long")
+  data2Scaled <- reshape(dataScaled, idvar = idvars, varying = traits,
+                         timevar = "trait",
+                         times = traits,v.names = "value", direction = "long")
+  data2 <- as.data.frame(data2)
+  data2$valueS <- as.vector(unlist(data2Scaled$value))
+  rownames(data2) <- NULL
+  varG <- cov(data[,traits], use="pairwise.complete.obs")
+  # varG <- apply(data[,traits],2,var, na.rm=TRUE) 
+  mu <- apply(data[,traits],2,mean, na.rm=TRUE) 
+  return(list(long=data2, varG=varG, mu=mu))
 }
 
 add.diallel.vars <- function(df, par1="Par1", par2="Par2",sep.cross="-"){
@@ -533,9 +588,8 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
     if(by.allele){ ####&&&&&&&&&&&&&&&&&&&&&& use zero.one function
       ncolsData <- dim(data)[2]
       ncolsData <- max(ncolsData,round(ncolsData/20))
-      # print(ncolsData)
       user.code <- apply(data[,c(1:ncolsData),drop=FALSE], 2, function(x){q <- which(!is.na(x))[1];ss1 <- substr(x[q], start=1,stop=1);ss2 <- substr(x[q], start=2,stop=2);vv1 <-which(c(ss1,ss2)=="");if(length(vv1)>0){y <-1}else{y <- 0}; return(y)})
-      print(user.code)
+      
       AA <- sum(user.code, na.rm = TRUE)/length(user.code)
       if(AA > .9){ # means user is using single letter
         rnd <- rownames(data)
@@ -548,7 +602,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
       n.g <- apply(data,2,function(x){length(table(x))})
       bad <- which(n.g > 3)
       if(length(bad) == dim(data)[2]){
-        cat("Error. All your markers are multiallelic. This function requires at least one bi-allelic marker\n")
+        stop("Error. All your markers are multiallelic. This function requires at least one bi-allelic marker\n")
       }
       
       # tells you which markers have double letter code, i.e. TT instead of T
@@ -556,13 +610,12 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
       # 0: has two letters
       ncolsData <- dim(data)[2]
       ncolsData <- max(ncolsData,round(ncolsData/20))
-      # print(ncolsData)
       user.code <- apply(data[,c(1:ncolsData), drop=FALSE], 2, function(x){q <- which(!is.na(x))[1];ss1 <- substr(x[q], start=1,stop=1);ss2 <- substr(x[q], start=2,stop=2);vv1 <-which(c(ss1,ss2)=="");if(length(vv1)>0){y <-1}else{y <- 0}; return(y)})
       AA <- sum(user.code, na.rm = TRUE)/length(user.code)
       if(AA > .9){
         rrn <- rownames(data)
         
-        cat("Converting GBS or single-letter code to biallelic code\n")
+        message("Converting GBS or single-letter code to biallelic code\n")
         if(silent){
           data <- apply(data, 2,gbs.to.bisnp)
         }else{
@@ -637,7 +690,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
       ####################################
       # get reference alleles
       ####################################
-      cat("Obtaining reference alleles\n")
+      message("Obtaining reference alleles\n")
       if(silent){
         tmp <- apply(markers, 1, get.ref, format=format)
       }else{
@@ -645,7 +698,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
       }
       
       if(multi){ # if markers with multiple alleles should be removed
-        cat("Checking for markers with more than 2 alleles. If found will be removed.\n")
+        message("Checking for markers with more than 2 alleles. If found will be removed.\n")
         if(silent){
           tmpo <- apply(markers, 1, get.multi, format = format)
         }else{
@@ -663,8 +716,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
       ## bind reference allele and markers and convert to numeric format based on the 
       # reference/alternate allele found
       ####################################
-      cat("Converting to numeric format\n")
-      # print(str(markers))
+      message("Converting to numeric format\n")
       if(silent){
         M <- apply(cbind(Ref, markers), 1, function(x) {
           y <- gregexpr(pattern = x[1], text = x[-1], fixed = T)
@@ -682,7 +734,6 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
           return(ans)
         })
       }
-      # print(str(M))
       gid.geno <- s1 #colnames(geno)
       rownames(M) <- gid.geno
       ####################################
@@ -702,7 +753,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
     common.mark <- intersect(colnames(data), colnames(ref.alleles))
     data <- data[,common.mark, drop=FALSE]
     tmp <- ref.alleles[,common.mark, drop=FALSE]; #rownames(refa) <- c("Alt","Ref")
-    cat("Converting to numeric format\n")
+    message("Converting to numeric format\n")
     M <- apply_pb(data.frame(1:ncol(data)),1,function(k){
       x <- as.character(data[,k])
       x2 <- strsplit(x,"")
@@ -717,7 +768,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
   ####################################
   # by column or markers calculate MAF
   ####################################
-  cat("Calculating minor allele frequency (MAF)\n")
+  message("Calculating minor allele frequency (MAF)\n")
   if(silent){
     MAF <- apply(M, 2, function(x) {
       AF <- mean(x, na.rm = T)/ploidy
@@ -742,7 +793,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
   if(imp){
     missing <- which(is.na(M))
     if (length(missing) > 0) {
-      cat("Imputing missing data with mode \n")
+      message("Imputing missing data with mode \n")
       if(silent){
         M <- apply(M, 2, impute.mode)
       }else{
@@ -750,7 +801,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
       }
     }
   }else{
-    cat("Imputation not required. Be careful using non-imputed matrices in mixed model solvers\n")
+    message("Imputation not required. Be careful using non-imputed matrices in mixed model solvers\n")
   }
   ## ploidy 2 needs to be adjusted to -1,0,1
   # if(ploidy == 2){
@@ -788,16 +839,16 @@ build.HMM <- function(M1,M2, custom.hyb=NULL, return.combos.only=FALSE, separato
     
     if(all(checkM1 == c(1,1,0))){ # homo markers were coded correctly as -1,1
     }else if(all(checkM1 == c(0,1,0)) | all(checkM1 == c(1,0,0))){ # homo markers were coded as 0 1
-      cat("Either -1 or 1 alleles not detected in M1, we assume you have coded homozygotes \n       as 0 and 1 instead of -1 and 1. We'll fix it.\n")
+      warning("Either -1 or 1 alleles not detected in M1, we assume you have coded homozygotes \n       as 0 and 1 instead of -1 and 1. We'll fix it.\n")
     }else if(all(checkM1 == c(0,0,1))){ # homo markers were coded as 0 2
-      cat("Either -1 or 1 alleles not detected in M1, we assume you have coded homozygotes \n       as 0 and 2 instead of -1 and 1. We'll fix it.\n")
+      warning("Either -1 or 1 alleles not detected in M1, we assume you have coded homozygotes \n       as 0 and 2 instead of -1 and 1. We'll fix it.\n")
     }
     
     if(all(checkM2 == c(1,1,0))){ # homo markers were coded correctly as -1,1
     }else if(all(checkM2 == c(0,1,0)) | all(checkM2 == c(1,0,0))){ # homo markers were coded as 0 1
-      cat("Either -1 or 1 alleles not detected in M2, we assume you have coded homozygotes \n       as 0 and 1 instead of -1 and 1. We'll fix it.\n")
+      warning("Either -1 or 1 alleles not detected in M2, we assume you have coded homozygotes \n       as 0 and 1 instead of -1 and 1. We'll fix it.\n")
     }else if(all(checkM2 == c(0,0,1))){ # homo markers were coded as 0 2
-      cat("Either -1 or 1 alleles not detected in M2, we assume you have coded homozygotes \n       as 0 and 2 instead of -1 and 1. We'll fix it.\n")
+      warning("Either -1 or 1 alleles not detected in M2, we assume you have coded homozygotes \n       as 0 and 2 instead of -1 and 1. We'll fix it.\n")
     }
     
     ## add markers coming from parents M1
@@ -817,14 +868,14 @@ build.HMM <- function(M1,M2, custom.hyb=NULL, return.combos.only=FALSE, separato
     # hyb.names <- colnames(Z3)[as.vector(apply(Z3,1,function(x){which(x==1)}))] # names of hybrids
     hyb.names <- pheno$hybrid
     ## marker matrix for hybrids one for each parent
-    cat(paste("Building hybrid marker matrix for",nrow(Z1),"hybrids\n"))
+    message(paste("Building hybrid marker matrix for",nrow(Z1),"hybrids\n"))
     
     # M1 <- as(M1, Class="dgCMatrix")
     # M2 <- as(M2, Class="dgCMatrix")
     # Z1 <- as(Z1, Class="dgCMatrix")
     # Z2 <- as(Z2, Class="dgCMatrix")
     
-    cat("Extracting M1 contribution\n")
+    message("Extracting M1 contribution\n")
     if(all(checkM1 == c(1,1,0))){ # homo markers were coded correctly as -1,1
       Md <- Z1 %*% M1;  # was already converted to -1,1
     }else if(all(checkM1 == c(0,1,0)) | all(checkM1 == c(1,0,0))){ # homo markers were coded as 0 1
@@ -833,7 +884,7 @@ build.HMM <- function(M1,M2, custom.hyb=NULL, return.combos.only=FALSE, separato
       Md <- Z1 %*% M1 - 1;  # Z.dent %*% M.dent - 1   # convert to -1,1
     }
     
-    cat("Extracting M2 contribution\n")
+    message("Extracting M2 contribution\n")
     if(all(checkM2 == c(1,1,0))){ # homo markers were coded correctly as -1,1
       Mf <- Z2 %*% M2;  # was already converted to -1,1
     }else if(all(checkM2 == c(0,1,0)) | all(checkM2 == c(1,0,0))){ # homo markers were coded as 0 1
@@ -851,7 +902,7 @@ build.HMM <- function(M1,M2, custom.hyb=NULL, return.combos.only=FALSE, separato
     Delta <- 1/2*(1 - Md * Mf) #performs element wise multiplication = Hadamard product
     rownames(Delta) <- hyb.names
     #hist(Delta)
-    cat("Done!!\n")
+    message("Done!!\n")
     return(list(HMM.add=Mdf, HMM.dom=Delta, data.used=pheno))
     
   }else{

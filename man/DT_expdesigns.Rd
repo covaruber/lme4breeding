@@ -29,27 +29,28 @@
 }
 
 \references{
- Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744 
+
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+
 }
 
 \examples{
 
-# #### =================================== ####
-# #### ===== Augmented Block Design 1 ==== ####
-# #### =================================== ####
 data(DT_expdesigns)
-# DT <- DT_expdesigns
-# names(DT)
-# data1 <- DT$au1
-# head(data1)
-# ## response variable: "yield"
-# ## check indicator: "entryc" ('nc' for all unreplicated, but personal.name for checks)
-# ## blocking factor: "block"
-# ## treatments, personal names for replicated and non-replicated: "trt"
-# ## check no check indicator: "new"
-# mix1 <- lmebreed(yield~entryc + (1|block)+(1|trt),
-#              data=data1)
-# vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+DT <- DT_expdesigns
+names(DT)
+data1 <- DT$au1
+head(data1)
+## response variable: "yield"
+## check indicator: "entryc" ('nc' for all unreplicated, but personal.name for checks)
+## blocking factor: "block"
+## treatments, personal names for replicated and non-replicated: "trt"
+## check no check indicator: "new"
+mix1 <- lmebreed(yield~entryc + (1|block)+(1|trt),
+             data=data1)
+vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 
 }
 

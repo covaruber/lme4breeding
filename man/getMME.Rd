@@ -39,7 +39,9 @@ Uses the lmebreed object and builds the coefficient matrix (C) and returns its i
 
 \references{
 
-Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744 
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
 }
 
@@ -54,47 +56,51 @@ ansMain <- lmebreed(Yield ~ Env + (1|Name),
                     data=DT)
 mme <- getMME(ansMain)
 
-# ##########################################
-# ## showing how to predict the individuals 
-# ## that didn't have records in the dataset
-# ##########################################
-# data(DT_cpdata)
-# DT <- DT_cpdata
-# GT <- GT_cpdata
-# MP <- MP_cpdata
-# #### create the variance-covariance matrix
-# A <- A.mat(GT) # additive relationship matrix
-# A <- A + diag(1e-4, ncol(A), ncol(A))
-# #### look at the data and fit the model
-# head(DT)
-# mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
-#                  relmat=list(id=Matrix::chol(A)),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore"
-#                  ),
-#                  data=DT)
-# 
-# vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
-# # the new dataset includes more individuals
-# DT2 <- DT
-# DT2$Yield <- imputev(DT2$Yield)
-# mix1expanded <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
-#                  relmat=list(id=Matrix::chol(A)),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore",
-#                    calc.derivs=TRUE,
-#                    optCtrl=list(maxeval=1)
-#                  ),
-#                  data=DT2)
-# 
-# vc <- VarCorr(mix1expanded); print(vc,comp=c("Variance"))
-# # predict the individuals that didn't have records in the dataset
-# res <- getMME(object=mix1expanded, vc=VarCorr(mix1), recordsToKeep = which(!is.na(DT$Yield)) )
-# 
+\donttest{
+
+##########################################
+## showing how to predict the individuals
+## that didn't have records in the dataset
+##########################################
+data(DT_cpdata)
+DT <- DT_cpdata
+GT <- GT_cpdata
+MP <- MP_cpdata
+#### create the variance-covariance matrix
+A <- A.mat(GT) # additive relationship matrix
+A <- A + diag(1e-4, ncol(A), ncol(A))
+#### look at the data and fit the model
+head(DT)
+mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+                 relmat=list(id=Matrix::chol(A)),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+
+vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+# the new dataset includes more individuals
+DT2 <- DT
+DT2$Yield <- imputev(DT2$Yield)
+mix1expanded <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+                 relmat=list(id=Matrix::chol(A)),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore",
+                   calc.derivs=TRUE,
+                   optCtrl=list(maxeval=1)
+                 ),
+                 data=DT2)
+
+vc <- VarCorr(mix1expanded); print(vc,comp=c("Variance"))
+# predict the individuals that didn't have records in the dataset
+res <- getMME(object=mix1expanded, vc=VarCorr(mix1), recordsToKeep = which(!is.na(DT$Yield)) )
+
+
+}
 
 
 }

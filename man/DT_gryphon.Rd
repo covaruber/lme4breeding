@@ -30,35 +30,34 @@ This data comes from the Journal of Animal Ecology. Please, if using this data c
 
 Wilson AJ, et al. (2010) An ecologist's guide to the animal model. Journal of Animal Ecology 79(1): 13-26.
 
-Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744 
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48. 
  
 }
 \examples{
 
-# 
-# ###=========================================####
-# ### For CRAN time limitations most lines in the
-# ### examples are silenced with one '#' mark,
-# ### remove them and run the examples using
-# ### command + shift + C |OR| control + shift + C
-# ###=========================================####
- data(DT_gryphon)
-# DT <- DT_gryphon
-# A <- A_gryphon
-# P <- P_gryphon
-# #### look at the data
-# head(DT)
-# #### fit the model with no fixed effects (intercept only)
-# mix1 <- lmebreed(BWT~ (1|ANIMAL),
-#                  relmat = list(ANIMAL=Matrix::chol(A)),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore"
-#                  ),
-#                  data=DT)
-# vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+data(DT_gryphon)
+DT <- DT_gryphon
+A <- A_gryphon
+P <- P_gryphon
+#### look at the data
+head(DT)
 
+\donttest{
+
+## fit the model with no fixed effects (intercept only)
+mix1 <- lmebreed(BWT~ (1|ANIMAL),
+                 relmat = list(ANIMAL=Matrix::chol(A)),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+
+}
 
 }
 \keyword{datasets}

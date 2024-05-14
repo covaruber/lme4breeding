@@ -40,7 +40,9 @@ MMs after edition was 1279.
 
 \references{
 
-Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744 
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
 McLaren, C. G., L. Ramos, C. Lopez, and W. Eusebio. 2000. ``Applications of the geneaology manegment system.'' 
 In \emph{International Crop Information System. Technical  Development Manual, version VI}, edited by McLaren, C. G., J.W. White 
@@ -48,39 +50,37 @@ and P.N. Fox. pp. 5.8-5.13. CIMMyT, Mexico: CIMMyT and IRRI.
 
 McLaren, C. G., R. Bruskiewich, A.M. Portugal, and A.B. Cosico. 2005. The International Rice Information System. 
 A platform for meta-analysis of rice crop data. \emph{Plant Physiology} \bold{139}: 637-642.
+
 }
 \examples{
 
-###=========================================####
-### For CRAN time limitations most lines in the
-### examples are silenced with one '#' mark,
-### remove them and run the examples using
-### command + shift + C |OR| control + shift + C
-###=========================================####
 data(DT_wheat)
-# DT <- DT_wheat
-# GT <- GT_wheat
-# DTlong <- data.frame(pheno=as.vector(DT),
-#                      env=sort(rep(1:4,nrow(DT))),
-#                      id=rep(rownames(DT),4))
-# DT <- as.data.frame(DT);colnames(DT) <- paste0("x",1:4);DT$line <- rownames(DT);
-# rownames(GT) <- DT$line
-# K <- A.mat(GT) # additive relationship matrix
-# K[1:4,1:4]
-# ###=========================================####
-# head(DT)
-# #### univariate
-# mix0 <- lmebreed(x1 ~ (1|line),
-#                  relmat = list(line=Matrix::chol(K)),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore"
-#                  ),
-#                  data=DT)
-# vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
+DT <- DT_wheat
+GT <- GT_wheat
+DT <- data.frame(pheno=as.vector(DT),
+                     env=sort(rep(1:4,nrow(DT))),
+                     id=rep(rownames(DT),4))
 
+rownames(GT) <-  rownames(DT_wheat)
+K <- A.mat(GT) # additive relationship matrix
+K[1:4,1:4]
+##
+head(DT)
 
+\donttest{
+
+#### univariate model
+mix0 <- lmebreed(pheno ~ (1|id),
+                 relmat = list(id=Matrix::chol(K)),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
+
+}
 
 }
 \keyword{datasets}

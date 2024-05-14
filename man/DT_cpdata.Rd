@@ -22,48 +22,48 @@ This data was simulated for fruit breeding applications.
 }
 \references{
 
-Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
 }
 \examples{
 
-# 
-# ####=========================================####
-# #### For CRAN time limitations most lines in the
-# #### examples are silenced with one '#' mark,
-# #### remove them and run the examples using
-# #### command + shift + C |OR| control + shift + C
-# ####=========================================####
 data(DT_cpdata)
-# DT <- DT_cpdata
-# GT <- GT_cpdata
-# MP <- MP_cpdata
-# #### create the variance-covariance matrix
-# A <- A.mat(GT) # additive relationship matrix
-# A <- A + diag(1e-4, ncol(A), ncol(A))
-# #### look at the data and fit the model
-# head(DT)
-# mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
-#                  relmat=list(id=Matrix::chol(A)),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore"
-#                  ),
-#                  data=DT)
-# vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
-# # run one last iteration with imputed data
-# # to make sure you get predictions for everyone
-# DT2 <- DT
-# DT2$Yield <- imputev(DT2$Yield)
-# mix1b <- update(mix1, data=DT2, 
-#                 control=lmerControl(
-#   check.nobs.vs.nlev = "ignore",
-#   check.nobs.vs.rankZ = "ignore",
-#   check.nobs.vs.nRE="ignore",
-#   optCtrl=list(maxfun=1)
-# ))
-# rex <- ranef(mix1b)
+DT <- DT_cpdata
+GT <- GT_cpdata
+MP <- MP_cpdata
+## create the variance-covariance matrix
+A <- A.mat(GT) # additive relationship matrix
+A <- A + diag(1e-4, ncol(A), ncol(A))
+## look at the data and fit the model
+head(DT)
+
+\donttest{
+
+mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+                 relmat=list(id=Matrix::chol(A)),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+# run one last iteration with imputed data
+# to make sure you get predictions for everyone
+DT2 <- DT
+DT2$Yield <- imputev(DT2$Yield)
+mix1b <- update(mix1, data=DT2,
+                control=lmerControl(
+  check.nobs.vs.nlev = "ignore",
+  check.nobs.vs.rankZ = "ignore",
+  check.nobs.vs.nRE="ignore",
+  optCtrl=list(maxfun=1)
+))
+rex <- ranef(mix1b)
+
+}
 
 }
 \keyword{datasets}

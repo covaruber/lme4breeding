@@ -161,27 +161,32 @@ List of length 7, 8 or 9 (according to the \code{asreml} and
 \examples{
 
 data(DT_cpdata)
-# DT <- DT_cpdata
-# # add the units column
-# DT$units <- as.factor(1:nrow(DT))
-# # get spatial incidence matrix
-# Zs <- with(DT, tps(Row, Col))$All
-# rownames(Zs) <- DT$units
-# # reduce the matrix to its PCs
-# Z = with(DT, redmm(x=units, M=Zs, nPC=100))
-# # make sure dimensions will be correct
-# Z <- Z[which(!is.na(DT$Yield)),]
-# # create dummy variable
-# spatial <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
-# # fit model
-# mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
-#                  addmat =list(spatial=Z),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore"
-#                  ),
-#                  data=DT)
-# vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+DT <- DT_cpdata
+# add the units column
+DT$units <- as.factor(1:nrow(DT))
+# get spatial incidence matrix
+Zs <- with(DT, tps(Row, Col))$All
+rownames(Zs) <- DT$units
+# reduce the matrix to its PCs
+Z = with(DT, redmm(x=units, M=Zs, nPC=100))
+# make sure dimensions will be correct
+Z <- Z[which(!is.na(DT$Yield)),]
+# create dummy variable
+spatial <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
+
+\donttest{
+
+# fit model
+mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
+                 addmat =list(spatial=Z),
+                 control = lmerControl(
+                   check.nobs.vs.nlev = "ignore",
+                   check.nobs.vs.rankZ = "ignore",
+                   check.nobs.vs.nRE="ignore"
+                 ),
+                 data=DT)
+vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+
+}
 
 }

@@ -1,0 +1,11 @@
+
+bibentry(
+   bibtype = "Article",
+   title = "lme4breeding: enabling genetic evaluation in the age of genomic data.",
+   author = as.person("Covarrubias-Pazaran Giovanny"),
+   journal="TBS",
+	year=2024,
+	volume="N",
+	pages="start-end"
+     )
+

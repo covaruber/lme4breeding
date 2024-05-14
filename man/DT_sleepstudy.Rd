@@ -18,36 +18,40 @@ These data are from the study described in Belenky et al. (2003), for the sleep 
 }
 \references{
 
-Covarrubias-Pazaran G (2016) Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE 11(6): doi:10.1371/journal.pone.0156744 
+Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
 Gregory Belenky et al. (2003) Patterns of performance degradation and restoration during sleep restrictions and subsequent recovery: a sleep dose-response study. Journal of Sleep Research 12, 1-12.
+
 
 }
 \examples{
 
-####=========================================####
-#### For CRAN time limitations most lines in the
-#### examples are silenced with one '#' mark,
-#### remove them and run the examples
-####=========================================####
 data(DT_sleepstudy)
-# DT <- DT_sleepstudy
-# head(DT)
-# ##################################
-# fm1 <- lmebreed(Reaction ~ Days + (1 | Subject), data=DT)
-# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-# 
-# ##################################
-# fm1 <- lmebreed(Reaction ~ Days + (Days || Subject), data=DT)
-# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-# 
-# ##################################
-# fm1 <- lmebreed(Reaction ~ Days + (Days | Subject), data=DT)
-# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-# 
-# ##################################
-# fm1 <- lmebreed(Reaction ~ Days + (0 + Days | Subject), data=DT)
-# vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
+DT <- DT_sleepstudy
+head(DT)
+##################################
+fm1 <- lmebreed(Reaction ~ Days + (1 | Subject), data=DT)
+vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
+
+
+\donttest{
+
+##################################
+fm1 <- lmebreed(Reaction ~ Days + (Days || Subject), data=DT)
+vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
+
+##################################
+fm1 <- lmebreed(Reaction ~ Days + (Days | Subject), data=DT)
+vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
+
+##################################
+fm1 <- lmebreed(Reaction ~ Days + (0 + Days | Subject), data=DT)
+vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
+
+
+}
 
 
 }

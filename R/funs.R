@@ -39,8 +39,6 @@ lmebreed <-
     lmerc$addmat <- NULL
     lmerc$dateWarning <- NULL
     lmerc$returnParams <- NULL
-    # lmerc$initDerivs <- NULL
-    # lmerc$initCov <- NULL
     if (!gaus) {lmerc$REML <- NULL}
     if (!length(relmat) & !length(addmat))  {
       return(eval.parent(lmerc))
@@ -59,10 +57,6 @@ lmebreed <-
     stopifnot(all(pnms %in% names(fl)))
     asgn <- attr(fl, "assign")
     Zt <- pp$Zt # Matrix::image(Zt)  Matrix::image(as(addmat[[1]], Class="dgCMatrix"))
-    ##############################
-    ## replace initial variance components
-    # if(!is.null(initDerivs)){lmf@optinfo$derivs <- initDerivs}
-    # if(!is.null(initCov)){lmf@theta <- initCov}
     ##############################
     ## replace additional matrices
     for (i in seq_along(addmat)) {

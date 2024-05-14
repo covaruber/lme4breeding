@@ -35,15 +35,13 @@
 
 \examples{
 
-### ========================== ###
-### ========================== ###
 data(DT_yatesoats)
-# DT <- DT_yatesoats
-# head(DT)
-# m3 <- lmebreed(Y ~ V + N + V:N +
-#              (1|B) + (1|B:MP),
-#            data = DT)
-# vc <- VarCorr(m3); print(vc,comp=c("Variance"))
+DT <- DT_yatesoats
+head(DT)
+m3 <- lmebreed(Y ~ V + N + V:N +
+             (1|B) + (1|B:MP),
+           data = DT)
+vc <- VarCorr(m3); print(vc,comp=c("Variance"))
 
 }
 
