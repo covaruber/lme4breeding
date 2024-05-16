@@ -47,13 +47,15 @@ lmebreed <-
     if (!length(relmat) & !length(addmat))  {
       return(eval.parent(lmerc))
     }            # call [g]lmer instead
+    # lapply(relmat, str)
     stopifnot(is.list(relmat),        # check the relmat argument
               length(names(relmat)) == length(relmat),
-              all( sapply(relmat, inherits, what = c("relmat","matrix","dtCMatrix","ddiMatrix"))  ))
+              all( sapply(relmat, inherits, what = c("relmat","matrix","Matrix"))  ))
     ## DO TRANSFORMATION BEFORE EVALUATING THE CALL
-    udu <- NULL
+    udu <- list()
     if(length(relmat) > 0){ # get cholesky factor
       if(rotation & length(relmat)==1){
+        '%!in%' <- function(x,y)!('%in%'(x,y)) 
         response <- all.vars(formula)[1]
         if( response %!in% colnames(data) ){stop("Response selected in your formula is not part of the dataset provided.", call. = FALSE)}
         udu <- umat(as.formula(paste("~", names(relmat))), relmat = relmat[[1]], data=data)
@@ -66,6 +68,7 @@ lmebreed <-
           relmat[[i]] <- Matrix::chol(relmat[[i]])
         }
       }
+      
     }
     ## END OF TRANSFORMATION
     lmf <- eval(lmerc, parent.frame()) 
@@ -79,7 +82,7 @@ lmebreed <-
     asgn <- attr(fl, "assign")
     Zt <- pp$Zt # Matrix::image(Zt)  Matrix::image(as(addmat[[1]], Class="dgCMatrix"))
     ##############################
-    ## transform X if needed
+    ## transform X if rotation is needed
     if(length(relmat) > 0){
       if(rotation & length(relmat)==1){
         obj1 <- merPredD(X=udu$Utn[goodRecords,goodRecords] %*% lmf@pp$X, Zt=lmf@pp$Zt, Lambdat=lmf@pp$Lambdat, Lind=lmf@pp$Lind,
@@ -147,7 +150,7 @@ lmebreed <-
       }
       mm <- mkMerMod(environment(devfun), opt, reTrms, lmf@frame, mc)
       cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
-      ans <- do.call(new, list(Class=cls, relfac=relfac, #udu=udu,
+      ans <- do.call(new, list(Class=cls, relfac=relfac, udu=udu,
                                frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
                                theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
                                devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
@@ -162,7 +165,7 @@ setMethod("ranef", signature(object = "lmebreed"),
           {
             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
             ans <- ans[whichel]
-            if (relmat) {
+            if (relmat) { # transform back when relfac was used
               rf <- object@relfac
               for (nm in names(rf)) { # nm <- names(rf)[1]
                 dm <- data.matrix(ans[[nm]])

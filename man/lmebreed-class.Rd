@@ -16,6 +16,8 @@
   \describe{
     \item{\code{relfac}:}{A list of relationship matrix factors.  All
       other slots are inherited from class \code{"\link[lme4:merMod-class]{merMod}"}.}
+    \item{\code{udd}:}{A list of eigen decomposition elements.  All
+      other slots are inherited from class \code{"\link[lme4:merMod-class]{merMod}"}.}
   }
 }
 \section{Extends}{

@@ -8,7 +8,7 @@
     stop("This package requires R 3.5.0 or later")
   if(interactive()) {
     packageStartupMessage(blue(paste("[]==================================================================[]")),appendLF=TRUE)
-    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.1 (2024-05) []",sep="")),appendLF=TRUE)
+    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.1 (2024-06) []",sep="")),appendLF=TRUE)
     packageStartupMessage(paste0(blue("[] Author: Giovanny Covarrubias-Pazaran",paste0(bgGreen(white(" ")), bgWhite(magenta("*")), bgRed(white(" "))),"                        []")),appendLF=TRUE)
     packageStartupMessage(blue("[] Dedicated to the University of Chapingo and UW-Madison           []"),appendLF=TRUE)
     packageStartupMessage(blue("[] Type 'vignette('lmebreed.gxe')' for a short tutorial             []"),appendLF=TRUE)
@@ -26,7 +26,7 @@ umat <- function(formula, relmat, data){
   if(missing(data)){stop("Please provide the dataset where we can extract find the factor in formula.")}
   if(missing(relmat)){stop("Please provide the relationship matrix where we will apply the eigen decomposition.")}
   if(missing(formula)){stop("Please provide the formula with the factor to do the decomposition on.")}
-  if(class(formula) != "formula"){stop("Please provide the formula as.formula().")}
+  if(!inherits(formula, "formula")){stop("Please provide the formula as.formula().")}
   
   idProvided <- all.vars(formula)
   if(length(idProvided) > 1){stop("Only one factor can be provided in the formula.")}

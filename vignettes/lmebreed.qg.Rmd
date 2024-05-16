@@ -705,9 +705,6 @@ Now we can look at the p-values coming from the 3 approaches to indeed show that
 # plot(-log(pvalGBLUP), main="GWAS by GBLUP")
 ```
 
-### Final remarks
-
-Keep in mind that mmer uses a direct inversion (DI) algorithm which can be very slow for large datasets with many records. When datasets have more records than coefficients to be estimated please shift to the use of the mmec function.
 
 ## Literature
 
