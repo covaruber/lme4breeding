@@ -25,7 +25,7 @@ If using this data for your own research please cite:
 
 Technow et al. 2014. Genome properties and prospects of genomic predictions of hybrid performance in a Breeding program of maize. Genetics 197:1343-1355.
 
-Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
 Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
@@ -49,8 +49,8 @@ vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 
 ### with relationship matrices
 ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
-             relmat = list(dent=Matrix::chol(Ad),
-                           flint=Matrix::chol(Af)),
+             relmat = list(dent=Ad,
+                           flint=Af),
              data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 
@@ -66,7 +66,7 @@ fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 #### model using overlay without relationship matrix
 ans2 <- lmebreed(GY ~ (1|fema),
                  addmat = list(fema=Z),
-                 relmat = list(fema=Matrix::chol(A)),
+                 relmat = list(fema=A),
                  data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 

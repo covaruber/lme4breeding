@@ -22,7 +22,7 @@ This data was simulated for fruit breeding applications.
 }
 \references{
 
-Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
 Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
@@ -42,7 +42,7 @@ head(DT)
 \donttest{
 
 mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
-                 relmat=list(id=Matrix::chol(A)),
+                 relmat=list(id=A),
                  control = lmerControl(
                    check.nobs.vs.nlev = "ignore",
                    check.nobs.vs.rankZ = "ignore",

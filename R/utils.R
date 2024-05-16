@@ -51,14 +51,14 @@ umat <- function(formula, relmat, data){
   colnames(Z) <- gsub(idProvided,"", colnames(Z))
   UD <- eigen(relmat)
   U<-UD$vectors
-  D<-diag(UD$values)# This will be our new 'relationship-matrix'
+  D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'
   rownames(D) <- colnames(D) <- rownames(relmat)
   rownames(U) <- colnames(U) <- rownames(relmat)
   
   # part1 <- Z%*%U[colnames(Z),colnames(Z)]%*%t(Z)
   part1 <- U[as.character(data[,idProvided]), as.character(data[, idProvided])]
   W0 <- part0 * part1
-  return(list(Utn=t(W0), D=D, U=U))
+  return(list(Utn=t(W0), D=D, U=U, RRt=part0))
 }
 ###
 adjBeta <- function(x){
@@ -187,8 +187,15 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
 
 stackTrait <- function(data, traits){
   
+  '%!in%' <- function(x,y)!('%in%'(x,y)) 
   dataScaled <- data
+  # remove traits not present in the dataset
   traits <- intersect(traits, colnames(data) )
+  # check that traits are numeric
+  columnTypesTraits <- unlist(lapply(data[traits],class)) 
+  badones <- which(columnTypesTraits %!in% c("integer","numeric") )
+  if(length(badones) > 0){stop("some of your selected traits are not numeric. Please correct the traits provided.", call. = FALSE)}
+  # identify possible idvars
   idvars <- setdiff(colnames(data), traits)
   for(iTrait in traits){
     dataScaled[,iTrait] <- scale(dataScaled[,iTrait])
@@ -196,10 +203,10 @@ stackTrait <- function(data, traits){
   columnTypes <- unlist(lapply(data[idvars],class)) 
   columnTypes <- columnTypes[which(columnTypes %in% c("factor","character","integer"))]
   idvars <- intersect(idvars,names(columnTypes))
-  data2 <- reshape(data, idvar = idvars, varying = traits,
+  data2 <- reshape(data[,c(idvars, traits)], idvar = idvars, varying = traits,
                    timevar = "trait",
                    times = traits,v.names = "value", direction = "long")
-  data2Scaled <- reshape(dataScaled, idvar = idvars, varying = traits,
+  data2Scaled <- reshape(dataScaled[,c(idvars, traits)], idvar = idvars, varying = traits,
                          timevar = "trait",
                          times = traits,v.names = "value", direction = "long")
   data2 <- as.data.frame(data2)

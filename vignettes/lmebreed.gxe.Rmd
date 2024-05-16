@@ -34,7 +34,7 @@ DT <- DT_example
 A <- A_example
 
 ansMain <- lmebreed(Yield ~ Env + (1|Name),
-                        relmat = list(Name = Matrix::chol(A) ),
+                        relmat = list(Name = A ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
 
@@ -53,7 +53,7 @@ diagFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), 
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(diagFormula))
 ansDG <- lmebreed(as.formula(diagFormula),
-                      relmat = list(Name = Matrix::chol(A) ),
+                      relmat = list(Name = A ),
                       data=DT)
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
@@ -71,7 +71,7 @@ E <- Matrix::Diagonal(length(unique(DT$Env)));
 colnames(E) <- rownames(E) <- unique(DT$Env);E
 EA <- Matrix::kronecker(E,A, make.dimnames = TRUE)
 ansCS <- lmebreed(Yield ~ Env + (1|Name) + (1|EnvName),
-                    relmat = list(Name = Matrix::chol(A), EnvName=  Matrix::chol(EA) ),
+                    relmat = list(Name = A, EnvName=  EA ),
                     data=DT)
 vc <- VarCorr(ansCS); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
@@ -87,7 +87,7 @@ csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), 
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(csdiagFormula))
 ansCSDG <- lmebreed(as.formula(csdiagFormula),
-                      relmat = list(Name = Matrix::chol(A) ),
+                      relmat = list(Name = A ),
                       data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
@@ -104,7 +104,7 @@ usFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(usFormula))
 ansDG <- lmebreed(as.formula(usFormula),
-                    relmat = list(Name = Matrix::chol(A) ),
+                    relmat = list(Name = A ),
                     data=DT)
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
@@ -124,7 +124,7 @@ A multi-environment model is the one that is fitted when the breeding program ca
 # rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Name)")
 # for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 # ansRR <- lmebreed(as.formula(rrFormula),
-#                   relmat = list(Name = Matrix::chol(A) ),
+#                   relmat = list(Name = A ),
 #                   data=DT)
 # vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
 # ve <- attr(vc, "sc")^2; ve
@@ -140,7 +140,7 @@ In addition, we an fit this without covariance:
 # rrFormula <- paste0( "Yield ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
 # for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 # ansRR <- lmebreed(as.formula(rrFormula),
-#                   relmat = list(Name = Matrix::chol(A) ),
+#                   relmat = list(Name = A ),
 #                   data=DT)
 # vc <- VarCorr(ansRR); print(vc,comp=c("Variance"))
 # ve <- attr(vc, "sc")^2; ve
@@ -194,7 +194,7 @@ diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| 
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(diagFormula))
 ans1a <- lmebreed(as.formula(diagFormula),
-                  relmat = list(Name = Matrix::chol(A) ),
+                  relmat = list(Name = A ),
                   data=DT)
 vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
 H0 <- ranef(ans1a)$Name # GxE table
@@ -206,7 +206,7 @@ faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Nam
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(faFormula))
 ansFA <- lmebreed(as.formula(faFormula),
-                  relmat = list(Name = Matrix::chol(A) ),
+                  relmat = list(Name = A ),
                   data=DT)
 vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
@@ -271,7 +271,7 @@ ve <- attr(vc, "sc")^2; ve
  
 ## Literature
 
-Covarrubias-Pazaran Giovanny & Aparicio-Arce Johan. 2024.  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
 Bates Douglas, Maechler Martin, Bolker Ben, Walker Steve. 2015. Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 

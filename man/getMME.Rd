@@ -39,7 +39,7 @@ Uses the lmebreed object and builds the coefficient matrix (C) and returns its i
 
 \references{
 
-Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
 Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
@@ -52,7 +52,7 @@ DT <- DT_example
 A <- A_example
 
 ansMain <- lmebreed(Yield ~ Env + (1|Name),
-                    relmat = list(Name = Matrix::chol(A) ),
+                    relmat = list(Name = A ),
                     data=DT)
 mme <- getMME(ansMain)
 
@@ -72,7 +72,7 @@ A <- A + diag(1e-4, ncol(A), ncol(A))
 #### look at the data and fit the model
 head(DT)
 mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
-                 relmat=list(id=Matrix::chol(A)),
+                 relmat=list(id=A),
                  control = lmerControl(
                    check.nobs.vs.nlev = "ignore",
                    check.nobs.vs.rankZ = "ignore",
@@ -85,7 +85,7 @@ vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 DT2 <- DT
 DT2$Yield <- imputev(DT2$Yield)
 mix1expanded <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
-                 relmat=list(id=Matrix::chol(A)),
+                 relmat=list(id=A),
                  control = lmerControl(
                    check.nobs.vs.nlev = "ignore",
                    check.nobs.vs.rankZ = "ignore",

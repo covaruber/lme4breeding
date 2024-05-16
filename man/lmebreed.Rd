@@ -10,11 +10,12 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
            relmat = list(), addmat = list(), control = list(),
            start = NULL, verbose = FALSE, subset, weights,
            na.action, offset, contrasts = NULL, model = TRUE,
-           x = TRUE, dateWarning=TRUE, returnParams=FALSE, ...)
+           x = TRUE, dateWarning=TRUE, returnParams=FALSE,
+           rotation=FALSE, ...)
 }
 \arguments{
-  \item{relmat}{an optional named list of relationship factors (relfactors) 
-     or matrix decompositions (e.g., cholesky).
+  \item{relmat}{an optional named list of relationship matrices (not the inverse). 
+    Internally the Cholesky decomposition of those matrices will be computed.
     The names of the elements must correspond to the names of grouping factors for
     random-effects terms in the \code{formula} argument.}
   \item{addmat}{an optional named list of customized incidence matrices.
@@ -26,6 +27,8 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   version of lme4breeding is available on CRAN.}
   \item{returnParams}{an logical value indicating if you want to only get the incidence 
   matrices of the model.}
+  \item{rotation}{an logical value indicating if you want to compute the eigen decomposition 
+  of the relationship matrix to rotate y and X and accelerate the computation. See details.}
   \item{formula}{as in \code{\link[lme4]{lmer}}}
   \item{data}{as in \code{\link[lme4]{lmer}}}
   \item{family}{as in \code{\link[lme4]{glmer}}}
@@ -48,7 +51,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   named lists.  Each name must correspond to the name of a grouping factor in a
   random-effects term in the \code{formula}.  The observed levels
   of that factor must be contained in the rownames and columnames of the relmat.  
-  Each relmat is the (left) Cholesky factor of the relationship matrix restricted 
+  Each relmat is the relationship matrix restricted 
   to the observed levels and applied to the model matrix for that term. The incidence
   matrices in the addmat argument must match the dimensions of the final fit (pay 
   attention to missing data in responses).
@@ -57,6 +60,12 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   the square root of the relationship matrix and to recover the correct BLUPs for those effects
   you need to use the \code{\link{ranef}} function which internally multiple those BLUPs the 
   square root of the relationship matrix one more time to recover the correct BLUPs.
+  
+  The argument \code{rotation} applies the eigen decomposition proposed by Lee and Van der Werf in 2016
+  and makes the genetic evaluation totally sparse leading to incredible gains in speed compared 
+  to the classical approach. Internally, the eigen decomposition UDU' is carried in the relationship 
+  matrix. The U matrix is then taken to the n x n level (n being the number of records), and post-multiplied
+  by a matrix of records presence (n x n) using the element-wise multiplication of two matrices (Schur product).
   
   
   \strong{Example Datasets}
@@ -91,9 +100,11 @@ The package has been equiped with several datasets to learn how to use the lme4b
 }
 \references{
 
-Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
 Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+
+Lee & Van der Werf (2016). MTG2: an efficient algorithm for multivariate linear mixed model analysis based on genomic information. Bioinformatics, 32(9), 1420-1422.
    
 }
 \author{
@@ -106,7 +117,7 @@ DT <- DT_example
 A <- A_example
 
 ansMain <- lmebreed(Yield ~ Env + (1|Name),
-                        relmat = list(Name = Matrix::chol(A) ),
+                        relmat = list(Name = A ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
 

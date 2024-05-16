@@ -20,7 +20,7 @@ This data was masked from a shared study.
 }
 \references{
 
-Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
 Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
@@ -40,8 +40,8 @@ vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
 ## Add relationship matrices
 A_ige <- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
 modIGE <- lmebreed(trait ~ block + (1|focal) + (1|neighbour),
-                   relmat = list(focal=Matrix::chol(A_ige),
-                                 neighbour=Matrix::chol(A_ige)),
+                   relmat = list(focal=A_ige,
+                                 neighbour=A_ige),
                    data = DT)
 vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
 
@@ -65,7 +65,7 @@ both <- (rep(colnames(Zf), nrow(DT)))[1:nrow(DT)]
 ## Fit the model
 modIGE <- lmebreed(trait ~ block + (0+fn+nn|both),
                    addmat = list(both=list(Zf,Zn)),
-                   relmat = list(both=Matrix::chol(A_ige)),
+                   relmat = list(both=A_ige),
                    data = DT)
 vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
 

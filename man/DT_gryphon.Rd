@@ -30,10 +30,10 @@ This data comes from the Journal of Animal Ecology. Please, if using this data c
 
 Wilson AJ, et al. (2010) An ecologist's guide to the animal model. Journal of Animal Ecology 79(1): 13-26.
 
-Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
-Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48. 
- 
+Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+
 }
 \examples{
 
@@ -48,7 +48,7 @@ head(DT)
 
 ## fit the model with no fixed effects (intercept only)
 mix1 <- lmebreed(BWT~ (1|ANIMAL),
-                 relmat = list(ANIMAL=Matrix::chol(A)),
+                 relmat = list(ANIMAL=A),
                  control = lmerControl(
                    check.nobs.vs.nlev = "ignore",
                    check.nobs.vs.rankZ = "ignore",

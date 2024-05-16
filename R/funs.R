@@ -7,14 +7,14 @@ lmebreed <-
            # initDerivs=NULL, initCov=NULL,
            control = list(), start = NULL, verbose = FALSE, 
            subset, weights, na.action, offset, contrasts = NULL,
-           model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, ...)
+           model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, rotation=FALSE, ...)
   {
     my.date <- "2024-09-01" # expiry date
     your.date <- Sys.Date()
     ## if your month is greater than my month you are outdated
     if(dateWarning){
       if (your.date > my.date) {
-        cat("Version out of date. Please update lme4breeding to the newest version using:\ninstall.packages('lme4breeding') in a new session\n Use the 'dateWarning' argument to disable the warning message.")
+        warning("Version out of date. Please update lme4breeding to the newest version using:\ninstall.packages('lme4breeding') in a new session\n Use the 'dateWarning' argument to disable the warning message.")
       }
     }
     gaus <- FALSE
@@ -33,12 +33,16 @@ lmebreed <-
     }
     mc <- match.call()
     lmerc <- mc                         # create a call to lmer 
-    # lmerc$formula <- formula; lmerc$data <- data; lmerc$control <- control
+    # lmerc$formula <- formula; lmerc$data <- data; 
+    # lmerc$control <- control # only if we are using it 
+    ## silence additional parameters from lme4breeding that don't apply to lmer
     lmerc[[1]] <- if (gaus){as.name("lmer")}else{as.name("glmer")} 
     lmerc$relmat <- NULL
     lmerc$addmat <- NULL
     lmerc$dateWarning <- NULL
     lmerc$returnParams <- NULL
+    lmerc$rotation <- NULL
+    ##
     if (!gaus) {lmerc$REML <- NULL}
     if (!length(relmat) & !length(addmat))  {
       return(eval.parent(lmerc))
@@ -46,7 +50,24 @@ lmebreed <-
     stopifnot(is.list(relmat),        # check the relmat argument
               length(names(relmat)) == length(relmat),
               all( sapply(relmat, inherits, what = c("relmat","matrix","dtCMatrix","ddiMatrix"))  ))
-    
+    ## DO TRANSFORMATION BEFORE EVALUATING THE CALL
+    udu <- NULL
+    if(length(relmat) > 0){ # get cholesky factor
+      if(rotation & length(relmat)==1){
+        response <- all.vars(formula)[1]
+        if( response %!in% colnames(data) ){stop("Response selected in your formula is not part of the dataset provided.", call. = FALSE)}
+        udu <- umat(as.formula(paste("~", names(relmat))), relmat = relmat[[1]], data=data)
+        goodRecords <- which(!is.na(data[,response]))
+        data[goodRecords,response] <- (udu$Utn[goodRecords,goodRecords] %*% data[goodRecords,response])[,1]
+        lmerc$data <- data
+        relmat[[1]] <- Matrix::chol(udu$D)
+      }else{
+        for (i in seq_along(relmat)) {
+          relmat[[i]] <- Matrix::chol(relmat[[i]])
+        }
+      }
+    }
+    ## END OF TRANSFORMATION
     lmf <- eval(lmerc, parent.frame()) 
     relfac <- relmat          # copy the relmat list for relfactor
     pnms <- names(relmat)
@@ -57,6 +78,15 @@ lmebreed <-
     stopifnot(all(pnms %in% names(fl)))
     asgn <- attr(fl, "assign")
     Zt <- pp$Zt # Matrix::image(Zt)  Matrix::image(as(addmat[[1]], Class="dgCMatrix"))
+    ##############################
+    ## transform X if needed
+    if(length(relmat) > 0){
+      if(rotation & length(relmat)==1){
+        obj1 <- merPredD(X=udu$Utn[goodRecords,goodRecords] %*% lmf@pp$X, Zt=lmf@pp$Zt, Lambdat=lmf@pp$Lambdat, Lind=lmf@pp$Lind,
+                         theta=lmf@pp$theta, n=nrow(lmf@pp$X))
+        pp <- obj1
+      }
+    }
     ##############################
     ## replace additional matrices
     for (i in seq_along(addmat)) {
@@ -117,7 +147,7 @@ lmebreed <-
       }
       mm <- mkMerMod(environment(devfun), opt, reTrms, lmf@frame, mc)
       cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
-      ans <- do.call(new, list(Class=cls, relfac=relfac,
+      ans <- do.call(new, list(Class=cls, relfac=relfac, #udu=udu,
                                frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
                                theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
                                devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
@@ -160,17 +190,17 @@ setMethod("ranef", signature(object = "lmebreed"),
                   #     }
                   #   }
                   # }else{
-                    Ci <- getMME(object)$Ci
-                    tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                    for(j in 1:length(tn)){
-                      ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-                      rowsi <- (ind[1]+1L):ind[2]
-                      if(is.list(attr(ans[[nm]], which="postVar"))){
-                        attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci[rowsi,rowsi])
-                      }else{
-                        attr(ans[[nm]], which="postVar")[,,] <- diag(Ci[rowsi,rowsi])
-                      }
+                  Ci <- getMME(object)$Ci
+                  tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
+                  for(j in 1:length(tn)){
+                    ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+                    rowsi <- (ind[1]+1L):ind[2]
+                    if(is.list(attr(ans[[nm]], which="postVar"))){
+                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci[rowsi,rowsi])
+                    }else{
+                      attr(ans[[nm]], which="postVar")[,,] <- diag(Ci[rowsi,rowsi])
                     }
+                  }
                   # }
                 }
               }

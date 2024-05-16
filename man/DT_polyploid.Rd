@@ -23,7 +23,7 @@ If using this data for your own research please cite:
 
 Rosyara Umesh R., Walter S. De Jong, David S. Douches, Jeffrey B. Endelman. Software for genome-wide association studies in autopolyploids and its application to potato. The Plant Genome 2015.
 
-Giovanny Covarrubias-Pazaran & Johan Aparicio-Arce (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
 
 Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
@@ -56,7 +56,7 @@ A <- A.mat(marks)
 ## run as mixed model
 A <- A + diag(1e-4,ncol(A),ncol(A))
 ans <- lmebreed(tuber_shape~ (1|Name),
-                relmat = list(Name=Matrix::chol(A)),
+                relmat = list(Name=A),
                 control = lmerControl(
                   check.nobs.vs.nlev = "ignore",
                   check.nobs.vs.rankZ = "ignore",
