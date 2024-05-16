@@ -58,8 +58,8 @@ data(DT_wheat)
 DT <- DT_wheat
 GT <- GT_wheat
 DT <- data.frame(pheno=as.vector(DT),
-                     env=as.factor(sort(rep(1:4,nrow(DT)))),
-                     id=rep(rownames(DT),4))
+                 env=as.factor(paste0("e", sort(rep(1:4,nrow(DT))))),
+                 id=rep(rownames(DT),4))
 
 rownames(GT) <-  rownames(DT_wheat)
 K <- A.mat(GT) # additive relationship matrix

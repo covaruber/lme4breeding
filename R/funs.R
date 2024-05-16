@@ -171,7 +171,13 @@ setMethod("ranef", signature(object = "lmebreed"),
                 dm <- data.matrix(ans[[nm]])
                 cn <- colnames(dm)
                 rn <- rownames(dm)
-                dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs
+                dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
+                # rotate one more time if a UDU rotation was used in the response
+                if(length(object@udu) > 0){
+                  if(object@udu$effect == nm){ # this only happens if there was a single relmat
+                    dm <- object@udu$U[rn,rn] %*% dm
+                  }
+                }
                 colnames(dm) <- cn
                 rownames(dm) <- rn
                 for(kCol in 1:ncol(ans[[nm]])){
@@ -179,38 +185,46 @@ setMethod("ranef", signature(object = "lmebreed"),
                 }
                 # replace postVar if condVar=TRUE
                 if (condVar){
-                  # if(simpleCondVar){
-                  #   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  #   for(j in 1:length(tn)){
-                  #     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-                  #     rowsi <- (ind[1]+1L):ind[2]
-                  #     if(is.list(attr(ans[[nm]], which="postVar"))){
-                  #       prov <- t(rf[[nm]][rn,rn]) %*% diag(attr(ans[[nm]], which="postVar")[[j]][,,]) %*% (rf[[nm]][rn,rn])
-                  #       attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(prov)
-                  #     }else{
-                  #       prov <- t(rf[[nm]][rn,rn]) %*% diag(attr(ans[[nm]], which="postVar")[,,]) %*% (rf[[nm]][rn,rn])
-                  #       attr(ans[[nm]], which="postVar")[,,] <- prov
-                  #     }
-                  #   }
-                  # }else{
                   Ci <- getMME(object)$Ci
                   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  for(j in 1:length(tn)){
+                  for(j in 1:length(tn)){ # j=1
                     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-                    rowsi <- (ind[1]+1L):ind[2]
+                    rowsi <- ( (ind[1]+1L):ind[2] ) + 1
+                    CiSub <- Ci[rowsi,rowsi]
+                    if(length(object@udu) > 0){
+                      if(object@udu$effect == nm){ # this only happens if there was a single relmat
+                        CiSub <- (object@udu$U[rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[rn,rn])
+                      }
+                    }
                     if(is.list(attr(ans[[nm]], which="postVar"))){
-                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci[rowsi,rowsi])
+                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
                     }else{
-                      attr(ans[[nm]], which="postVar")[,,] <- diag(Ci[rowsi,rowsi])
+                      attr(ans[[nm]], which="postVar")[,,] <- diag(CiSub)
                     }
                   }
-                  # }
+                  
                 }
               }
             }
             return(ans)
           })
 
+
+# if(simpleCondVar){
+#   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
+#   for(j in 1:length(tn)){
+#     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+#     rowsi <- (ind[1]+1L):ind[2]
+#     if(is.list(attr(ans[[nm]], which="postVar"))){
+#       prov <- t(rf[[nm]][rn,rn]) %*% diag(attr(ans[[nm]], which="postVar")[[j]][,,]) %*% (rf[[nm]][rn,rn])
+#       attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(prov)
+#     }else{
+#       prov <- t(rf[[nm]][rn,rn]) %*% diag(attr(ans[[nm]], which="postVar")[,,]) %*% (rf[[nm]][rn,rn])
+#       attr(ans[[nm]], which="postVar")[,,] <- prov
+#     }
+#   }
+# }else{
+# }
 
 setMethod("fitted", signature(object = "lmebreed"),
           function(object, ...) {

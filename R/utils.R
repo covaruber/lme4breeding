@@ -58,7 +58,7 @@ umat <- function(formula, relmat, data){
   # part1 <- Z%*%U[colnames(Z),colnames(Z)]%*%t(Z)
   part1 <- U[as.character(data[,idProvided]), as.character(data[, idProvided])]
   W0 <- part0 * part1
-  return(list(Utn=t(W0), D=D, U=U, RRt=part0))
+  return(list(Utn=t(W0), D=D, U=U, RRt=part0, effect=idProvided))
 }
 ###
 adjBeta <- function(x){
@@ -136,9 +136,9 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   vc <- VarCorr(object);
   for(iFac in pnms){ # iFac = pnms[1]
     tn <- which(match(iFac, names(fl)) == asgn)
-    for(j in 1:length(tn)){
+    for(j in 1:length(tn)){ # j=1
       ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-      rowsi <- (ind[1]+1L):ind[2]
+      rowsi <- ((ind[1]+1L):ind[2])+1
       LLt <- Matrix::Diagonal(length(rowsi))
       if(sum(diag(vc[[iFac]])) > 0){
         Gi[rowsi,rowsi] <- kronecker( LLt , solve( vc[[iFac]] ) )
@@ -159,12 +159,12 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   
   # when relfac is present save them in block diagonal and multiple bu and C by it
   if(length(object@relfac) > 0){
-    ROT <- Matrix::Diagonal(nrow(C))#Matrix(0, nrow = nrow(C), ncol=ncol(C))
+    ROT <- Matrix::Diagonal(n=nrow(C))#Matrix(0, nrow = nrow(C), ncol=ncol(C))
     for(iFac in pnms){ # iFac = pnms[1]
       tn <- which(match(iFac, names(fl)) == asgn)
-      for(j in 1:length(tn)){
+      for(j in 1:length(tn)){ # j=1
         ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-        rowsi <- (ind[1]+1L):ind[2] + ncol(X)
+        rowsi <- ( (ind[1]+1L):ind[2] ) + 1
         if( iFac %in% names(object@relfac) ){
           pick <- rownames(C)[rowsi] # intersect( colnames(C), rownames(  object@relfac[[iFac]] )  )
           ROT[rowsi,rowsi] <- object@relfac[[iFac]][pick,pick]
