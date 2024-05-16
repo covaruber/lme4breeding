@@ -21,6 +21,53 @@
 }
 
 ###
+umat <- function(formula, relmat, data){
+  
+  if(missing(data)){stop("Please provide the dataset where we can extract find the factor in formula.")}
+  if(missing(relmat)){stop("Please provide the relationship matrix where we will apply the eigen decomposition.")}
+  if(missing(formula)){stop("Please provide the formula with the factor to do the decomposition on.")}
+  if(class(formula) != "formula"){stop("Please provide the formula as.formula().")}
+  
+  idProvided <- all.vars(formula)
+  if(length(idProvided) > 1){stop("Only one factor can be provided in the formula.")}
+  data$record <- NA
+  ids <- as.character(na.omit(unique(data[,idProvided])))
+  for(iId in ids){ # iId<- ids[1]
+    found <- which(data[,idProvided] == iId)
+    data[found,"record"] <- 1:length(found)
+  }
+  data$recordF <- as.factor(data$record)
+  nLev <- length(levels(data$recordF))
+  if(nLev > 1){
+    Zr <- sparse.model.matrix(~recordF-1, data=data)
+  }else{
+    Zr <- Matrix::Matrix(1, ncol=1, nrow=nrow(data))
+  }
+  
+  # dim(Zr)
+  part0 <- Zr %*% t(Zr)
+  # Matrix::image(part0)
+  Z <- sparse.model.matrix(as.formula(paste("~",idProvided,"-1")), data=data)
+  colnames(Z) <- gsub(idProvided,"", colnames(Z))
+  UD <- eigen(relmat)
+  U<-UD$vectors
+  D<-diag(UD$values)# This will be our new 'relationship-matrix'
+  rownames(D) <- colnames(D) <- rownames(relmat)
+  rownames(U) <- colnames(U) <- rownames(relmat)
+  
+  # part1 <- Z%*%U[colnames(Z),colnames(Z)]%*%t(Z)
+  part1 <- U[as.character(data[,idProvided]), as.character(data[, idProvided])]
+  W0 <- part0 * part1
+  return(list(Utn=t(W0), D=D, U=U))
+}
+###
+adjBeta <- function(x){
+  if(length(x) > 1){
+    x[2:length(x)] <- x[2:length(x)] + x[1]
+  }
+  return(x)
+}
+###
 leg <- function(x,n=1,u=-1,v=1, intercept=TRUE, intercept1=FALSE){
   
   init0 <- as.character(substitute(list(x)))[-1L]

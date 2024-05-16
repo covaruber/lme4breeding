@@ -117,7 +117,10 @@ rownames(A) <- colnames(A) <- indNames
                     data=DT)
   vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
   
-  loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = T) )$Gamma
+}
+\dontrun{
+
+loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = TRUE) )$Gamma
   Gint <- loadings %*% vc$Name %*% t(loadings) ## replace * by matrix product
   Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
   G <- Gint + Gspec

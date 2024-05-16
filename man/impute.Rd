@@ -31,9 +31,6 @@ Giovanny Covarrubias-Pazaran
 }
 
 \examples{
-####=========================================####
-#### generate your mickey mouse -log10(p-values)
-####=========================================####
 set.seed(1253)
 x <- rnorm(100)
 x[sample(1:100,10)] <- NA

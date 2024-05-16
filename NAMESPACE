@@ -11,7 +11,7 @@ importFrom("stats", "as.formula", "cov", "model.matrix", "na.omit",
 
 export( "lmebreed", "dsc", "rrc", "redmm", "overlay", "add.diallel.vars",
         "build.HMM","bbasis","tps","A.mat","atcg1234","imputev", "getMME",
-        "stackTrait", "leg")
+        "stackTrait", "leg", "adjBeta", "umat")
 
 exportMethods(
               "coerce",

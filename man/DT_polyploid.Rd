@@ -35,7 +35,7 @@ DT <- DT_polyploid
 GT <- GT_polyploid
 MP <- MP_polyploid
 ## convert markers to numeric format
-numo <- atcg1234(data=GT, ploidy=4);
+numo <- atcg1234(data=GT[,1:100], ploidy=4);
 numo$M[1:5,1:5];
 numo$ref.allele[,1:5]
 
@@ -52,7 +52,6 @@ DT2[1:5,]
 
 ## Additive relationship matrix, specify ploidy
 A <- A.mat(marks)
-D <- D.mat(marks)
 
 ## run as mixed model
 A <- A + diag(1e-4,ncol(A),ncol(A))

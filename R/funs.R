@@ -45,7 +45,7 @@ lmebreed <-
     }            # call [g]lmer instead
     stopifnot(is.list(relmat),        # check the relmat argument
               length(names(relmat)) == length(relmat),
-              all( sapply(relmat, inherits, what = c("relmat","matrix","dtCMatrix"))  ))
+              all( sapply(relmat, inherits, what = c("relmat","matrix","dtCMatrix","ddiMatrix"))  ))
     
     lmf <- eval(lmerc, parent.frame()) 
     relfac <- relmat          # copy the relmat list for relfactor

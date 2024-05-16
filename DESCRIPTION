@@ -7,14 +7,14 @@ Authors@R: c(
 	comment=c(ORCID="0000-0002-7194-3837"))
 	)
 Maintainer: Giovanny Covarrubias-Pazaran <cova_ruber@live.com.mx>
-Description: Fit relationship-based and customized mixed-effects models with complex variance-covariance structures using the lme4 machinery. The core computational algorithms from lme4 are implemented using the
+Description: Fit relationship-based and customized mixed-effects models with complex variance-covariance structures using the lme4-package machinery. The core computational algorithms are implemented using the
     'Eigen' C++ library for numerical linear algebra and 'RcppEigen' "glue".
 Depends: R(>= 3.0.0), lme4 (>= 1.0), Matrix (>= 1.0), methods, crayon
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
 NeedsCompilation: yes
-Author: Giovanny Covarrubias-Pazaran [aut] (<https://orcid.org/0000-0002-7194-3837>)
+Author: Giovanny Covarrubias-Pazaran [aut, cre] (<https://orcid.org/0000-0002-7194-3837>)
 Repository: CRAN
 Suggests: 
     rmarkdown,
