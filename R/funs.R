@@ -7,7 +7,8 @@ lmebreed <-
            # initDerivs=NULL, initCov=NULL,
            control = list(), start = NULL, verbose = FALSE, 
            subset, weights, na.action, offset, contrasts = NULL,
-           model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, rotation=FALSE, ...)
+           model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, 
+           rotation=FALSE, coefOutRotation=8, ...)
   {
     my.date <- "2024-09-01" # expiry date
     your.date <- Sys.Date()
@@ -41,7 +42,8 @@ lmebreed <-
     lmerc$addmat <- NULL
     lmerc$dateWarning <- NULL
     lmerc$returnParams <- NULL
-    lmerc$rotation <- NULL
+    lmerc$rotation <- NULL 
+    lmerc$coefOutRotation <- NULL
     ##
     if (!gaus) {lmerc$REML <- NULL}
     if (!length(relmat) & !length(addmat))  {
@@ -61,7 +63,10 @@ lmebreed <-
         if( response %!in% colnames(data) ){stop("Response selected in your formula is not part of the dataset provided.", call. = FALSE)}
         udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, data=data)
         goodRecords <- which(!is.na(data[,response]))
-        data[goodRecords,response] <- (udu$Utn[goodRecords,goodRecords] %*% data[goodRecords,response])[,1]
+        newValues <- (udu$Utn[goodRecords,goodRecords] %*% data[goodRecords,response])[,1]
+        outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
+        if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
+        data[goodRecords,response] <- newValues
         lmerc$data <- data
         for(iD in names(udu$D)){
           relmat[[iD]] <- Matrix::chol(udu$D[[iD]])

@@ -11,7 +11,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
            start = NULL, verbose = FALSE, subset, weights,
            na.action, offset, contrasts = NULL, model = TRUE,
            x = TRUE, dateWarning=TRUE, returnParams=FALSE,
-           rotation=FALSE, ...)
+           rotation=FALSE, coefOutRotation=8, ...)
 }
 \arguments{
   \item{relmat}{an optional named list of relationship matrices (not the inverse). 
@@ -29,6 +29,9 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   matrices of the model.}
   \item{rotation}{an logical value indicating if you want to compute the eigen decomposition 
   of the relationship matrix to rotate y and X and accelerate the computation. See details.}
+  \item{coefOutRotation}{a numeric value denoting the inter-quantile outlier coefficient to
+  be used in the rotation of the response when using the eigen decomposition to avoid 
+  overshooting.}
   \item{formula}{as in \code{\link[lme4]{lmer}}}
   \item{data}{as in \code{\link[lme4]{lmer}}}
   \item{family}{as in \code{\link[lme4]{glmer}}}

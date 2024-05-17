@@ -45,6 +45,7 @@ M <- atcg1234(GT)
 
 \donttest{
 
+### univariate model
 A <- A.mat(M$M)
 A <- A + diag(1e-4, ncol(A), ncol(A))
 mix <- lmebreed(Protein.content ~ (1|geno),
@@ -56,6 +57,23 @@ mix <- lmebreed(Protein.content ~ (1|geno),
                 ),
                 data=DT)
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+
+### multi-trait model
+DT2 <- stackTrait(data=DT, traits = colnames(DT)[3:12])$long
+DT2$trait <- as.factor(DT2$trait)
+head(DT2)
+system.time(
+  mix <- lmebreed(valueS ~ (0+trait|geno),
+                  relmat = list(geno=A),
+                  control = lmerControl(
+                    check.nobs.vs.nlev = "ignore",
+                    check.nobs.vs.rankZ = "ignore",
+                    check.nobs.vs.nRE="ignore"
+                  ), rotation = TRUE,
+                  data=DT2)
+)
+vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+vc$geno
 
 }
 

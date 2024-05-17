@@ -215,7 +215,7 @@ stackTrait <- function(data, traits){
     dataScaled[,iTrait] <- scale(dataScaled[,iTrait])
   }
   columnTypes <- unlist(lapply(data[idvars],class)) 
-  columnTypes <- columnTypes[which(columnTypes %in% c("factor","character","integer"))]
+  columnTypes <- columnTypes[which(columnTypes %in% c("factor","character"))]
   idvars <- intersect(idvars,names(columnTypes))
   data2 <- reshape(data[,c(idvars, traits)], idvar = idvars, varying = traits,
                    timevar = "trait",
