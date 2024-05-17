@@ -36,6 +36,9 @@ ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
              data=DT)
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
 
+BLUP <- ranef(ans1, condVar=TRUE)$Name
+SEs <- attr(BLUP, which="postVar")[,,]
+
 \donttest{
 
 ## Compound simmetry (CS) + Diagonal (DIAG) model

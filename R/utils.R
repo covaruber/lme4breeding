@@ -29,36 +29,50 @@ umat <- function(formula, relmat, data){
   if(!inherits(formula, "formula")){stop("Please provide the formula as.formula().")}
   
   idProvided <- all.vars(formula)
-  if(length(idProvided) > 1){stop("Only one factor can be provided in the formula.")}
-  data$record <- NA
-  ids <- as.character(na.omit(unique(data[,idProvided])))
-  for(iId in ids){ # iId<- ids[1]
-    found <- which(data[,idProvided] == iId)
-    data[found,"record"] <- 1:length(found)
+  # if(length(idProvided) > 1){stop("Only one factor can be provided in the formula.")}
+  ## build the layout matrix
+  ZrZrt <- list()
+  for(iProv in idProvided){
+    data$record <- NA
+    ids <- as.character(na.omit(unique(data[,iProv])))
+    for(iId in ids){ # iId<- ids[1]
+      found <- which(data[,iProv] == iId)
+      data[found,"record"] <- 1:length(found)
+    }
+    data$recordF <- as.factor(data$record)
+    nLev <- length(levels(data$recordF))
+    if(nLev > 1){
+      Zr <- sparse.model.matrix(~recordF-1, data=data)
+    }else{
+      Zr <- Matrix::Matrix(1, ncol=1, nrow=nrow(data))
+    }
+    ZrZrt[[iProv]] <- Zr %*% t(Zr)
   }
-  data$recordF <- as.factor(data$record)
-  nLev <- length(levels(data$recordF))
-  if(nLev > 1){
-    Zr <- sparse.model.matrix(~recordF-1, data=data)
-  }else{
-    Zr <- Matrix::Matrix(1, ncol=1, nrow=nrow(data))
-  }
-  
+  part0 <- Reduce("+",ZrZrt)
+  part0[which(part0 > 0)]=1
   # dim(Zr)
-  part0 <- Zr %*% t(Zr)
   # Matrix::image(part0)
-  Z <- sparse.model.matrix(as.formula(paste("~",idProvided,"-1")), data=data)
-  colnames(Z) <- gsub(idProvided,"", colnames(Z))
-  UD <- eigen(relmat)
-  U<-UD$vectors
-  D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'
-  rownames(D) <- colnames(D) <- rownames(relmat)
-  rownames(U) <- colnames(U) <- rownames(relmat)
-  
-  # part1 <- Z%*%U[colnames(Z),colnames(Z)]%*%t(Z)
-  part1 <- U[as.character(data[,idProvided]), as.character(data[, idProvided])]
+  # build the U nxn matrix
+  Ul <- Dl <- Zu <- list()
+  for(iProv in idProvided){
+    Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
+    colnames(Z) <- gsub(iProv,"", colnames(Z))
+    UD <- eigen(relmat[[iProv]])
+    U<-UD$vectors
+    D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'
+    rownames(D) <- colnames(D) <- rownames(relmat[[iProv]])
+    rownames(U) <- colnames(U) <- rownames(relmat[[iProv]])
+    common <- intersect(colnames(U), colnames(Z))
+    Ul[[iProv]]<-U[common,common]
+    Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
+    Zu[[iProv]] <- Z[,common]
+  }
+  ZuBind <- do.call(cbind, Zu)
+  UBind <- do.call(Matrix::bdiag, Ul)
+  part1 <- ZuBind%*%UBind%*%t(ZuBind)
+  # part1 <- U[as.character(data[,idProvided]), as.character(data[, idProvided])]
   W0 <- part0 * part1
-  return(list(Utn=t(W0), D=D, U=U, RRt=part0, effect=idProvided))
+  return(list(Utn=t(W0), D=Dl, U=Ul, RRt=part0, effect=idProvided))
 }
 ###
 adjBeta <- function(x){
@@ -133,14 +147,14 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   pnms <- names(object@flist)# names(object@relfac)
   Gi <- Matrix::Matrix(0, nrow = nrow(C), ncol=ncol(C))
   # Zt <- getME(object, "Zt")
-  vc <- VarCorr(object);
+  # vc <- VarCorr(object);
   for(iFac in pnms){ # iFac = pnms[1]
     tn <- which(match(iFac, names(fl)) == asgn)
     for(j in 1:length(tn)){ # j=1
       ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
       rowsi <- ((ind[1]+1L):ind[2])+1
-      LLt <- Matrix::Diagonal(length(rowsi))
-      if(sum(diag(vc[[iFac]])) > 0){
+      LLt <- Matrix::Diagonal( length(unique(object@flist[[iFac]])) )
+      if(length(diag(vc[[iFac]])) > 0){
         Gi[rowsi,rowsi] <- kronecker( LLt , solve( vc[[iFac]] ) )
       }else{
         Gi[rowsi,rowsi] <- kronecker( LLt ,  vc[[iFac]]  )
@@ -164,7 +178,7 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
       tn <- which(match(iFac, names(fl)) == asgn)
       for(j in 1:length(tn)){ # j=1
         ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-        rowsi <- ( (ind[1]+1L):ind[2] ) + 1
+        rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
         if( iFac %in% names(object@relfac) ){
           pick <- rownames(C)[rowsi] # intersect( colnames(C), rownames(  object@relfac[[iFac]] )  )
           ROT[rowsi,rowsi] <- object@relfac[[iFac]][pick,pick]

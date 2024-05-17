@@ -121,5 +121,8 @@ ansMain <- lmebreed(Yield ~ Env + (1|Name),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
 
+BLUP <- ranef(ansMain, condVar=TRUE)$Name
+SEs <- attr(BLUP, which="postVar")[,,]
+
 }
 \keyword{models}
