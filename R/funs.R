@@ -68,13 +68,16 @@ lmebreed <-
         if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
         data[goodRecords,response] <- newValues
         lmerc$data <- data
+        if(verbose){message("Rotation of response finished.")}
         for(iD in names(udu$D)){
           relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
         }
+        if(verbose){message("Cholesky factor or relationship matrices finished.")}
       }else{ # classical approach, just cholesky
         for (i in seq_along(relmat)) {
           relmat[[i]] <- Matrix::chol(relmat[[i]])
         }
+        if(verbose){message("Cholesky factor or relationship matrices finished.")}
       }
     }
     ## END OF TRANSFORMATION
@@ -95,6 +98,7 @@ lmebreed <-
         obj1 <- merPredD(X=udu$Utn[goodRecords,goodRecords] %*% lmf@pp$X, Zt=lmf@pp$Zt, Lambdat=lmf@pp$Lambdat, Lind=lmf@pp$Lind,
                          theta=lmf@pp$theta, n=nrow(lmf@pp$X))
         pp <- obj1
+        if(verbose){message("Rotation applied to the X matrix.")}
       }
     }
     ##############################
@@ -120,6 +124,7 @@ lmebreed <-
           Zt[rowsi,] <- provZt[rownames(Zt[rowsi,]),]
         }
       }
+      if(verbose){message("Additional matrices (addmat) added.")}
     }
     #############################
     ## use the relfactors
@@ -140,6 +145,7 @@ lmebreed <-
         }
       }
     }
+    if(verbose){message("Relfactors (relmat) applied")}
     reTrms <- list(Zt=Zt,theta=lmf@theta,Lambdat=pp$Lambdat,Lind=pp$Lind,
                    lower=lmf@lower,flist=lmf@flist,cnms=lmf@cnms, Gp=lmf@Gp)
     dfl <- list(fr=lmf@frame, X=pp$X, reTrms=reTrms, start=lmf@theta)
