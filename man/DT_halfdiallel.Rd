@@ -33,7 +33,6 @@ DT$malef <- as.factor(DT$male)
 DT$genof <- as.factor(DT$geno)
 # overlay matrix to be added to the addmat argument
 Z <- with(DT, overlay(femalef,malef) )
-Z <- Z[which(!is.na(DT$sugar)),]
 ## inital values for incidence matrix but irrelevant
 ## since these will be replaced by admat argument
 fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]

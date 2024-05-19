@@ -21,23 +21,42 @@
 }
 
 ###
-umat <- function(formula, relmat, data){
+umat <- function(formula, relmat, data, addmat){
   
   if(missing(data)){stop("Please provide the dataset where we can extract find the factor in formula.")}
   if(missing(relmat)){stop("Please provide the relationship matrix where we will apply the eigen decomposition.")}
   if(missing(formula)){stop("Please provide the formula with the factor to do the decomposition on.")}
   if(!inherits(formula, "formula")){stop("Please provide the formula as.formula().")}
+  if(!is.list(relmat)){stop("relmat argument should be a named list of relationship matrices", call. = FALSE)}
   
   idProvided <- all.vars(formula)
   # if(length(idProvided) > 1){stop("Only one factor can be provided in the formula.")}
   ## build the layout matrix
   ZrZrt <- list()
-  for(iProv in idProvided){
+  for(iProv in idProvided){ # iProv = idProvided[1]
     data$record <- NA
-    ids <- as.character(na.omit(unique(data[,iProv])))
-    for(iId in ids){ # iId<- ids[1]
-      found <- which(data[,iProv] == iId)
-      data[found,"record"] <- 1:length(found)
+    if(iProv %in% colnames(data)){
+      ids <- as.character(na.omit(unique(data[,iProv])))
+      for(iId in ids){ # iId<- ids[1]
+        found <- which(data[,iProv] == iId)
+        data[found,"record"] <- 1:length(found)
+      }
+    }else{ # addmat effect
+      if(iProv %in% names(addmat)){
+        if(is.list(addmat[[iProv]])){ # indirect genetic effects
+          ids <- colnames(addmat[[iProv]][[1]])
+          provMat <- Reduce("+", addmat[[iProv]]) # sum matrices
+        }else{ # regular model with single incidence matrix
+          ids <- colnames(addmat[[iProv]])
+          provMat <- addmat[[iProv]]
+        }
+        for(iId in ids){ # iId<- ids[1]
+          found <- which(provMat[,iId] > 0)
+          data[found,"record"] <- 1:length(found)
+        }
+      }else{
+        stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
+      }
     }
     data$recordF <- as.factor(data$record)
     nLev <- length(levels(data$recordF))
@@ -50,13 +69,26 @@ umat <- function(formula, relmat, data){
   }
   part0 <- Reduce("+",ZrZrt)
   part0[which(part0 > 0)]=1
+  # part0 <- as(rotate(part0), Class = "dgCMatrix")
   # dim(Zr)
   # Matrix::image(part0)
   # build the U nxn matrix
   Ul <- Dl <- Zu <- list()
   for(iProv in idProvided){
-    Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
-    colnames(Z) <- gsub(iProv,"", colnames(Z))
+    if(iProv %in% colnames(data)){
+      Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
+      colnames(Z) <- gsub(iProv,"", colnames(Z))
+    }else{
+      if(iProv %in% names(addmat)){
+        if(is.list(addmat[[iProv]])){ # indirect genetic effects
+          Z <- Reduce("=", addmat[[iProv]])
+        }else{ # single model
+          Z <- addmat[[iProv]]
+        }
+      }else{
+        stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
+      }
+    }
     UD <- eigen(relmat[[iProv]])
     U<-UD$vectors
     D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'

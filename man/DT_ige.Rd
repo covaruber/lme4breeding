@@ -54,11 +54,9 @@ DT$fn <- DT$nn <- 1
 ## Create the incidence matrix for the first random effect
 Zf <- Matrix::sparse.model.matrix( ~ focal-1, data=DT )
 colnames(Zf) <- gsub("focal","", colnames(Zf))
-Zf <- Zf[which(!is.na(DT$trait)),]
 ## Create the incidence matrix for the second random effect
 Zn <- Matrix::sparse.model.matrix( ~ neighbour-1, data=DT )
 colnames(Zn) <- gsub("neighbour","", colnames(Zn))
-Zn <- Zn[which(!is.na(DT$trait)),]
 ## Make inital values for incidence matrix but irrelevant
 ## since these will be replaced by the addmat argument
 both <- (rep(colnames(Zf), nrow(DT)))[1:nrow(DT)]
