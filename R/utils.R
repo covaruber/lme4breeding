@@ -67,8 +67,8 @@ umat <- function(formula, relmat, data, addmat){
     }
     ZrZrt[[iProv]] <- Zr %*% t(Zr)
   }
-  part0 <- Reduce("+",ZrZrt)
-  part0[which(part0 > 0)]=1
+  # part0 <- Reduce("+",ZrZrt)
+  # part0[which(part0 > 0)]=1
   # part0 <- as(rotate(part0), Class = "dgCMatrix")
   # dim(Zr)
   # Matrix::image(part0)
@@ -81,7 +81,7 @@ umat <- function(formula, relmat, data, addmat){
     }else{
       if(iProv %in% names(addmat)){
         if(is.list(addmat[[iProv]])){ # indirect genetic effects
-          Z <- Reduce("=", addmat[[iProv]])
+          Z <- Reduce("+", addmat[[iProv]])
         }else{ # single model
           Z <- addmat[[iProv]]
         }
@@ -99,12 +99,16 @@ umat <- function(formula, relmat, data, addmat){
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
     Zu[[iProv]] <- Z[,common]
   }
-  ZuBind <- do.call(cbind, Zu)
-  UBind <- do.call(Matrix::bdiag, Ul)
-  part1 <- ZuBind%*%UBind%*%t(ZuBind)
-  # part1 <- U[as.character(data[,idProvided]), as.character(data[, idProvided])]
-  W0 <- part0 * part1
-  return(list(Utn=t(W0), D=Dl, U=Ul, RRt=part0, effect=idProvided))
+  UnList <- list()
+  for(iel in 1:length(Zu)){
+    UnList[[iel]] <- ( Zu[[iel]] %*% Ul[[iel]] %*% t(Zu[[iel]]) ) * ZrZrt[[iel]]
+  }
+  Utn <- t(Reduce("+",UnList))
+  # ZuBind <- do.call(cbind, Zu)
+  # UBind <- do.call(Matrix::bdiag, Ul)
+  # part1 <- ZuBind%*%UBind%*%t(ZuBind)
+  # W0 <- part0 * part1
+  return(list(Utn=Utn, D=Dl, U=Ul, RRt=ZrZrt, effect=idProvided))
 }
 ###
 adjBeta <- function(x){
@@ -187,7 +191,7 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
       rowsi <- ((ind[1]+1L):ind[2])+1
       LLt <- Matrix::Diagonal( length(unique(object@flist[[iFac]])) )
       if(length(diag(vc[[iFac]])) > 0){
-        Gi[rowsi,rowsi] <- kronecker( LLt , solve( vc[[iFac]] ) )
+        Gi[rowsi,rowsi] <- kronecker( LLt , solve( Matrix::nearPD( vc[[iFac]] )$mat ) )
       }else{
         Gi[rowsi,rowsi] <- kronecker( LLt ,  vc[[iFac]]  )
       }
