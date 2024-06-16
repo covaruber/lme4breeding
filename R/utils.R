@@ -186,16 +186,27 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   # vc <- VarCorr(object);
   for(iFac in pnms){ # iFac = pnms[1]
     tn <- which(match(iFac, names(fl)) == asgn)
+    
+    ####
+    vcov <- do.call(Matrix::bdiag, vc[tn]) # var covar matrix
+    LLt <- Matrix::Diagonal( length(unique(object@flist[[iFac]])) ) # digonal for unique number of levels
+    rowsi <- list()
     for(j in 1:length(tn)){ # j=1
       ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-      rowsi <- ((ind[1]+1L):ind[2])+1
-      LLt <- Matrix::Diagonal( length(unique(object@flist[[iFac]])) )
-      if(length(diag(vc[[iFac]])) > 0){
-        Gi[rowsi,rowsi] <- kronecker( LLt , solve( Matrix::nearPD( vc[[iFac]] )$mat ) )
-      }else{
-        Gi[rowsi,rowsi] <- kronecker( LLt ,  vc[[iFac]]  )
-      }
+      rowsi[[j]] <- ((ind[1]+1L):ind[2])+1
     }
+    Gi[unlist(rowsi),unlist(rowsi)] <- kronecker( LLt , solve( Matrix::nearPD( vcov )$mat ) )
+    ##
+    # for(j in 1:length(tn)){ # j=1
+    #   ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+    #   rowsi <- ((ind[1]+1L):ind[2])+1
+    #   LLt <- Matrix::Diagonal( length(unique(object@flist[[iFac]])) )
+    #   if(length(diag(vc[[iFac]])) > 0){
+    #     Gi[rowsi,rowsi] <- kronecker( LLt , solve( Matrix::nearPD( vc[[iFac]] )$mat ) )
+    #   }else{
+    #     Gi[rowsi,rowsi] <- kronecker( LLt ,  vc[[iFac]]  )
+    #   }
+    # }
   }
   # incomplete block part of G matrix = I * vc.b
   
