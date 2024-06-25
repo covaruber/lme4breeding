@@ -83,7 +83,7 @@ mix0 <- lmebreed(pheno ~ (1|id),
 vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
 
 #### unstructured model
-Z <- with(DT, dsc(env))$Z
+Z <- with(DT, smm(env))
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 system.time(
 mix1 <- lmebreed(pheno ~ (0 + e1 + e2 + e3 + e4 | id),

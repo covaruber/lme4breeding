@@ -484,7 +484,7 @@ imputev <- function (x, method = "median") {
   return(x)
 }
 
-rrc <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
+rrm <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   if(is.null(x) ){stop("Please provide the x argument.", call. = FALSE)}
   if(is.null(H) ){stop("Please provide the x argument.", call. = FALSE)}
   # these are called PC models by Meyer 2009, GSE. This is a reduced rank implementation
@@ -523,13 +523,13 @@ rrc <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   rownames(Z) <- NULL
   
   if(returnGamma){
-    return(list(Gamma=Gamma, H=H, Sigma=Sigma))
+    return(list(Gamma=Gamma, H=H, Sigma=Sigma, Zstar=Zstar))
   }else{
     return(Zstar)
   }
 }
 
-dsc <- function(x, thetaC=NULL, theta=NULL){
+smm <- function(x){
   if(is.matrix(x)){
     dummy <- x
     mm <- diag(1,ncol(x))
@@ -552,21 +552,22 @@ dsc <- function(x, thetaC=NULL, theta=NULL){
       mm <- diag(1,ncol(dummy))
     }
   }
-  colnames(mm) <- rownames(mm) <- colnames(dummy)
-  bnmm <- mm*0.15
-  if(nrow(bnmm) > 1){
-    bnmm[upper.tri(bnmm)]=bnmm[upper.tri(bnmm)]/2
-  }
-  if(!is.null(thetaC)){
-    mm <- thetaC
-    colnames(mm) <- rownames(mm) <- colnames(dummy)
-  }
-  if(!is.null(theta)){
-    bnmm <- theta
-    colnames(bnmm) <- rownames(bnmm) <- colnames(dummy)
-  }
-  mm[lower.tri(mm)]=0
-  return(list(Z=dummy,thetaC=mm, theta=bnmm))
+  # colnames(mm) <- rownames(mm) <- colnames(dummy)
+  # bnmm <- mm*0.15
+  # if(nrow(bnmm) > 1){
+  #   bnmm[upper.tri(bnmm)]=bnmm[upper.tri(bnmm)]/2
+  # }
+  # if(!is.null(thetaC)){
+  #   mm <- thetaC
+  #   colnames(mm) <- rownames(mm) <- colnames(dummy)
+  # }
+  # if(!is.null(theta)){
+  #   bnmm <- theta
+  #   colnames(bnmm) <- rownames(bnmm) <- colnames(dummy)
+  # }
+  # mm[lower.tri(mm)]=0
+  # return(list(Z=dummy,thetaC=mm, theta=bnmm))
+  return(dummy)
 }
 
 atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FALSE, 

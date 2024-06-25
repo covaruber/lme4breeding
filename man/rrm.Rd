@@ -1,11 +1,11 @@
-\name{rrc}
-\alias{rrc}
-\title{reduced rank covariance structure}
+\name{rrm}
+\alias{rrm}
+\title{reduced rank matrix}
 \description{
-  \code{rrc} creates a reduced rank factor analytic covariance structure by selecting the n vectors of the L matrix of the Cholesky decomposition or the U vectors of the SVD decomposition (loadings or latent covariates) to create a new incidence matrix of latent covariates that can be used with the \code{\link{lmebreed}} solver to fit random regressions on the latent covariates.
+  \code{rrm} creates a reduced rank factor analytic matrix by selecting the n vectors of the L matrix of the Cholesky decomposition or the U vectors of the SVD decomposition (loadings or latent covariates) to create a new incidence matrix of latent covariates that can be used with the \code{\link{lmebreed}} solver to fit random regressions on the latent covariates.
 }
 \usage{
-  rrc(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE)
+  rrm(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE)
 }
 
 \arguments{
@@ -37,7 +37,7 @@ y = Xb + Z(I Gamma)c + e = Xb + Z*c + e
 
 which is equal to the one above but assumes specific effects = 0. 
 
-\strong{The algorithm in rrc the following:}
+\strong{The algorithm in rrm the following:}
 
 1) uses a wide-format table of timevar (m columns) by idvar (q rows) named H to form the initial variance-covariance matrix (Sigma) which is calculated as Sigma = H'H of dimensions m x m (column dimensions, e.g., environments x environments). 
 
@@ -49,7 +49,7 @@ which is equal to the one above but assumes specific effects = 0.
 
 4) Gamma is used to form a new incidence matrix as Z* = Z Gamma
 
-5) This matrix is later used for the REML machinery to be used with the usc (unstructured) or dsc (diagonal) structures to estimate variance components and factor scores. The resulting BLUPs from the mixed model are the optimized factor scores. Pretty much as a random regression over latent covariates.
+5) This matrix is later used for the REML machinery to be used with the usc (unstructured) or smm (diagonal) structures to estimate variance components and factor scores. The resulting BLUPs from the mixed model are the optimized factor scores. Pretty much as a random regression over latent covariates.
 
 This implementation does not update the loadings (latent covariates) during the REML process, only estimates the REML factor scores for fixed loadings. This is different to other software (e.g., asreml) where the loadings are updated during the REML process as well. 
 
@@ -96,42 +96,42 @@ rownames(A) <- colnames(A) <- indNames
 
 \donttest{
   
-  # fit diagonal model first to produce H matrix
-  Z <- with(DT, dsc(Env))$Z
-  diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
-  for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-  ans1a <- lmebreed(as.formula(diagFormula),
-                    relmat = list(Name = A ),
-                    data=DT)
-  vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
-  H0 <- ranef(ans1a)$Name # GxE table
-  
-  # reduced rank model
-  Z <- with(DT,  dsc(rrc(Env, H = H0, nPC = 3)) )$Z
-  Zd <- with(DT, dsc(Env))$Z
-  faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"),
-                       "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
-  for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-  ansFA <- lmebreed(as.formula(faFormula),
-                    relmat = list(Name = A ),
-                    data=DT)
-  vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
+# fit diagonal model first to produce H matrix
+Z <- with(DT, smm(Env))
+diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ans1a <- lmebreed(as.formula(diagFormula),
+                  relmat = list(Name = A ),
+                  data=DT)
+vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
+H0 <- ranef(ans1a)$Name # GxE table
+
+# reduced rank model
+Z <- with(DT,  rrm(Env, H = H0, nPC = 3) ) 
+Zd <- with(DT, smm(Env) )
+faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"),
+                     "| Name) + (0+",paste(colnames(Zd), collapse = "+"), "|| Name)")
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+ansFA <- lmebreed(as.formula(faFormula),
+                  relmat = list(Name = A ),
+                  data=DT)
+vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
   
 }
 \dontrun{
 
-loadings=with(DT, rrc(Env, nPC = 3, H = H0, returnGamma = TRUE) )$Gamma
-  Gint <- loadings \%*\% vc$Name \%*\% t(loadings) ## replace * by matrix product
-  Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
-  G <- Gint + Gspec
-  ## lattice::levelplot(cov2cor(G))
-  colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
-  hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
-  
-  u <- ranef(ansFA)$Name
-  uInter <- as.matrix(u[,1:3]) \%*\% t(as.matrix(loadings)) ## replace * by matrix product
-  uSpec <- as.matrix(u[,-c(1:3)])
-  u <- uSpec + uInter
+loadings=with(DT, rrm(Env, nPC = 3, H = H0, returnGamma = TRUE) )$Gamma
+Gint <- loadings %*% vc$Name %*% t(loadings) ## replace * by matrix product
+Gspec <- diag( unlist(lapply(vc[2:16], function(x){x[[1]]})) )
+G <- Gint + Gspec
+## lattice::levelplot(cov2cor(G))
+colfunc <- colorRampPalette(c("steelblue4","springgreen","yellow"))
+hv <- heatmap(cov2cor(G), col = colfunc(100), symm = TRUE)
+
+u <- ranef(ansFA)$Name
+uInter <- as.matrix(u[,1:3]) %*% t(as.matrix(loadings)) ## replace * by matrix product
+uSpec <- as.matrix(u[,-c(1:3)])
+u <- uSpec + uInter
   
 }
 

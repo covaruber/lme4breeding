@@ -32,7 +32,7 @@ head(DT)
 \donttest{
 
 library(orthopolynom)
-Z <- with(DT, dsc(leg(X,1)) )$Z
+Z <- with(DT, smm(leg(X,1)) )
 ## diagonal random regression
 form <- paste0( "Y ~ Xf + (0+", paste(colnames(Z), collapse = "+"), "|| SUBJECT)")
 ## unstructured random regression

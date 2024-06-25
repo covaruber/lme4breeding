@@ -33,7 +33,7 @@ head(DT)
 
 DT=DT[with(DT, order(Env)), ]
 
-Z <- with(DT, dsc(Env))$Z
+Z <- with(DT, smm(Env))
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 csdiagFormula <- paste0( "y ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
 blockFormula <- paste0( "(0+", paste(colnames(Z), collapse = "+"), "|| Block)")
