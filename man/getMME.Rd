@@ -16,7 +16,7 @@ getMME(object, vc=NULL, recordsToKeep=NULL)
 an object of class lmebreed.
   }
   \item{vc}{
-optional variance components to force in the mixed model equations. This this to be the outpur of the \code{\link{VarCorr}} function.
+optional variance components to force in the mixed model equations. This this to be the outpur of the \code{\link[lme4]{VarCorr}} function.
   }
   \item{recordsToKeep}{
  a numeric vector of indices to say which records should be kept for forming the mixed model equations and get solutions. This is particularly useful when we want to predict new individuals.

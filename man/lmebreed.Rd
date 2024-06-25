@@ -61,7 +61,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   
   It is important to remember that when you use the \code{relmat} argument you are providing
   the square root of the relationship matrix and to recover the correct BLUPs for those effects
-  you need to use the \code{\link{ranef}} function which internally multiple those BLUPs the 
+  you need to use the \code{\link[lme4]{ranef}} function which internally multiple those BLUPs the 
   square root of the relationship matrix one more time to recover the correct BLUPs.
   
   The argument \code{rotation} applies the eigen decomposition proposed by Lee and Van der Werf in 2016
@@ -75,7 +75,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   activated and variance components differ slightly with other software they will still provide highly similar 
   estimates at the speed of hundreds or thousands of times faster. Please consider this.
   
-  When using the optimizer argument inside the \code{\link{lmerControl}} keep in mind that the number of iterations is called differently depending on the optimizer. For \code{\link{Nelder_Mead}}, \code{\link{bobyqa}} and \code{\link{nlminbwrap}} is called "maxfun" whereas for \code{\link{nloptwrap}} is called "maxeval". This should be passed inside a list in the \code{optCtrl} argument. For example:
+  When using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep in mind that the number of iterations is called differently depending on the optimizer. For \code{\link[lme4]{Nelder_Mead}}, bobyqa and \code{\link[lme4]{nlminbwrap}} is called "maxfun" whereas for \code{\link[lme4]{nloptwrap}} is called "maxeval". This should be passed inside a list in the \code{optCtrl} argument. For example:
   
 \code{lmebreed(... , 
          control = lmerControl(

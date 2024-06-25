@@ -16,7 +16,7 @@ lme4breeding is nice wrapper of the lme4 package that enables the use of especia
 
 It took me several years to develop a package named sommer that allowed many of the desired models but it was impossible to keep up with the needed development. In May of 2024 I realized that few lines of code (exactly 100 lines) would allow to tweak all the lme4 machinery to fit most plant and animal models popular today at a great speed enabled by the lme4 development team. I don't regret having writen the sommer package since it allowed me to learn the little I know about mixed models. I am ashamed it took me so many years to leverage from the lme4 machinery (especially me being a badger). I hope you enjoy it.
 
-The \code{\link{lmebreed}} function is the core function of the package which is exactly the same function than lmer or glmer but with few added arguments \code{relmat} and \code{addmat} that allow the user to provide relationship matrices and customized incidence matrices respectively. Also the argument \code{rotation} speeds up highly complex models. The lme4 machinery is designed to deal with a big number of records (r) since it works in the r > c problem and inverts a c x c matrix (being c the number of coefficients). There are \code{\link{ranef}}, \code{\link{fixef}}, \code{\link{VarCorr}} functions to obtain variance-covariance components, BLUPs, BLUEs, residuals, fitted values, variances-covariances for fixed and random effects, etc.
+The \code{\link{lmebreed}} function is the core function of the package which is exactly the same function than lmer or glmer but with few added arguments \code{relmat} and \code{addmat} that allow the user to provide relationship matrices and customized incidence matrices respectively. Also the argument \code{rotation} speeds up highly complex models. The lme4 machinery is designed to deal with a big number of records (r) since it works in the r > c problem and inverts a c x c matrix (being c the number of coefficients). There are \code{\link[lme4]{ranef}}, \code{\link[lme4]{fixef}}, \code{\link[lme4]{VarCorr}} functions to obtain variance-covariance components, BLUPs, BLUEs, residuals, fitted values, variances-covariances for fixed and random effects, etc.
 
 }
 
@@ -80,7 +80,7 @@ The package has been equiped with several datasets to learn how to use the lme4b
 
 \section{Models Enabled}{
 
-The machinery behind the scenes is \code{\link{lme4}}.
+The machinery behind the scenes is lme4.
 
 }
 

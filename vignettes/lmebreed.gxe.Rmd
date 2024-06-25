@@ -194,7 +194,6 @@ diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "|| 
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(diagFormula))
 ans1a <- lmebreed(as.formula(diagFormula),
-                  relmat = list(Name = A ),
                   data=DT)
 vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
 H0 <- ranef(ans1a)$Name # GxE table
@@ -206,7 +205,6 @@ faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"), "| Nam
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(faFormula))
 ansFA <- lmebreed(as.formula(faFormula),
-                  relmat = list(Name = A ),
                   data=DT)
 vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve

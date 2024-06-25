@@ -1,9 +1,11 @@
 2024-05-15 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
 
-      * [r1] Initial release bringing the best ideas of sommer into the powerful horse of Douglas Bates' lme4.
+      * [r1] Initial release bringing the best ideas of sommer into the powerful horse of Douglas Bates' and team lme4.
        
-2024-07-15 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+2024-06-24 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
 
       * [r2] The eigen decomposition has been improved by adding an outlier coefficient to avoid overshooting.
+      * [r3] The eigen decomposition now allows multiple random effects although we still need balanced data to make it work.
+      * [r4] Warning messages removed when using the lFormula function
 
 
