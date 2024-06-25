@@ -60,7 +60,7 @@ csdiagFormula <- paste0( "Yield ~ Env",
                         "+(", paste(colnames(Z), collapse = "+"), "|| Name)",
                         "+(0+ ",paste(colnames(Z), collapse = "+"), "|| units)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-ansCSDG <- lmebreed(csdiagFormula,
+ansCSDG <- lmebreed(as.formula(csdiagFormula),
                     relmat = list(Name = A ),
                     control = lmerControl(
                       check.nobs.vs.nlev = "ignore",

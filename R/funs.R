@@ -27,7 +27,7 @@ lmebreed <-
       if (is.function(family)){
         family <- family()
       } 
-      if (!inherits(family, "family")) stop("unknown family type")
+      if (!inherits(family, "family")) {stop("unknown family type")}
       gaus <- family$family == "gaussian" && family$link == "identity"
     }
     mc <- match.call()
@@ -82,7 +82,8 @@ lmebreed <-
       }
     }
     ## END OF TRANSFORMATION
-    lmod <- do.call(lFormula, as.list(lmerc)) # basic elements to modify for our purposes
+    # lmod <- do.call(lFormula, as.list(lmerc)) # basic elements to modify for our purposes
+    suppressWarnings(lmod <- do.call(lFormula, as.list(lmerc)), classes = "warning")
     relfac <- relmat          # copy te relmat list for relfactor
     pnms <- names(relmat)
     pnms2 <- names(addmat)
@@ -150,29 +151,29 @@ lmebreed <-
     reTrms <- list(Zt=Zt,theta=lmod$reTrms$theta,Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                    lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
     dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, start=lmod$reTrms$theta, control=control)
+    if(length(control) == 0){
+      if(gaus){ # if user calls a gaussian response family
+        control <- lmerControl()
+        dfl$control <- control
+      }else{ # any other family response
+        control <- glmerControl()
+        control$optimizer <- control$optimizer[1]
+        dfl$control <- control
+      }
+    }
     if(returnParams){
       return(dfl)
     }else{
       if(verbose){message("* Optimizing ...")}
-      if(length(control) == 0){
-        if(gaus){ # if user calls a gaussian response family
-          control <- lmerControl()
-          dfl$control <- control
-        }else{ # any other family response
-          control <- glmerControl()
-          control$optimizer <- control$optimizer[1]
-          dfl$control <- control
-        }
-      }
       if (gaus) {
         dfl$REML = REML # TRUE# resp$REML > 0L
         # print(dfl$REML)
         devfun <- do.call(mkLmerDevfun, dfl )
-        opt <- optimizeLmer(devfun, optimizer = control$optimizer, control = control$optCtrl, ...) # need to pass control 
+        opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, ...) # need to pass control 
       } else {
         dfl$family <- family
         devfun <- do.call(mkGlmerDevfun,dfl)
-        opt <- optimizeGlmer(devfun, optimizer = control$optimizer, control = control$optCtrl,  ...) # need to pass control 
+        opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl,  ...) # need to pass control 
       }
       if(verbose){message("* Done!!")}
       # make results a mkMerMod object
