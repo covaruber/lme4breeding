@@ -69,7 +69,7 @@ lmebreed <-
         data[goodRecords,response] <- newValues
         # data[,response] <- newValues
         lmerc$data <- data
-        if(verbose){message("* Rotation of response finished. Variance components may differ. \n   Set rotation=FALSE if you want VC identical to other software. \n   This will slow down speed considerably.")}
+        if(verbose){message("* Rotation of response finished.")}
         for(iD in names(udu$D)){
           relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
         }
