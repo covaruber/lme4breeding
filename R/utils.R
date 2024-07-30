@@ -58,7 +58,10 @@ umat <- function(formula, relmat, data, addmat){
         stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
       }
     }
-    if( var(table(data$record)) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please set to FALSE.", call. = FALSE)}
+    tabRec <- table(data$record)
+    if(length(tabRec) > 1){
+      if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please set to FALSE.", call. = FALSE)}
+    }
     data$recordF <- as.factor(data$record)
     nLev <- length(levels(data$recordF))
     if(nLev > 1){
