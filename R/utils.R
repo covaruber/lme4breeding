@@ -495,8 +495,18 @@ rrm <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   # we produce loadings, the Z*L so we can use it to estimate factor scores in mmec()
   
   Y <- apply(H,2, imputev)
-  Sigma <- cov(scale(Y, scale = TRUE, center = TRUE)) # surrogate of unstructured matrix to start with
-  Sigma <- as.matrix(nearPD(Sigma)$mat)
+  Ys <- scale(Y, scale = TRUE, center = TRUE)
+  nans <- which(is.nan(Ys), arr.ind = TRUE)
+  if(nrow(nans) > 0){
+    Ys[nans]=0
+  }
+  Sigma <- cov(Ys) # surrogate of unstructured matrix to start with
+  Sigma <- as.matrix(Matrix::nearPD(x=Sigma, corr = FALSE, keepDiag = FALSE, base.matrix = FALSE,
+                                    do2eigen = TRUE, doSym = FALSE,
+                                    doDykstra = TRUE, only.values = FALSE,
+                                    ensureSymmetry = !isSymmetric(Sigma),
+                                    eig.tol = 1e-06, conv.tol = 1e-07, posd.tol = 1e-08,
+                                    maxit = 100, conv.norm.type = "I", trace = FALSE)$mat)
   # GE <- as.data.frame(t(scale( t(scale(Y, center=T,scale=F)), center=T, scale=F)))  # sum(GE^2)
   if(cholD){
     ## OPTION 2. USING CHOLESKY
