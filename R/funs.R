@@ -140,10 +140,10 @@ lmebreed <-
         if(length(pick)==0){stop(paste("The names on your relmat does not coincide with the names in your factor",pnms[i]))}
         provRelFac <- relfac[[i]][pick,pick]
         if(nrow(Zt[rowsi,]) == nrow(provRelFac)){ # regular model
-          Zt[rowsi,] <- provRelFac %*% Zt[rowsi,]
+          Zt[rowsi,] <- provRelFac %*% Zt[rowsi,] # %*% (udu$Utn[goodRecords,goodRecords])
         }else{ # unstructured model
           mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[pnms[i]]]) )
-          Zt[rowsi,] <- Matrix::kronecker(provRelFac, mm) %*% Zt[rowsi,]
+          Zt[rowsi,] <- Matrix::kronecker(provRelFac, mm) %*% Zt[rowsi,] # %*% (udu$Utn[goodRecords,goodRecords])
         }
       }
     }

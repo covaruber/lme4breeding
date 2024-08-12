@@ -60,7 +60,7 @@ umat <- function(formula, relmat, data, addmat){
     }
     tabRec <- table(data$record)
     if(length(tabRec) > 1){
-      if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please set to FALSE.", call. = FALSE)}
+      if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please set to FALSE or ensure you fill the dataset to make it balanced for the relmat terms.", call. = FALSE)}
     }
     data$recordF <- as.factor(data$record)
     nLev <- length(levels(data$recordF))
