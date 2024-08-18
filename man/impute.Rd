@@ -5,12 +5,13 @@
 This function is a very simple function to impute a numeric or character vector with the mean or median value of the vector.
 }
 \usage{
-imputev(x, method="median")
+imputev(x, method="median",by=NULL)
 }
 
 \arguments{
   \item{x}{a numeric or character vector.}
   \item{method}{the method to choose between mean or median.}
+  \item{by}{the level at which imputation will be done.}
 }
 \value{
 \describe{

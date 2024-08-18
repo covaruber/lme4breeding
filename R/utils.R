@@ -60,7 +60,7 @@ umat <- function(formula, relmat, data, addmat){
     }
     tabRec <- table(data$record)
     if(length(tabRec) > 1){
-      if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please set to FALSE or ensure you fill the dataset to make it balanced for the relmat terms.", call. = FALSE)}
+      if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please set to FALSE or ensure you fill the dataset to make it balanced for the 'relmat' terms.", call. = FALSE)}
     }
     data$recordF <- as.factor(data$record)
     nLev <- length(levels(data$recordF))
@@ -99,7 +99,8 @@ umat <- function(formula, relmat, data, addmat){
     rownames(D) <- colnames(D) <- rownames(relmat[[iProv]])
     rownames(U) <- colnames(U) <- rownames(relmat[[iProv]])
     common <- intersect(colnames(U), colnames(Z))
-    Ul[[iProv]]<-U[common,common]
+    Ul[[iProv]]<- U[common,common]
+    # Ul[[iProv]]<- (t(Z[,common]%*%t(U[common,common]))%*%Z[,common])/4
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
     Zu[[iProv]] <- Z[,common]
   }
@@ -112,7 +113,7 @@ umat <- function(formula, relmat, data, addmat){
   # UBind <- do.call(Matrix::bdiag, Ul)
   # part1 <- ZuBind%*%UBind%*%t(ZuBind)
   # W0 <- part0 * part1
-  return(list(Utn=Utn, D=Dl, U=Ul, RRt=ZrZrt, effect=idProvided))
+  return(list(Utn=Utn, D=Dl, U=Ul, RRt=ZrZrt, effect=idProvided, record=data$recordF))
 }
 ###
 adjBeta <- function(x){
@@ -460,30 +461,18 @@ redmm <- function (x, M = NULL, Lam=NULL, nPC=50, cholD=FALSE, returnLam=FALSE) 
   
 }
 
-imputev <- function (x, method = "median") {
+imputev <- function (x, method = "median", by=NULL) {
   if (is.numeric(x)) {
-    if (method == "mean") {
-      x[which(is.na(x))] <- mean(x, na.rm = TRUE)
+    if(is.null(by)){
+      by <- rep("A",length(x))
     }
-    else if (method == "median") {
-      x[which(is.na(x))] <- median(x, na.rm = TRUE)
-    }
-    else {
-      x[which(is.na(x))] <- mean(x, na.rm = TRUE)
-    }
-  }
-  else {
-    if (method == "mean") {
-      stop("Method 'mean' is not available for non-numeric vectors.", 
-           call. = FALSE)
-    }
-    else if (method == "median") {
-      tt <- table(x)
-      x[which(is.na(x))] <- names(tt)[which(tt == max(tt))]
-    }
-    else {
-      x[which(is.na(x))] <- names(tt)[which(tt == max(tt))]
-    }
+    ms <- aggregate(x~by, FUN=method, na.rm=TRUE)
+    rownames(ms) <- ms$by
+    y <- ms[by,"x"]
+    x[which(is.na(x))] <- y[which(is.na(x))]
+  } else { # if factor
+    tt <- table(x)
+    x[which(is.na(x))] <- names(tt)[which(tt == max(tt))]
   }
   return(x)
 }
