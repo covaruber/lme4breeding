@@ -527,7 +527,7 @@ Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix 
 
 ```
 
-As can be seen, the two models are equivalent. Despite the fact that lme4breeding doesn't take a great advantage of this trick because it was built for dense matrices using the Armadillo library. Other software may be better using this trick.
+As can be seen, the two models are equivalent. The lme4breeding library uses this trick directly by setting the argument rotation=TRUE.
 
 ### 3) Mating designs
 

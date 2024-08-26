@@ -7,11 +7,12 @@ import("crayon")
 importFrom("utils", "setTxtProgressBar", "txtProgressBar")
 
 importFrom("stats", "as.formula", "cov", "model.matrix", "na.omit",
-           "na.pass", "median", "reshape","var")
+           "na.pass", "median", "reshape","var","aggregate")
 
 export( "lmebreed", "smm", "rrm", "redmm", "overlay", "add.diallel.vars",
         "build.HMM","bbasis","tps","A.mat","atcg1234","imputev", "getMME",
-        "stackTrait", "leg", "adjBeta", "umat")
+        "stackTrait", "leg", "adjBeta", "umat",
+        "simage")
 
 exportMethods(
               "coerce",

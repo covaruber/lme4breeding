@@ -7,7 +7,7 @@ lmebreed <-
            model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, 
            rotation=FALSE, coefOutRotation=8, ...)
   {
-    my.date <- "2024-09-01" # expiry date
+    my.date <- "2024-10-01" # expiry date
     your.date <- Sys.Date()
     ## if your month is greater than my month you are outdated
     if(dateWarning){
