@@ -59,6 +59,8 @@ u = Gamma * u_scores
 
 The resulting loadings (Gamma) and factor scores can be thought as an equivalent to the classical factor analysis.
 
+As an additional information, notice that we calculate the factor loadings from BLUPs and the mixed model only calculates the factor scores. This is different to the asreml software where loadings are calculated as variance components through REML. Despite the difference we have run multiple examples and simulations and the BLUPs from both approaches are on average >0.98 correlated so you can be confident that our approach is robust. 
+
 }
 \value{
   \describe{

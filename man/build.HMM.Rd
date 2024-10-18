@@ -77,7 +77,7 @@ head(res1$data.used)
 use <- which(res1$data.used$hybrid \%in\% DT$hy)
 ## build the marker matrix for the first 50 hybrids
 res2 <- build.HMM(Md, Mf,
-                 custom.hyb = res1$data.used[use,]
+                 custom.hyb = res1$data.used[use[1:10],]
                  )
 res2$HMM.add[1:5,1:5]
 res2$HMM.dom[1:5,1:5]

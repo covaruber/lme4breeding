@@ -4,7 +4,7 @@
 \description{\code{image} for sparsity.
 }
 \usage{
-simage(data, \dots)
+simage(data, Var1=NULL, Var2=NULL, \dots)
 }
 \arguments{
  \item{data}{model data of class \code{"data.frame"}}
