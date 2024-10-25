@@ -75,6 +75,8 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   activated and variance components differ slightly with other software they will still provide highly similar 
   estimates at the speed of hundreds or thousands of times faster. Please consider this.
   
+  Additional useful functions are; \code{\link{tps}} for spatial kernels, \code{\link{rrm}} for reduced rank matrices, \code{\link{atcg1234}} for conversion of genetic markers, \code{\link{overlay}} for overlay matrices, \code{\link{stackTrait}} for moving wide format multi-trait datasets into long format, \code{\link{fillData}} for balancing datasets for two variables.
+  
   When using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep in mind that the number of iterations is called differently depending on the optimizer. For \code{\link[lme4]{Nelder_Mead}}, bobyqa and \code{\link[lme4]{nlminbwrap}} is called "maxfun" whereas for \code{\link[lme4]{nloptwrap}} is called "maxeval". This should be passed inside a list in the \code{optCtrl} argument. For example:
   
 \code{lmebreed(... , 
