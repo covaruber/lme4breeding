@@ -1,6 +1,6 @@
 Package: lme4breeding
 Version: 1.0.50
-Date: 2024-10-10
+Date: 2025-01-16
 Title: Relationship-Based Mixed-Effects Models
 Authors@R: c(
     person("Giovanny","Covarrubias-Pazaran", email="cova_ruber@live.com.mx", role=c("aut","cre"),

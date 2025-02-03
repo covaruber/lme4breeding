@@ -22,7 +22,3 @@ setClass("lmerlmebreed", slots = c(resp="lmerResp"),
 #          contains = "lmebreed")
 # setClass("lmerlmebreed", representation = list(resp="lmerResp"),
 #          contains = "lmebreed")
-
-
-
-

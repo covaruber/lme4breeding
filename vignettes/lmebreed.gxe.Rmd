@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the lme4breeding package:  
+The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the lme4breeding package:   
 
 1) Multienvironment model: Main effect model
 2) Multienvironment model: Diagonal model (DG)

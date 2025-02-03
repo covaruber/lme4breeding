@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-lme4breeding is nice wrapper of the lme4 package that enables the use of especialized plant and animal breeding models that include relationship matrices among individuals (e.g., genomic relationship matrices) and complex covariance structures between factors (e.g., factor analytic structures). It uses all the lme4 machinery for linear and non-linear models, for different response distributions opening a world of possibilities.
+lme4breeding is nice wrapper of the lme4 package that enables the use of especialized plant and animal breeding models that include relationship matrices among individuals (e.g., genomic relationship matrices) and complex covariance structures between factors (e.g., factor analytic structures). It uses all the lme4 machinery for linear and non-linear models, for different response distributions opening a world of possibilities. 
 
 The vignettes aim to provide several examples in how to use the lme4breeding package under different scenarios. We will spend the rest of the space providing examples for: 
 
