@@ -32,6 +32,25 @@ lmebreed <-
     }
     mc <- match.call()
     lmerc <- mc                         # create a call to lmer 
+    if(length(control)==0){
+      if(gaus){
+        control <- lmerControl(
+          check.nobs.vs.nlev = "ignore",
+          check.nobs.vs.rankZ = "ignore",
+          check.nobs.vs.nRE="ignore"
+        )
+      }else{
+        control <- glmerControl(
+          check.nobs.vs.nlev = "ignore",
+          check.nobs.vs.rankZ = "ignore",
+          check.nobs.vs.nRE="ignore"
+        )
+      }
+    }else{ # if user provides a control force this 3 controls
+      control$checkControl$check.nobs.vs.nlev = "ignore"
+      control$checkControl$check.nobs.vs.rankZ = "ignore"
+      control$checkControl$check.nobs.vs.nRE="ignore"
+    }
     # lmerc$formula <- formula; lmerc$data <- data; 
     # lmerc$control <- control # only if we are using it 
     ## silence additional parameters from lme4breeding that don't apply to lmer
@@ -43,6 +62,7 @@ lmebreed <-
     lmerc$rotation <- NULL 
     lmerc$coefOutRotation <- NULL
     lmerc$family <- family
+    lmerc$control <- control
     ##
     if (!gaus) {lmerc$REML <- NULL}
     ## if there are no relmats or additional matrices just return th regular lmer model

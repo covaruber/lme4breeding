@@ -82,11 +82,7 @@ A <- A + diag(1e-4, ncol(A), ncol(A))
 head(DT)
 mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
-                 control = lmerControl(
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ),verbose = FALSE,
+                 verbose = FALSE,
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 ve <- attr(VarCorr(mix1), "sc")^2
@@ -212,11 +208,7 @@ and takes advantage of the variance covariance matrix for the genotype effect kn
 # K <- K + diag(1e-4, ncol(K), ncol(K) )
 # ans <- lmebreed(X1 ~ (1|line), 
 #                 relmat = list(line=K),
-#                 control = lmerControl(
-#                   check.nobs.vs.nlev = "ignore",
-#                   check.nobs.vs.rankZ = "ignore",
-#                   check.nobs.vs.nRE="ignore"
-#                 ), verbose = FALSE,
+#                 verbose = FALSE,
 #                 data=y.trn)
 # vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 # 
@@ -226,9 +218,7 @@ and takes advantage of the variance covariance matrix for the genotype effect kn
 # ans2 <- update(ans, 
 #                start = getME(ans, "theta"),
 #                data = y.tst,
-#                control = lmerControl(check.nobs.vs.nlev = "ignore",
-#                                      check.nobs.vs.rankZ = "ignore",
-#                                      check.nobs.vs.nRE="ignore",
+#                control = lmerControl(
 #                                      optCtrl = list(maxeval= 1),
 #                                      calc.derivs = FALSE))
 # # compute predictive ability
@@ -332,9 +322,7 @@ And we can specify the K matrices. The main difference between this model and th
 # ans2p <- update(ans2, 
 #                 start = getME(ans2, "theta"),
 #                 data = y.tst,
-#                 control = lmerControl(check.nobs.vs.nlev = "ignore",
-#                                       check.nobs.vs.rankZ = "ignore",
-#                                       check.nobs.vs.nRE="ignore",
+#                 control = lmerControl(
 #                                       optCtrl = list(maxeval= 1),
 #                                       calc.derivs = FALSE))
 # 
@@ -381,11 +369,7 @@ spatial <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 # fit model
 mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
                  addmat =list(spatial=Z),
-                 control = lmerControl(
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ), verbose = FALSE,
+                 verbose = FALSE,
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 
@@ -412,12 +396,7 @@ Sometimes is important to estimate genetic variance-covariance among traits--mul
 # head(DT2$long)
 # 
 # mix1 <- lmebreed(valueS~ (0+trait|id),
-#                  relmat=list(id=A),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore"
-#                  ), verbose = FALSE,
+#                  relmat=list(id=A), verbose = FALSE,
 #                  data=DT2$long)
 # vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 ```
@@ -450,11 +429,7 @@ The partitioned model was popularized by () to show that marker effects can be o
 # 
 # mix.part <- lmebreed(color ~ (1|id),
 #                      relmat = list(id=MMT),
-#                      control = lmerControl(
-#                        check.nobs.vs.nlev = "ignore",
-#                        check.nobs.vs.rankZ = "ignore",
-#                        check.nobs.vs.nRE="ignore"
-#                      ), verbose = FALSE,
+#                      verbose = FALSE,
 #                      data=DT)
 # 
 # #convert BLUPs to marker effects me=M'(M'M)- u
@@ -495,11 +470,7 @@ Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix 
 # 
 # modeld <- lmebreed(X1~ UX + (1|id),
 #                  relmat=list(id=D),
-#                  control = lmerControl(
-#                    check.nobs.vs.nlev = "ignore",
-#                    check.nobs.vs.rankZ = "ignore",
-#                    check.nobs.vs.nRE="ignore"
-#                  ), verbose = FALSE,
+#                  verbose = FALSE,
 #                  data=DTd)
 # vc <- VarCorr(modeld); print(vc,comp=c("Variance"))
 # 
@@ -509,11 +480,7 @@ Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix 
 # 
 # modeln <- lmebreed(X1~ (1|id),
 #                    relmat=list(id=G),
-#                    control = lmerControl(
-#                      check.nobs.vs.nlev = "ignore",
-#                      check.nobs.vs.rankZ = "ignore",
-#                      check.nobs.vs.nRE="ignore"
-#                    ), verbose = FALSE,
+#                    verbose = FALSE,
 #                    data=DTn)
 # 
 # ## compare regular and transformed blups
@@ -679,11 +646,7 @@ Instead of fitting the RRBLUP/SNP-BLUP model we can fit a GBLUP model which is l
 # 
 # mix.part <- lmebreed(color ~ (1|id) + (1|Rowf) + (1|Colf),
 #                      relmat = list(id=MMT),
-#                      control = lmerControl(
-#                        check.nobs.vs.nlev = "ignore",
-#                        check.nobs.vs.rankZ = "ignore",
-#                        check.nobs.vs.nRE="ignore"
-#                      ), verbose = FALSE,
+#                      verbose = FALSE,
 #                      data=DT)
 # vc <- VarCorr(mix.part); print(vc,comp=c("Variance"))
 # mme <- getMME(object=mix.part)

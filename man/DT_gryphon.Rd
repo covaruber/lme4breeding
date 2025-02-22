@@ -49,11 +49,6 @@ head(DT)
 ## fit the model with no fixed effects (intercept only)
 mix1 <- lmebreed(BWT~ (1|ANIMAL),
                  relmat = list(ANIMAL=A),
-                 control = lmerControl(
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 

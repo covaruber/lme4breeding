@@ -73,11 +73,6 @@ head(DT)
 system.time(
 mix0 <- lmebreed(pheno ~ (1|id),
                  relmat = list(id=K),
-                 control = lmerControl(
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ),
                  data=DT)
                  )
 vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
@@ -88,11 +83,7 @@ for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 system.time(
 mix1 <- lmebreed(pheno ~ (0 + e1 + e2 + e3 + e4 | id),
                  relmat = list(id=K),
-                 control = lmerControl(
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ), rotation = TRUE,
+                 rotation = TRUE,
                  data=DT)
 )
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))

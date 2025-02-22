@@ -268,13 +268,8 @@ DT2 <- do.call(rbind, vals)
 ## stage 2
 ##########
 DT2$w <- 1/DT2$stdError
-ans2 <- lmebreed(Estimate~Env + (1|Effect) + (1|Env:Effect), weights = w,data=DT2, 
-                 control = lmerControl(
-                   # optimizer="bobyqa",
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ), verbose = FALSE
+ans2 <- lmebreed(Estimate~Env + (1|Effect) + (1|Env:Effect), weights = w,
+                 data=DT2, verbose = FALSE
                  )
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve

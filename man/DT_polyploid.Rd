@@ -57,11 +57,6 @@ A <- A.mat(marks)
 A <- A + diag(1e-4,ncol(A),ncol(A))
 ans <- lmebreed(tuber_shape~ (1|Name),
                 relmat = list(Name=A),
-                control = lmerControl(
-                  check.nobs.vs.nlev = "ignore",
-                  check.nobs.vs.rankZ = "ignore",
-                  check.nobs.vs.nRE="ignore"
-                ),
                 data=DT2)
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 

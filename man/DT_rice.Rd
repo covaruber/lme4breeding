@@ -50,11 +50,6 @@ A <- A.mat(M$M)
 A <- A + diag(1e-4, ncol(A), ncol(A))
 mix <- lmebreed(Protein.content ~ (1|geno),
                 relmat = list(geno=A),
-                control = lmerControl(
-                  check.nobs.vs.nlev = "ignore",
-                  check.nobs.vs.rankZ = "ignore",
-                  check.nobs.vs.nRE="ignore"
-                ),
                 data=DT)
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 
@@ -65,11 +60,7 @@ head(DT2)
 system.time(
   mix <- lmebreed(valueS ~ (0+trait|geno),
                   relmat = list(geno=A),
-                  control = lmerControl(
-                    check.nobs.vs.nlev = "ignore",
-                    check.nobs.vs.rankZ = "ignore",
-                    check.nobs.vs.nRE="ignore"
-                  ), rotation = TRUE,
+                  rotation = TRUE,
                   data=DT2)
 )
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))

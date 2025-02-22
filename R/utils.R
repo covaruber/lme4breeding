@@ -71,11 +71,6 @@ umat <- function(formula, relmat, data, addmat){
     }
     ZrZrt[[iProv]] <- Zr %*% t(Zr)
   }
-  # part0 <- Reduce("+",ZrZrt)
-  # part0[which(part0 > 0)]=1
-  # part0 <- as(rotate(part0), Class = "dgCMatrix")
-  # dim(Zr)
-  # Matrix::image(part0)
   # build the U nxn matrix
   Ul <- Dl <- Zu <- list()
   for(iProv in idProvided){
@@ -571,7 +566,8 @@ smm <- function(x){
   }else{
     if(!is.character(x) & !is.factor(x)){
       namess <- as.character(substitute(list(x)))[-1L]
-      dummy <- as(Matrix(x,ncol=1), Class = "dgCMatrix"); colnames(dummy) <- namess
+      dummy <- as(as(as( Matrix(x,ncol=1),  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+      colnames(dummy) <- namess
       mm <- diag(ncol(dummy));
     }else{
       dummy <- x
@@ -1020,11 +1016,6 @@ build.HMM <- function(M1,M2, custom.hyb=NULL, return.combos.only=FALSE, separato
     hyb.names <- pheno$hybrid
     ## marker matrix for hybrids one for each parent
     message(paste("Building hybrid marker matrix for",nrow(Z1),"hybrids\n"))
-    
-    # M1 <- as(M1, Class="dgCMatrix")
-    # M2 <- as(M2, Class="dgCMatrix")
-    # Z1 <- as(Z1, Class="dgCMatrix")
-    # Z2 <- as(Z2, Class="dgCMatrix")
     
     message("Extracting M1 contribution\n")
     if(all(checkM1 == c(1,1,0))){ # homo markers were coded correctly as -1,1

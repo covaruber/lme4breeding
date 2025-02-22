@@ -43,11 +43,6 @@ head(DT)
 
 mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
-                 control = lmerControl(
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 # run one last iteration with imputed data
@@ -56,11 +51,9 @@ DT2 <- DT
 DT2$Yield <- imputev(DT2$Yield)
 mix1b <- update(mix1, data=DT2,
                 control=lmerControl(
-  check.nobs.vs.nlev = "ignore",
-  check.nobs.vs.rankZ = "ignore",
-  check.nobs.vs.nRE="ignore",
-  optCtrl=list(maxfun=1)
-))
+                           optCtrl=list(maxfun=1)
+                        )
+)
 rex <- ranef(mix1b)
 
 }

@@ -62,11 +62,6 @@ csdiagFormula <- paste0( "Yield ~ Env",
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 ansCSDG <- lmebreed(as.formula(csdiagFormula),
                     relmat = list(Name = A ),
-                    control = lmerControl(
-                      check.nobs.vs.nlev = "ignore",
-                      check.nobs.vs.rankZ = "ignore",
-                      check.nobs.vs.nRE="ignore"
-                    ),
                     data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 
