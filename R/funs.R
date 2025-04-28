@@ -4,8 +4,9 @@ lmebreed <-
            addmat=list(), 
            control = list(), start = NULL, verbose = TRUE, 
            subset, weights, na.action, offset, contrasts = NULL,
-           model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, 
-           rotation=FALSE, coefOutRotation=8, returnMod=FALSE, ...)
+           model = TRUE, x = TRUE, dateWarning=TRUE, 
+           rotation=FALSE, coefOutRotation=8, 
+           returnParams=FALSE, returnMod=FALSE, ...)
   {
     my.date <- "2025-08-01" # expiry date
     your.date <- Sys.Date()
@@ -169,20 +170,21 @@ lmebreed <-
     }
     #############################
     ## use the relfactors
-    for (i in seq_along(relmat)) {
+    for (i in seq_along(relmat)) { # for each relationship matrix
       tn <- which(match(pnms[i], names(fl)) == asgn)
-      for(j in 1:length(tn)){ # diagonal and unstructured models require to multiple all matrices by the same relfactor
-        ind <- (lmod$reTrms$Gp)[tn[j]:(tn[j]+1L)]
-        rowsi <- (ind[1]+1L):ind[2]
-        pick <- intersect( rownames(Zt), rownames(relfac[[i]])  )
-        toAdd <- setdiff( rownames(relfac[[i]]), rownames(Zt) )
-        if(length(pick)==0){stop(paste("The names on your relmat does not coincide with the names in your factor",pnms[i],". Maybe you didn't code it as factor."))}
-        provRelFac <- relfac[[i]][pick,pick]
+      for(j in 1:length(tn)){ # for each random effect matching this relationship matrix (diagonal and unstructured models require to multiple all incidence matrices by the same relfactor)
+        ind <- (lmod$reTrms$Gp)[tn[j]:(tn[j]+1L)] # which columns match this random effect
+        rowsi <- (ind[1]+1L):ind[2] # first to last column from Z
+        pick <- intersect( rownames(Zt), rownames(relfac[[i]])  ) # match names in relmat and Z matrix
+        toAdd <- setdiff( rownames(relfac[[i]]), rownames(Zt) ) # not enabled yet but to add additional names if some in relmat are not there
+        if(length(pick)==0){stop(paste("The names on your relmat does not coincide with the names in your factor",pnms[i],". Maybe you didn't code it as factor?"))}
+        provRelFac <- relfac[[i]][pick,pick] # only pick portion of relmat that coincides with Z
         if(nrow(Zt[rowsi,]) == nrow(provRelFac)){ # regular model
           Zt[rowsi,] <- provRelFac %*% Zt[rowsi,]
           # Zt[rowsi,] <- t( t(udu$Utn[goodRecords,goodRecords]) %*% t(provRelFac %*% Zt[rowsi,] ) )
         }else{ # unstructured model
           mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[pnms[i]]]) )
+          if(length(rowsi) != ncol(provRelFac)*ncol(mm) ){stop(paste("Relationship matrix dimensions of ",pnms[i],"do not conform with the random effect, please review."), call. = FALSE)}
           Zt[rowsi,] <- Matrix::kronecker(provRelFac, mm) %*% Zt[rowsi,]
           # Zt[rowsi,] <- t( t(udu$Utn[goodRecords,goodRecords]) %*%  t(Matrix::kronecker(provRelFac, mm) %*% Zt[rowsi,]) )
         }
@@ -205,34 +207,30 @@ lmebreed <-
         dfl$control <- control
       }
     }
-    if(returnParams){
+    if(returnParams){ # if user only wants the incidence matrices
       return(dfl)
     }else{
       if(verbose){message("* Optimizing ...")}
-      if (gaus) {
+      if (gaus) { # gaussian distribution
         dfl$REML = REML # TRUE# resp$REML > 0L
-        devfun <- do.call(mkLmerDevfun, dfl )
-        if(returnMod){
-          # devfun2 <- do.call(mkLmerDevfun, dfl)
-          opt2 <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
-          ans2 <- mkMerMod(environment(devfun), opt2, dfl$reTrms, fr = dfl$fr)
-          return(ans2)
-        }
-        opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, ...) # need to pass control 
-      } else {
+        devfun <- do.call(mkLmerDevfun, dfl ) # creates a deviance function
+        if(returnMod){ # user wants to force variance components without fitting a model
+          opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
+        }else{ # # user wants to optimize the varcomp optimizer
+          opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, ...) # need to pass control 
+        } 
+      } else { # exponential family of distributions
         dfl$family <- family
-        devfun <- do.call(mkGlmerDevfun,dfl)
-        if(returnMod){
-          # devfun2 <- do.call(mkGlmerDevfun, dfl)
-          opt2 <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
-          ans2 <- mkMerMod(environment(devfun), opt2, dfl$reTrms, fr = dfl$fr)
-          return(ans2)
-        }
-        opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl,  ...) # need to pass control 
+        devfun <- do.call(mkGlmerDevfun,dfl) # creates a deviance function
+        if(returnMod){ # user wants to force variance components without optimizing
+          opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
+        }else{ # user wants to optimize the varcomp optimizer
+          opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer[1], control = dfl$control$optCtrl,  ...) # need to pass control 
+        } 
       }
       if(verbose){message("* Done!!")}
-      # make results a mkMerMod object
-      mm <- mkMerMod(environment(devfun), opt, reTrms, lmod$fr, mc)
+      # make results in a mkMerMod object format
+      mm <- mkMerMod(environment(devfun), opt, dfl$reTrms, dfl$fr, mc)
       cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
       ans <- do.call(new, list(Class=cls, relfac=relfac, udu=udu, #goodRecords=goodRecords,
                                frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,

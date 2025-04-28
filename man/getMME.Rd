@@ -5,10 +5,11 @@
 Build the mixed model equations from a lmebreed object
 }
 \description{
-Uses the lmebreed object and builds the coefficient matrix (C) and returns its inverse and the solutions to the mixed model equations.
+Uses the lmebreed object and builds the coefficient matrix (C) and returns its 
+inverse and the solutions to the mixed model equations.
 }
 \usage{
-getMME(object, vc=NULL, recordsToKeep=NULL)
+getMME(object, vc=NULL, recordsToUse=NULL)
 }
 
 \arguments{
@@ -16,10 +17,13 @@ getMME(object, vc=NULL, recordsToKeep=NULL)
 an object of class lmebreed.
   }
   \item{vc}{
-optional variance components to force in the mixed model equations. This this to be the outpur of the \code{\link[lme4]{VarCorr}} function.
+optional variance components to force in the mixed model equations. This this to 
+be the outpur of the \code{\link[lme4]{VarCorr}} function.
   }
-  \item{recordsToKeep}{
- a numeric vector of indices to say which records should be kept for forming the mixed model equations and get solutions. This is particularly useful when we want to predict new individuals.
+  \item{recordsToUse}{
+ a numeric vector of indices to say which records should be kept for forming the 
+ mixed model equations and get solutions. This is particularly useful when we want
+ to predict new individuals.
   }
 
 }
@@ -97,7 +101,7 @@ mix1expanded <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
 
 vc <- VarCorr(mix1expanded); print(vc,comp=c("Variance"))
 # predict the individuals that didn't have records in the dataset
-res <- getMME(object=mix1expanded, vc=VarCorr(mix1), recordsToKeep = which(!is.na(DT$Yield)) )
+res <- getMME(object=mix1expanded, vc=VarCorr(mix1), recordsToUse = which(!is.na(DT$Yield)) )
 
 
 }

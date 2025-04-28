@@ -10,8 +10,9 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
            relmat = list(), addmat = list(), control = list(),
            start = NULL, verbose = TRUE, subset, weights,
            na.action, offset, contrasts = NULL, model = TRUE,
-           x = TRUE, dateWarning=TRUE, returnParams=FALSE,
-           rotation=FALSE, coefOutRotation=8, ...)
+           x = TRUE, dateWarning=TRUE, rotation=FALSE, 
+           coefOutRotation=8, returnParams=FALSE,
+           returnMod=FALSE, ...)
 }
 \arguments{
   \item{relmat}{an optional named list of relationship matrices (not the inverse). 
@@ -25,13 +26,23 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
     examples and vignettes to learn how to use it.}
   \item{dateWarning}{an logical value indicating if you want to be warned when a new 
   version of lme4breeding is available on CRAN.}
-  \item{returnParams}{an logical value indicating if you want to only get the incidence 
-  matrices of the model.}
   \item{rotation}{an logical value indicating if you want to compute the eigen decomposition 
   of the relationship matrix to rotate y and X and accelerate the computation. See details.}
   \item{coefOutRotation}{a numeric value denoting the inter-quantile outlier coefficient to
   be used in the rotation of the response when using the eigen decomposition to avoid 
   overshooting.}
+    \item{returnParams}{a logical value indicating if you want to only get the incidence 
+  matrices of the model.}
+    \item{returnMod}{a logical value indicating if you want to force the model to use 
+    your customized variance components without estimating them. The variance components
+    should be provided in the \code{start} argument. If you want to provide the variance
+    components from a previous model you can get the initial values by running:
+    
+    \code{ getME(mix1, 'sigma') }
+    
+    which returns a vector with theta values.
+    
+    }
   \item{formula}{as in \code{\link[lme4]{lmer}}}
   \item{data}{as in \code{\link[lme4]{lmer}}}
   \item{family}{as in \code{\link[lme4]{glmer}}}
@@ -75,9 +86,17 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   activated and variance components differ slightly with other software they will still provide highly similar 
   estimates at the speed of hundreds or thousands of times faster. Please consider this.
   
-  Additional useful functions are; \code{\link{tps}} for spatial kernels, \code{\link{rrm}} for reduced rank matrices, \code{\link{atcg1234}} for conversion of genetic markers, \code{\link{overlay}} for overlay matrices, \code{\link{stackTrait}} for moving wide format multi-trait datasets into long format, \code{\link{fillData}} for balancing datasets for two variables.
+  Additional useful functions are; \code{\link{tps}} for spatial kernels, \code{\link{rrm}} 
+  for reduced rank matrices, \code{\link{atcg1234}} for conversion of genetic markers, 
+  \code{\link{overlay}} for overlay matrices, \code{\link{stackTrait}} for moving wide 
+  format multi-trait datasets into long format, \code{\link{fillData}} for balancing 
+  datasets for two variables.
   
-  When using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep in mind that the number of iterations is called differently depending on the optimizer. For \code{\link[lme4]{Nelder_Mead}}, bobyqa and \code{\link[lme4]{nlminbwrap}} is called "maxfun" whereas for \code{\link[lme4]{nloptwrap}} is called "maxeval". This should be passed inside a list in the \code{optCtrl} argument. For example:
+  When using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep 
+  in mind that the number of iterations is called differently depending on the optimizer. 
+  For \code{\link[lme4]{Nelder_Mead}}, bobyqa and \code{\link[lme4]{nlminbwrap}} is
+  called "maxfun" whereas for \code{\link[lme4]{nloptwrap}} is called "maxeval". 
+  This should be passed inside a list in the \code{optCtrl} argument. For example:
   
 \code{lmebreed(... , 
          control = lmerControl(
@@ -85,6 +104,15 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
            optCtrl=list(maxfun=100)
          ), ...
         )}
+        
+  To predict values for unobserved levels you will need to impute the data and update
+  your model with the new dataset and the initial starting values:
+  
+  \code{
+    newModel <- update(oldModel, returnMod = TRUE,
+                       start=getME(oldModel, 'sigma'), 
+                       data=imputedData)
+  }
   
   
   \strong{Example Datasets}

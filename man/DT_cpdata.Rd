@@ -45,16 +45,25 @@ mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+
 # run one last iteration with imputed data
-# to make sure you get predictions for everyone
+# to make sure you get predictions for every level
 DT2 <- DT
 DT2$Yield <- imputev(DT2$Yield)
-mix1b <- update(mix1, data=DT2,
-                control=lmerControl(
-                           optCtrl=list(maxfun=1)
-                        )
-)
-rex <- ranef(mix1b)
+mix2 <- update(mix1, returnMod = TRUE,
+               start=getME(mix1, "theta"), 
+               data=DT2)
+predsMix2 <- ranef(mix2)
+# if you don't want the imputed vector to have an effect in
+# the predictions you can use the getMME function to use
+# the extended model and get predictions without including the 
+# imputed data (I know is a bit messy)
+preds <- getMME(object=mix2, # extended model
+                vc=VarCorr(mix1), # variance components
+                recordsToUse = which(!is.na(DT$Yield)) # records to use for MME
+                )
+# now you could compare between both types of predictions, the last ones are in 
+# theory the correct ones.
 
 }
 

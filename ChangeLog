@@ -10,5 +10,8 @@
 
 2024-06-24 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
 
-      * [r_1.0.40] simage function added for sparsity plots and better documentation of GxE models
+      * [r_1.0.40] 'simage' function added for sparsity plots and better documentation of GxE models
 
+2025-04-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+
+      * [r_1.0.60] enhanced the 'start' and 'returnMod' arguments to do prediction of unobserved levels

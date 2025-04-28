@@ -8,7 +8,8 @@ Build a hybrid marker matrix using parental genotypes from inbred individuals
 Uses the 2 marker matrices from both sets of inbred or partially inbred parents and creates all possible combinations unless the user specifies which hybrid genotypes to build (custom.hyb argument). It returns the additive and dominance marker matrices (-1,0,1; homo,het,homo in additive and 0,1,0; homo,het,homo for dominance).
 }
 \usage{
-build.HMM(M1,M2, custom.hyb=NULL, return.combos.only=FALSE,separator=":",n.batch=1000, verbose=TRUE)
+build.HMM(M1,M2, custom.hyb=NULL, return.combos.only=FALSE,
+          separator=":",n.batch=1000, verbose=TRUE)
 }
 
 \arguments{

@@ -142,7 +142,7 @@ leg <- function(x,n=1,u=-1,v=1, intercept=TRUE, intercept1=FALSE){
 }
 
 ####
-getMME <- function(object, vc=NULL, recordsToKeep=NULL){
+getMME <- function(object, vc=NULL, recordsToUse=NULL){
   if(is.null(vc)){
     vc <- VarCorr(object) #object %>% VarCorr %>% as_tibble # extract estimated variance components (vc)
   }
@@ -157,11 +157,11 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
   Z <- getME(object, "Z") #%>% as.matrix # Design matrix random effects
   y <- getME(object, "y") #%>% as.matrix # Design matrix random effects
   
-  if(!is.null(recordsToKeep)){
-    X <- X[recordsToKeep,, drop=FALSE]
-    Z <- Z[recordsToKeep,, drop=FALSE]
-    y <- y[recordsToKeep]
-    Ri <- Ri[recordsToKeep,recordsToKeep]
+  if(!is.null(recordsToUse)){
+    X <- X[recordsToUse,, drop=FALSE]
+    Z <- Z[recordsToUse,, drop=FALSE]
+    y <- y[recordsToUse]
+    Ri <- Ri[recordsToUse,recordsToUse]
   }
   # Mixed Model Equation (HENDERSON 1986; SEARLE et al. 2006)
   C11 <- t(X) %*% Ri %*% X
@@ -238,9 +238,9 @@ getMME <- function(object, vc=NULL, recordsToKeep=NULL){
     C_invROT <- t(ROT) %*% C_inv %*% (ROT)
     rownames(buROT) <- rn
     colnames(C_invROT) <- rownames(C_invROT) <- rn
-    return(list(Ci=C_invROT, bu=buROT))
+    return(list(Ci=C_invROT, bu=buROT, RHS=RHS))
   }else{
-    return(list(Ci=C_inv, bu=bu))
+    return(list(Ci=C_inv, bu=bu, RHS=RHS))
   }
   
   
