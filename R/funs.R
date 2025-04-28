@@ -7,7 +7,7 @@ lmebreed <-
            model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, 
            rotation=FALSE, coefOutRotation=8, ...)
   {
-    my.date <- "2025-04-01" # expiry date
+    my.date <- "2025-08-01" # expiry date
     your.date <- Sys.Date()
     ## if your month is greater than my month you are outdated
     if(dateWarning){
@@ -50,6 +50,7 @@ lmebreed <-
       control$checkControl$check.nobs.vs.nlev = "ignore"
       control$checkControl$check.nobs.vs.rankZ = "ignore"
       control$checkControl$check.nobs.vs.nRE="ignore"
+      # control$calc.derivs <- calc.derivs
     }
     # lmerc$formula <- formula; lmerc$data <- data; 
     # lmerc$control <- control # only if we are using it 
@@ -63,6 +64,8 @@ lmebreed <-
     lmerc$coefOutRotation <- NULL
     lmerc$family <- family
     lmerc$control <- control
+    lmerc$start <- start
+    # lmerc$calc.derivs <- calc.derivs
     ##
     if (!gaus) {lmerc$REML <- NULL}
     ## if there are no relmats or additional matrices just return th regular lmer model
@@ -118,6 +121,7 @@ lmebreed <-
     }
     ## END OF TRANSFORMATION
     # lmod <- do.call(lFormula, as.list(lmerc)) # basic elements to modify for our purposes
+    # print(str(as.list(lmerc)))
     suppressWarnings(lmod <- do.call(lFormula, as.list(lmerc)), classes = "warning")
     relfac <- relmat          # copy te relmat list for relfactor
     pnms <- names(relmat)
@@ -185,9 +189,12 @@ lmebreed <-
       }
     }
     if(verbose){message("* Relfactors (relmat) applied to Z")}
-    reTrms <- list(Zt=Zt,theta=lmod$reTrms$theta,Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
+    reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                    lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
-    dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, start=lmod$reTrms$theta, control=control)
+    dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, 
+                start=if(is.null(start)){lmod$reTrms$theta}else{start},
+                control=control)
+    print(str(dfl))
     if(length(control) == 0){
       if(gaus){ # if user calls a gaussian response family
         control <- lmerControl()
@@ -204,12 +211,19 @@ lmebreed <-
       if(verbose){message("* Optimizing ...")}
       if (gaus) {
         dfl$REML = REML # TRUE# resp$REML > 0L
-        # print(dfl$REML)
         devfun <- do.call(mkLmerDevfun, dfl )
+        # if(returnPred){
+        #   return(list(lFormula=dfl, devfun=devfun))
+        # }
         opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, ...) # need to pass control 
       } else {
         dfl$family <- family
         devfun <- do.call(mkGlmerDevfun,dfl)
+        # if(returnPred){
+        #   opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
+        #   ans <- mkMerMod(environment(devfun), opt, lmod$reTrms, fr = lmod$fr)
+        #   return(ans)
+        # }
         opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl,  ...) # need to pass control 
       }
       if(verbose){message("* Done!!")}
