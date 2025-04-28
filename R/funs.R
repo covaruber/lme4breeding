@@ -194,7 +194,7 @@ lmebreed <-
     dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, 
                 start=if(is.null(start)){lmod$reTrms$theta}else{start},
                 control=control)
-    print(str(dfl))
+    # print(str(dfl))
     if(length(control) == 0){
       if(gaus){ # if user calls a gaussian response family
         control <- lmerControl()
