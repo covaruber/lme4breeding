@@ -5,7 +5,7 @@ lmebreed <-
            control = list(), start = NULL, verbose = TRUE, 
            subset, weights, na.action, offset, contrasts = NULL,
            model = TRUE, x = TRUE, dateWarning=TRUE, returnParams=FALSE, 
-           rotation=FALSE, coefOutRotation=8, ...)
+           rotation=FALSE, coefOutRotation=8, returnMod=FALSE, ...)
   {
     my.date <- "2025-08-01" # expiry date
     your.date <- Sys.Date()
@@ -191,7 +191,7 @@ lmebreed <-
     if(verbose){message("* Relfactors (relmat) applied to Z")}
     reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                    lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
-    dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, 
+    dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, formula=formula,
                 start=if(is.null(start)){lmod$reTrms$theta}else{start},
                 control=control)
     # print(str(dfl))
@@ -212,18 +212,22 @@ lmebreed <-
       if (gaus) {
         dfl$REML = REML # TRUE# resp$REML > 0L
         devfun <- do.call(mkLmerDevfun, dfl )
-        # if(returnPred){
-        #   return(list(lFormula=dfl, devfun=devfun))
-        # }
+        if(returnMod){
+          # devfun2 <- do.call(mkLmerDevfun, dfl)
+          opt2 <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
+          ans2 <- mkMerMod(environment(devfun), opt2, dfl$reTrms, fr = dfl$fr)
+          return(ans2)
+        }
         opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, ...) # need to pass control 
       } else {
         dfl$family <- family
         devfun <- do.call(mkGlmerDevfun,dfl)
-        # if(returnPred){
-        #   opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
-        #   ans <- mkMerMod(environment(devfun), opt, lmod$reTrms, fr = lmod$fr)
-        #   return(ans)
-        # }
+        if(returnMod){
+          # devfun2 <- do.call(mkGlmerDevfun, dfl)
+          opt2 <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
+          ans2 <- mkMerMod(environment(devfun), opt2, dfl$reTrms, fr = dfl$fr)
+          return(ans2)
+        }
         opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl,  ...) # need to pass control 
       }
       if(verbose){message("* Done!!")}
