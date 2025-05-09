@@ -248,15 +248,8 @@ getMME <- function(object, vc=NULL, recordsToUse=NULL){
 
 stackTrait <- function(data, traits){
   
-  '%!in%' <- function(x,y)!('%in%'(x,y)) 
   dataScaled <- data
-  # remove traits not present in the dataset
   traits <- intersect(traits, colnames(data) )
-  # check that traits are numeric
-  columnTypesTraits <- unlist(lapply(data[traits],class)) 
-  badones <- which(columnTypesTraits %!in% c("integer","numeric") )
-  if(length(badones) > 0){stop("some of your selected traits are not numeric. Please correct the traits provided.", call. = FALSE)}
-  # identify possible idvars
   idvars <- setdiff(colnames(data), traits)
   for(iTrait in traits){
     dataScaled[,iTrait] <- scale(dataScaled[,iTrait])
@@ -264,10 +257,10 @@ stackTrait <- function(data, traits){
   columnTypes <- unlist(lapply(data[idvars],class)) 
   columnTypes <- columnTypes[which(columnTypes %in% c("factor","character"))]
   idvars <- intersect(idvars,names(columnTypes))
-  data2 <- reshape(data[,c(idvars, traits)], idvar = idvars, varying = traits,
+  data2 <- reshape(data[,c(idvars,traits)], idvar = idvars, varying = traits,
                    timevar = "trait",
                    times = traits,v.names = "value", direction = "long")
-  data2Scaled <- reshape(dataScaled[,c(idvars, traits)], idvar = idvars, varying = traits,
+  data2Scaled <- reshape(dataScaled[,c(idvars,traits)], idvar = idvars, varying = traits,
                          timevar = "trait",
                          times = traits,v.names = "value", direction = "long")
   data2 <- as.data.frame(data2)
