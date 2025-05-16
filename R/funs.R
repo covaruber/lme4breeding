@@ -1,6 +1,5 @@
 #### "relmat" class methods
-lmebreed <-
-  function(formula, data, family = NULL, REML = TRUE, relmat = list(), 
+lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list(), 
            addmat=list(), 
            control = list(), start = NULL, verbose = TRUE, 
            subset, weights, na.action, offset, contrasts = NULL,
@@ -185,7 +184,7 @@ lmebreed <-
           provRelFac <- as(as(as( provRelFac,  "dMatrix"), "generalMatrix"), "CsparseMatrix")
           ZtL <- list() # we have to do this because filling by rows a Column-oriented matrix is extremely slow so it is faster to cut and paste
           if(min(rowsi) > 1){ZtL[[1]] <- Zt[1:(min(rowsi)-1),]}
-          ZtL[[2]] <- crossprod( provRelFac, Zt[rowsi,] )
+          ZtL[[2]] <- provRelFac %*% Zt[rowsi,] 
           if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
           Zt <- do.call(rbind, ZtL)
           # Zt[rowsi,] <- t( t(udu$Utn[goodRecords,goodRecords]) %*% t(provRelFac %*% Zt[rowsi,] ) )
@@ -195,7 +194,8 @@ lmebreed <-
           provRelFac <- as(as(as( provRelFac,  "dMatrix"), "generalMatrix"), "CsparseMatrix")
           ZtL <- list()
           if(min(rowsi) > 1){ZtL[[1]] <- Zt[1:(min(rowsi)-1),]}
-          ZtL[[2]] <- crossprod(Matrix::kronecker(provRelFac, mm), Zt[rowsi,])
+          ZtL[[2]] <- Matrix::kronecker(provRelFac, mm, make.dimnames = TRUE) %*% Zt[rowsi,]
+          rownames(ZtL[[2]]) <- rownames(Zt[rowsi,])
           if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
           Zt <- do.call(rbind, ZtL)
           # Zt[rowsi,] <- t( t(udu$Utn[goodRecords,goodRecords]) %*%  t(Matrix::kronecker(provRelFac, mm) %*% Zt[rowsi,]) )
