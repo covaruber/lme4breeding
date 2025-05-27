@@ -178,7 +178,6 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
         
         if( mean(table(colnamesRelFac)) > 1 ){  # is this complex because we may have a relationship matrix with repeated names
           # print("method ade")
-          # pick <- list(); 
           toBeRemoved <- character()
           namesProvRelFac <- character() 
           foundV <- numeric()
@@ -188,13 +187,10 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
             toBeRemoved <- c(toBeRemoved, found[1])
             if(!is.na(found)){
               foundV <- c(foundV,found)
-              # pick[[p]] <- relfac[[i]][,found,drop=FALSE]
               namesProvRelFac <- c(namesProvRelFac, colnamesRelFac[found] )
             }
           }
-          provRelFac <- relfac[[i]][foundV,foundV] # do.call(cbind, pick)
-          # maxDim <- min(dim(provRelFac))
-          # provRelFac <- provRelFac[1:maxDim, 1:maxDim]
+          provRelFac <- relfac[[i]][foundV,foundV] 
           colnames(provRelFac) <- rownames(provRelFac) <- namesProvRelFac
           relfac[[i]] <- provRelFac
         }else{
@@ -204,6 +200,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
           provRelFac <- relfac[[i]][pick,pick] # only pick portion of relmat that coincides with Z
         }
         # str(provRelFac)
+        # print(all(rownames(Zt)[rowsi] == rownames(provRelFac)))
         if(nrow(Zt[rowsi,]) == nrow(provRelFac)){ # regular model (single random intercept)
           provRelFac <- as(as(as( provRelFac,  "dMatrix"), "generalMatrix"), "CsparseMatrix")
           ZtL <- list() # we have to do this because filling by rows a Column-oriented matrix is extremely slow so it is faster to cut and paste
