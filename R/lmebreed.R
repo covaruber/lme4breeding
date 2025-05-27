@@ -101,11 +101,9 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
         data[,response] <- imputev(x=data[,response],method="median",by=udu$record)
         goodRecords <- 1:nrow(data)          
         newValues <- (udu$Utn[goodRecords,goodRecords] %*% data[goodRecords,response])[,1]
-        # newValues <- (udu$Utn[,goodRecords] %*% data[goodRecords,response])[,1]
         outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
         if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
         data[goodRecords,response] <- newValues
-        # data[,response] <- newValues
         lmerc$data <- data
         if(verbose){message("* Rotation of response finished.")}
         for(iD in names(udu$D)){
@@ -114,24 +112,24 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
         if(verbose){message("* Cholesky decomposition finished.")}
       }else{ # classical approach, just cholesky
         for (i in seq_along(relmat)) {
-          relmat[[i]] <- Matrix::chol(relmat[[i]])
+          # if(is.list(relmat[[i]])){ # if a random effect has more than one covariance structure
+          #   relmat[[i]] <- do.call(sommer::adiag1, lapply(relmat[[i]], function(x){Matrix::chol(x)} ))
+          # }else{ # single covariance structure for the random effect
+            relmat[[i]] <- Matrix::chol(relmat[[i]])
+          # }
         }
         if(verbose){message("* Cholesky decomposition finished.")}
       }
     }
-    ## END OF TRANSFORMATION
-    # lmod <- do.call(lFormula, as.list(lmerc)) # basic elements to modify for our purposes
-    # print(str(as.list(lmerc)))
+    
     suppressWarnings(lmod <- do.call(lFormula, as.list(lmerc)), classes = "warning")
     relfac <- relmat          # copy te relmat list for relfactor
     pnms <- names(relmat)
     pnms2 <- names(addmat)
-    # resp <- lmf@resp
     fl <- lmod$reTrms$flist
     stopifnot(all(pnms %in% names(fl)))
     asgn <- attr(fl, "assign")
-    Zt <- lmod$reTrms$Zt # Matrix::image(Zt)  Matrix::image(as(addmat[[1]], Class="dgCMatrix"))
-    # Zt <- as(Zt,Class="dgRMatrix")
+    Zt <- lmod$reTrms$Zt
     ##############################
     ## transform X if rotation is needed
     if(length(relmat) > 0){
@@ -172,23 +170,48 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
     ## use the relfactors
     for (i in seq_along(relmat)) { # for each relationship matrix
       # print(paste("i",i))
-      tn <- which(match(pnms[i], names(fl)) == asgn)
+      tn <- which(match(pnms[i], names(fl)) == asgn) # match relmat names with random effects names
       for(j in 1:length(tn)){ # for each random effect matching this relationship matrix (diagonal and unstructured models require to multiple all incidence matrices by the same relfactor)
         ind <- (lmod$reTrms$Gp)[tn[j]:(tn[j]+1L)] # which columns match this random effect
         rowsi <- (ind[1]+1L):ind[2] # first to last column from Z
-        pick <- intersect( rownames(Zt), rownames(relfac[[i]])  ) # match names in relmat and Z matrix
-        # toAdd <- setdiff( rownames(relfac[[i]]), rownames(Zt) ) # not enabled yet but to add additional names if some in relmat are not there
-        if(length(pick)==0){stop(paste("The names on your relmat does not coincide with the names in your factor",pnms[i],". Maybe you didn't code it as factor?"))}
-        provRelFac <- relfac[[i]][pick,pick] # only pick portion of relmat that coincides with Z
-        if(nrow(Zt[rowsi,]) == nrow(provRelFac)){ # regular model
+        colnamesRelFac <- colnames(relfac[[i]])
+        
+        if( mean(table(colnamesRelFac)) > 1 ){  # is this complex because we may have a relationship matrix with repeated names
+          # print("method ade")
+          # pick <- list(); 
+          toBeRemoved <- character()
+          namesProvRelFac <- character() 
+          foundV <- numeric()
+          for(p in which( rownames(Zt) %in% rownames(relfac[[i]]) ) ){ # p=1
+            found <- which(colnamesRelFac %in% rownames(Zt)[p])
+            found <- setdiff(found, toBeRemoved)[1]
+            toBeRemoved <- c(toBeRemoved, found[1])
+            if(!is.na(found)){
+              foundV <- c(foundV,found)
+              # pick[[p]] <- relfac[[i]][,found,drop=FALSE]
+              namesProvRelFac <- c(namesProvRelFac, colnamesRelFac[found] )
+            }
+          }
+          provRelFac <- relfac[[i]][foundV,foundV] # do.call(cbind, pick)
+          # maxDim <- min(dim(provRelFac))
+          # provRelFac <- provRelFac[1:maxDim, 1:maxDim]
+          colnames(provRelFac) <- rownames(provRelFac) <- namesProvRelFac
+          relfac[[i]] <- provRelFac
+        }else{
+          # print("method a")
+          pick <- intersect( rownames(Zt), rownames(relfac[[i]])  ) # match names in relmat and Z matrix
+          if(length(pick)==0){stop(paste("The names on your relmat does not coincide with the names in your factor",pnms[i],". Maybe you didn't code it as factor?"))}
+          provRelFac <- relfac[[i]][pick,pick] # only pick portion of relmat that coincides with Z
+        }
+        # str(provRelFac)
+        if(nrow(Zt[rowsi,]) == nrow(provRelFac)){ # regular model (single random intercept)
           provRelFac <- as(as(as( provRelFac,  "dMatrix"), "generalMatrix"), "CsparseMatrix")
           ZtL <- list() # we have to do this because filling by rows a Column-oriented matrix is extremely slow so it is faster to cut and paste
           if(min(rowsi) > 1){ZtL[[1]] <- Zt[1:(min(rowsi)-1),]}
           ZtL[[2]] <- provRelFac %*% Zt[rowsi,] 
           if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
           Zt <- do.call(rbind, ZtL)
-          # Zt[rowsi,] <- t( t(udu$Utn[goodRecords,goodRecords]) %*% t(provRelFac %*% Zt[rowsi,] ) )
-        }else{ # unstructured model
+        }else{ # complex model (multiple random intercepts)
           mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[pnms[i]]]) )
           if(length(rowsi) != ncol(provRelFac)*ncol(mm) ){stop(paste("Relationship matrix dimensions of ",pnms[i],"do not conform with the random effect, please review."), call. = FALSE)}
           provRelFac <- as(as(as( provRelFac,  "dMatrix"), "generalMatrix"), "CsparseMatrix")
@@ -198,7 +221,6 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
           rownames(ZtL[[2]]) <- rownames(Zt[rowsi,])
           if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
           Zt <- do.call(rbind, ZtL)
-          # Zt[rowsi,] <- t( t(udu$Utn[goodRecords,goodRecords]) %*%  t(Matrix::kronecker(provRelFac, mm) %*% Zt[rowsi,]) )
         }
       }
     }
