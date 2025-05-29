@@ -169,7 +169,6 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
     #############################
     ## use the relfactors
     for (i in seq_along(relmat)) { # for each relationship matrix
-      # print(paste("i",i))
       tn <- which(match(pnms[i], names(fl)) == asgn) # match relmat names with random effects names
       for(j in 1:length(tn)){ # for each random effect matching this relationship matrix (diagonal and unstructured models require to multiple all incidence matrices by the same relfactor)
         ind <- (lmod$reTrms$Gp)[tn[j]:(tn[j]+1L)] # which columns match this random effect
@@ -177,7 +176,6 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
         colnamesRelFac <- colnames(relfac[[i]])
         
         if( mean(table(colnamesRelFac)) > 1 ){  # is this complex because we may have a relationship matrix with repeated names
-          # print("method ade")
           toBeRemoved <- character()
           namesProvRelFac <- character() 
           foundV <- numeric()
@@ -194,13 +192,10 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
           colnames(provRelFac) <- rownames(provRelFac) <- namesProvRelFac
           relfac[[i]] <- provRelFac
         }else{
-          # print("method a")
           pick <- intersect( rownames(Zt), rownames(relfac[[i]])  ) # match names in relmat and Z matrix
           if(length(pick)==0){stop(paste("The names on your relmat does not coincide with the names in your factor",pnms[i],". Maybe you didn't code it as factor?"))}
           provRelFac <- relfac[[i]][pick,pick] # only pick portion of relmat that coincides with Z
         }
-        # str(provRelFac)
-        # print(all(rownames(Zt)[rowsi] == rownames(provRelFac)))
         if(nrow(Zt[rowsi,]) == nrow(provRelFac)){ # regular model (single random intercept)
           provRelFac <- as(as(as( provRelFac,  "dMatrix"), "generalMatrix"), "CsparseMatrix")
           ZtL <- list() # we have to do this because filling by rows a Column-oriented matrix is extremely slow so it is faster to cut and paste
