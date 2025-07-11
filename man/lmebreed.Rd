@@ -88,7 +88,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   
   Additional useful functions are; \code{\link{tps}} for spatial kernels, \code{\link{rrm}} 
   for reduced rank matrices, \code{\link{atcg1234}} for conversion of genetic markers, 
-  \code{\link{overlay}} for overlay matrices, \code{\link{stackTrait}} for moving wide 
+  \code{\link{overlay}} for overlay matrices, \code{\link{reshape}} for moving wide 
   format multi-trait datasets into long format, \code{\link{fillData}} for balancing 
   datasets for two variables.
   

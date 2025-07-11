@@ -11,7 +11,7 @@ importFrom("stats", "as.formula", "cov", "model.matrix", "na.omit",
 
 export( "lmebreed", "smm", "rrm", "redmm", "overlay", "add.diallel.vars",
         "build.HMM","bbasis","tps","A.mat","atcg1234","imputev", "getMME",
-        "stackTrait", "fillData", "leg", "adjBeta", "umat", 
+        "fillData", "leg", "adjBeta", "umat", 
         "simage")
 
 exportMethods(

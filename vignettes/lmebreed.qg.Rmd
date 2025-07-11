@@ -245,30 +245,30 @@ General variance structures can be used to fit indirect genetic effects. Here, w
 
 ```{r}
 
-# data(DT_ige)
-# DT <- DT_ige
-# A_ige <- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
-# # Define 2 dummy variables to make a fake covariance
-# # for two different random effects
-# DT$fn <- DT$nn <- 1
-# # Create the incidence matrix for the first random effect
-# Zf <- Matrix::sparse.model.matrix( ~ focal-1, data=DT )
-# colnames(Zf) <- gsub("focal","", colnames(Zf))
-# # Create the incidence matrix for the second random effect
-# Zn <- Matrix::sparse.model.matrix( ~ neighbour-1, data=DT )
-# colnames(Zn) <- gsub("neighbour","", colnames(Zn))
-# # Make inital values for incidence matrix but irrelevant
-# # since these will be replaced by the addmat argument
-# both <- (rep(colnames(Zf), nrow(DT)))[1:nrow(DT)]
-# # Fit the model
-# modIGE <- lmebreed(trait ~ block + (0+fn+nn|both),
-#                    addmat = list(both=list(Zf,Zn)),
-#                    relmat = list(both=A_ige),
-#                    verbose = FALSE, data = DT)
-# vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
-# blups <- ranef(modIGE)
-# pairs(blups$both)
-# cov2cor(vc$both)
+data(DT_ige)
+DT <- DT_ige
+A_ige <- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
+# Define 2 dummy variables to make a fake covariance
+# for two different random effects
+DT$fn <- DT$nn <- 1
+# Create the incidence matrix for the first random effect
+Zf <- Matrix::sparse.model.matrix( ~ focal-1, data=DT )
+colnames(Zf) <- gsub("focal","", colnames(Zf))
+# Create the incidence matrix for the second random effect
+Zn <- Matrix::sparse.model.matrix( ~ neighbour-1, data=DT )
+colnames(Zn) <- gsub("neighbour","", colnames(Zn))
+# Make inital values for incidence matrix but irrelevant
+# since these will be replaced by the addmat argument
+both <- (rep(colnames(Zf), nrow(DT)))[1:nrow(DT)]
+# Fit the model
+modIGE <- lmebreed(trait ~ block + (0+fn+nn|both),
+                   addmat = list(both=list(Zf,Zn)),
+                   relmat = list(both=A_ige),
+                   verbose = FALSE, data = DT)
+vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
+blups <- ranef(modIGE)
+pairs(blups$both)
+cov2cor(vc$both)
 
 ```
 
@@ -391,13 +391,19 @@ Sometimes is important to estimate genetic variance-covariance among traits--mul
 # A <- A.mat(GT) # additive relationship matrix
 # A <- A + diag(1e-4, ncol(A), ncol(A))
 # #### look at the data and fit the model
-# head(DT)
-# DT2 <- stackTrait(data=DT, traits = c("Yield","color"))
-# head(DT2$long)
+# traits <- c("color","Yield")
+# DT[,traits] <- apply(DT[,traits],2,scale)
+# DTL <- reshape(DT[,c("id", traits)],
+#                idvar = c("id"),
+#                varying = traits,
+#                v.names = "value", direction = "long",
+#                timevar = "trait", times = traits )
+# DTL <- DTL[with(DTL, order(trait)), ]
+# head(DTL)
 # 
-# mix1 <- lmebreed(valueS~ (0+trait|id),
+# mix1 <- lmebreed(value~ (0+trait|id),
 #                  relmat=list(id=A), verbose = FALSE,
-#                  data=DT2$long)
+#                  data=DTL)
 # vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 ```
 

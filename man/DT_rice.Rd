@@ -54,14 +54,18 @@ mix <- lmebreed(Protein.content ~ (1|geno),
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 
 ### multi-trait model
-DT2 <- stackTrait(data=DT, traits = colnames(DT)[3:12])$long
-DT2$trait <- as.factor(DT2$trait)
-head(DT2)
+traits <- c("Flowering.time.at.Arkansas" ,"Seed.volume", "Protein.content")
+DTL <- reshape(DT[,c("geno", traits)], idvar = "geno", varying = traits,
+        v.names = "value", direction = "long",
+        timevar = "trait", times = traits )
+DTL <- DTL[with(DTL, order(trait)), ]
+head(DTL)
+
 system.time(
-  mix <- lmebreed(valueS ~ (0+trait|geno),
+  mix <- lmebreed(value ~ (0+trait|geno),
                   relmat = list(geno=A),
                   rotation = TRUE,
-                  data=DT2)
+                  data=DTL)
 )
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 vc$geno

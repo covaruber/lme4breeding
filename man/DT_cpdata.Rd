@@ -64,6 +64,7 @@ preds <- getMME(object=mix2, # extended model
                 )
 # now you could compare between both types of predictions, the last ones are in 
 # theory the correct ones.
+plot(preds$bu[2:364,], predsMix2$id[,1])
 
 }
 
