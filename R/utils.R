@@ -8,7 +8,7 @@
     stop("This package requires R 3.5.0 or later")
   if(interactive()) {
     packageStartupMessage(blue(paste("[]==================================================================[]")),appendLF=TRUE)
-    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.6 (2025-05) []",sep="")),appendLF=TRUE)
+    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.7 (2025-08) []",sep="")),appendLF=TRUE)
     packageStartupMessage(paste0(blue("[] Author: Giovanny Covarrubias-Pazaran",paste0(bgGreen(white(" ")), bgWhite(magenta("*")), bgRed(white(" "))),"                        []")),appendLF=TRUE)
     packageStartupMessage(blue("[] Dedicated to the University of Chapingo and UW-Madison           []"),appendLF=TRUE)
     packageStartupMessage(blue("[] Type 'vignette('lmebreed.gxe')' for a short tutorial             []"),appendLF=TRUE)
@@ -1073,6 +1073,13 @@ A.mat <- function (X, min.MAF = NULL)
   W <- X[, markers] + 1 - 2 * freq.mat
   A <- tcrossprod(W)/var.A/m
   return(A)
+}
+
+I.mat <- function(x){
+  labels0 <- sort(unique(x))
+  II <- Matrix::Diagonal(n=length(labels0))
+  colnames(II) <- rownames(II) <- labels0
+  return(II)
 }
 
 bbasis <- function (x, xl, xr, ndx, deg) 

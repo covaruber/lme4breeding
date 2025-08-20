@@ -10,7 +10,7 @@ importFrom("stats", "as.formula", "cov", "model.matrix", "na.omit",
            "na.pass", "median", "reshape","var","aggregate")
 
 export( "lmebreed", "smm", "rrm", "redmm", "overlay", "add.diallel.vars",
-        "build.HMM","bbasis","tps","A.mat","atcg1234","imputev", "getMME",
+        "build.HMM","bbasis","tps","A.mat", "I.mat","atcg1234","imputev", "getMME",
         "fillData", "leg", "adjBeta", "umat", 
         "simage")
 

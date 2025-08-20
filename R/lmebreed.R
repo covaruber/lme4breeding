@@ -7,7 +7,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
            rotation=FALSE, coefOutRotation=8, 
            returnParams=FALSE, returnMod=FALSE, ...)
   {
-    my.date <- "2025-08-01" # expiry date
+    my.date <- "2026-01-01" # expiry date
     your.date <- Sys.Date()
     ## if your month is greater than my month you are outdated
     if(dateWarning){

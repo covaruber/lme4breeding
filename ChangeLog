@@ -17,3 +17,7 @@
       * [r_1.0.60] enhanced the 'start' and 'returnMod' arguments to do prediction of unobserved levels
       * [r_1.0.60] corrected the optimizer selection in glms 
       * [r_1.0.60] minor modifications to getMME function
+
+2025-07-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+
+      * [r_1.0.70] updated CRAN version
