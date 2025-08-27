@@ -122,7 +122,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
       }
     }
     
-    suppressWarnings(lmod <- do.call(lFormula, as.list(lmerc)), classes = "warning")
+    suppressWarnings(lmod <- do.call(lFormula, as.list(lmerc),  envir=parent.frame() ), classes = "warning" )
     relfac <- relmat          # copy te relmat list for relfactor
     pnms <- names(relmat)
     pnms2 <- names(addmat)
