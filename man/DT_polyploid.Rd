@@ -59,6 +59,7 @@ ans <- lmebreed(tuber_shape~ (1|Name),
                 relmat = list(Name=A),
                 data=DT2)
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
+sigma(ans)^2 # error variance
 
 }
 

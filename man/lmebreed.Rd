@@ -11,6 +11,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
            start = NULL, verbose = TRUE, subset, weights,
            na.action, offset, contrasts = NULL, model = TRUE,
            x = TRUE, dateWarning=TRUE, rotation=FALSE, 
+           rotationK=NULL,
            coefOutRotation=8, returnParams=FALSE,
            returnMod=FALSE, ...)
 }
@@ -19,21 +20,30 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
     Internally the Cholesky decomposition of those matrices will be computed.
     The names of the elements must correspond to the names of grouping factors for
     random-effects terms in the \code{formula} argument.}
+    
   \item{addmat}{an optional named list of customized incidence matrices.
     The names of the elements must correspond to the names of grouping factors for
     random-effects terms in the \code{formula} argument. Depending on the use-case
     the element in the list may be a single matrix or a list of matrices. Please see
     examples and vignettes to learn how to use it.}
+    
   \item{dateWarning}{an logical value indicating if you want to be warned when a new 
   version of lme4breeding is available on CRAN.}
+  
   \item{rotation}{an logical value indicating if you want to compute the eigen decomposition 
   of the relationship matrix to rotate y and X and accelerate the computation. See details.}
+  
+  \item{rotationK}{an integer value indicating the number of eigen vectors to compute
+  when the rotation argument is set to TRUE. By default all vectors are computed.}
+  
   \item{coefOutRotation}{a numeric value denoting the inter-quantile outlier coefficient to
   be used in the rotation of the response when using the eigen decomposition to avoid 
   overshooting.}
-    \item{returnParams}{a logical value indicating if you want to only get the incidence 
+  
+  \item{returnParams}{a logical value indicating if you want to only get the incidence 
   matrices of the model.}
-    \item{returnMod}{a logical value indicating if you want to force the model to use 
+  
+  \item{returnMod}{a logical value indicating if you want to force the model to use 
     your customized variance components without estimating them. The variance components
     should be provided in the \code{start} argument. If you want to provide the variance
     components from a previous model you can get the initial values by running:
@@ -167,6 +177,7 @@ ansMain <- lmebreed(Yield ~ Env + (1|Name),
                         relmat = list(Name = A ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
+sigma(ansMain)^2 # error variance
 
 BLUP <- ranef(ansMain, condVar=TRUE)$Name
 SEs <- attr(BLUP, which="postVar")[,,]

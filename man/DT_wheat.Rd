@@ -76,6 +76,7 @@ mix0 <- lmebreed(pheno ~ (1|id),
                  data=DT)
                  )
 vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
+sigma(mix0)^2 # error variance
 
 #### unstructured model
 Z <- with(DT, smm(env))
@@ -87,6 +88,7 @@ mix1 <- lmebreed(pheno ~ (0 + e1 + e2 + e3 + e4 | id),
                  data=DT)
 )
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+sigma(mix1)^2 # error variance
 
 }
 

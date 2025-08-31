@@ -52,6 +52,7 @@ mix <- lmebreed(Protein.content ~ (1|geno),
                 relmat = list(geno=A),
                 data=DT)
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+sigma(mix)^2 # error variance
 
 ### multi-trait model
 traits <- c("Flowering.time.at.Arkansas" ,"Seed.volume", "Protein.content")
@@ -69,6 +70,7 @@ system.time(
 )
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 vc$geno
+sigma(mix)^2 # error variance
 
 }
 

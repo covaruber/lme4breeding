@@ -69,6 +69,7 @@ ans2 <- lmebreed(GY ~ (1|fema),
                  relmat = list(fema=A),
                  data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
+sigma(ans2)^2 # error variance
 
 }
 

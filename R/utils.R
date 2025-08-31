@@ -21,7 +21,7 @@
 }
 
 ###
-umat <- function(formula, relmat, data, addmat){
+umat <- function(formula, relmat, data, addmat, k=NULL){
   
   if(missing(data)){stop("Please provide the dataset where we can extract find the factor in formula.")}
   if(missing(relmat)){stop("Please provide the relationship matrix where we will apply the eigen decomposition.")}
@@ -32,48 +32,52 @@ umat <- function(formula, relmat, data, addmat){
   idProvided <- all.vars(formula)
   # if(length(idProvided) > 1){stop("Only one factor can be provided in the formula.")}
   ## build the layout matrix
-  ZrZrt <- list()
-  for(iProv in idProvided){ # iProv = idProvided[1]
-    data$record <- NA
-    if(iProv %in% colnames(data)){
-      ids <- as.character(na.omit(unique(data[,iProv])))
-      for(iId in ids){ # iId<- ids[1]
-        found <- which(data[,iProv] == iId)
-        data[found,"record"] <- 1:length(found)
-      }
-    }else{ # addmat effect
-      if(iProv %in% names(addmat)){
-        if(is.list(addmat[[iProv]])){ # indirect genetic effects
-          ids <- colnames(addmat[[iProv]][[1]])
-          provMat <- Reduce("+", addmat[[iProv]]) # sum matrices
-        }else{ # regular model with single incidence matrix
-          ids <- colnames(addmat[[iProv]])
-          provMat <- addmat[[iProv]]
-        }
-        for(iId in ids){ # iId<- ids[1]
-          found <- which(provMat[,iId] > 0)
-          data[found,"record"] <- 1:length(found)
-        }
-      }else{
-        stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
-      }
-    }
-    tabRec <- table(data$record)
-    if(length(tabRec) > 1){
-      if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please ensure you fill the dataset to make it balanced for the 'relmat' terms or set to FALSE.", call. = FALSE)}
-    }
-    data$recordF <- as.factor(data$record)
-    nLev <- length(levels(data$recordF))
-    if(nLev > 1){
-      Zr <- sparse.model.matrix(~recordF-1, data=data)
-    }else{
-      Zr <- Matrix::Matrix(1, ncol=1, nrow=nrow(data))
-    }
-    ZrZrt[[iProv]] <- Zr %*% t(Zr)
-  }
+  # ZrZrt <- list()
+  # for(iProv in idProvided){ # iProv = idProvided[1]
+  #   data$record <- NA
+  #   if(iProv %in% colnames(data)){
+  #     ids <- as.character(na.omit(unique(data[,iProv])))
+  #     for(iId in ids){ # iId<- ids[1]
+  #       found <- which(data[,iProv] == iId)
+  #       data[found,"record"] <- 1:length(found)
+  #     }
+  #   }else{ # addmat effect
+  #     if(iProv %in% names(addmat)){
+  #       if(is.list(addmat[[iProv]])){ # indirect genetic effects
+  #         ids <- colnames(addmat[[iProv]][[1]])
+  #         provMat <- Reduce("+", addmat[[iProv]]) # sum matrices
+  #       }else{ # regular model with single incidence matrix
+  #         ids <- colnames(addmat[[iProv]])
+  #         provMat <- addmat[[iProv]]
+  #       }
+  #       for(iId in ids){ # iId<- ids[1]
+  #         found <- which(provMat[,iId] > 0)
+  #         data[found,"record"] <- 1:length(found)
+  #       }
+  #     }else{
+  #       stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
+  #     }
+  #   }
+  #   tabRec <- table(data$record)
+  #   if(length(tabRec) > 1){
+  #     if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please ensure you fill the dataset to make it balanced for the 'relmat' terms or set to FALSE.", call. = FALSE)}
+  #   }
+  #   data$recordF <- as.factor(data$record)
+  #   nLev <- length(levels(data$recordF))
+  #   if(nLev > 1){
+  #     Zr <- sparse.model.matrix(~recordF-1, data=data)
+  #   }else{
+  #     Zr <- Matrix::Matrix(1, ncol=1, nrow=nrow(data))
+  #   }
+  #   ZrZrt[[iProv]] <- Zr %*% t(Zr)
+  #   # print("zrz matrix created")
+  # }
+  # 
   # build the U nxn matrix
-  Ul <- Dl <- Zu <- list()
+  Ul <- Dl <- Zu <- nLev <- list()
+  nLev <- numeric()
   for(iProv in idProvided){
+    nLev[[iProv]] <- max(table(data[,idProvided]))
     if(iProv %in% colnames(data)){
       Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
       colnames(Z) <- gsub(iProv,"", colnames(Z))
@@ -88,7 +92,16 @@ umat <- function(formula, relmat, data, addmat){
         stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
       }
     }
-    UD <- eigen(relmat[[iProv]])
+    # UD <- eigen(relmat[[iProv]])
+    if(is.null(k)){k<- ncol(relmat[[iProv]])}
+    # print("using rspectra")
+    suppressWarnings( UD <- RSpectra::eigs_sym(relmat[[iProv]], k=k, which = "LM"), classes = "warning")
+    # print("finish rspectra")
+    difference <- ncol(relmat[[iProv]]) - k
+    if(difference > 0){
+      UD$values <- c(UD$values, rep(1e-6, difference))
+      UD$vectors <- cbind(UD$vectors, matrix(0, nrow=nrow(UD$vectors), ncol=difference))
+    }
     U<-UD$vectors
     D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'
     rownames(D) <- colnames(D) <- rownames(relmat[[iProv]])
@@ -97,18 +110,28 @@ umat <- function(formula, relmat, data, addmat){
     Ul[[iProv]]<- U[common,common]
     # Ul[[iProv]]<- (t(Z[,common]%*%t(U[common,common]))%*%Z[,common])/4
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
-    Zu[[iProv]] <- Z[,common]
+    # Zu[[iProv]] <- Z[,common]
   }
+  # print("doing zuz")
+  # print(str(Zu))
+  # print(Ul)
   UnList <- list()
-  for(iel in 1:length(Zu)){
-    UnList[[iel]] <- ( Zu[[iel]] %*% Ul[[iel]] %*% t(Zu[[iel]]) ) * ZrZrt[[iel]]
+  for(iel in 1:length(Ul)){ # for each random effect
+    
+    # ZU <- Zu[[iel]] %*% Ul[[iel]]
+    # UnList[[iel]] <- tcrossprod( ZU , Zu[[iel]] ) * ZrZrt[[iel]]
+    
+    UnList[[iel]] <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iel]]),t(Ul[[iel]]))
+
   }
-  Utn <- t(Reduce("+",UnList))
+  # Utn <- t(Reduce("+",UnList))
+  Utn <- Reduce("+",UnList)
   # ZuBind <- do.call(cbind, Zu)
   # UBind <- do.call(Matrix::bdiag, Ul)
   # part1 <- ZuBind%*%UBind%*%t(ZuBind)
   # W0 <- part0 * part1
-  return(list(Utn=Utn, D=Dl, U=Ul, RRt=ZrZrt, effect=idProvided, record=data$recordF))
+  return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
+              effect=idProvided, record=data$recordF))
 }
 ###
 adjBeta <- function(x){
@@ -189,6 +212,7 @@ getMME <- function(object, vc=NULL, recordsToUse=NULL){
     
     ####
     vcov <- do.call(Matrix::bdiag, vc[tn]) # var covar matrix
+    vcov <- vcov + diag(1e-6,ncol(vcov),ncol(vcov))
     LLt <- Matrix::Diagonal( length(unique(object@flist[[iFac]])) ) # digonal for unique number of levels
     rowsi <- list()
     for(j in 1:length(tn)){ # j=1

@@ -64,6 +64,7 @@ ansCSDG <- lmebreed(as.formula(csdiagFormula),
                     relmat = list(Name = A ),
                     data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
+sigma(ansCSDG)^2 # error variance
 
 }
 

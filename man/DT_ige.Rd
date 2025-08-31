@@ -66,6 +66,7 @@ modIGE <- lmebreed(trait ~ block + (0+fn+nn|both),
                    relmat = list(both=A_ige),
                    data = DT)
 vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
+sigma(modIGE)^2 # error variance
 
 blups <- ranef(modIGE)
 pairs(blups$both)

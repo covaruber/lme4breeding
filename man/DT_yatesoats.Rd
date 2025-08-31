@@ -42,6 +42,7 @@ m3 <- lmebreed(Y ~ V + N + V:N +
              (1|B) + (1|B:MP),
            data = DT)
 vc <- VarCorr(m3); print(vc,comp=c("Variance"))
+sigma(m3)^2 # error variance
 
 }
 

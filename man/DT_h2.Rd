@@ -42,6 +42,7 @@ form <- paste(csdiagFormula , blockFormula, sep="+")
 ans1b <- lmebreed(as.formula(form),
                   data=DT)
 vc <- VarCorr(ans1b); print(vc,comp=c("Variance"))
+sigma(ans1b)^2 # error variance
 
 }
 

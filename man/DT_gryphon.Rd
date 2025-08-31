@@ -51,6 +51,7 @@ mix1 <- lmebreed(BWT~ (1|ANIMAL),
                  relmat = list(ANIMAL=A),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
+sigma(mix1)^2 # error variance
 
 }
 

@@ -32,6 +32,7 @@ head(DT)
 mix4 <- lmebreed(tarsus ~ sex + (1|dam) + (1|fosternest),
              data = DT)
 vc <- VarCorr(mix4); print(vc,comp=c("Variance"))
+sigma(mix4)^2 # error variance
 
 }
 

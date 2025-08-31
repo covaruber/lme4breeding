@@ -41,6 +41,7 @@ for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 mRR2b<-lmebreed(as.formula(form),
            , data=DT)
 vc <- VarCorr(mRR2b); print(vc,comp=c("Variance"))
+sigma(mRR2b)^2 # error variance
 
 }
 

@@ -49,6 +49,8 @@ ans <- lmebreed(Yield ~ Location + (1| GCA1) + (1|GCA2),
                               GCA2=K2),
                 data=DT)
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
+sigma(ans)^2 # error variance
+
 }
 
 

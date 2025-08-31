@@ -34,7 +34,7 @@ head(DT)
 ##################################
 fm1 <- lmebreed(Reaction ~ Days + (1 | Subject), data=DT)
 vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
-
+sigma(fm1)^2 # error variance
 
 \donttest{
 

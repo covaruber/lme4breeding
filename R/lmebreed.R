@@ -4,7 +4,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
            control = list(), start = NULL, verbose = TRUE, 
            subset, weights, na.action, offset, contrasts = NULL,
            model = TRUE, x = TRUE, dateWarning=TRUE, 
-           rotation=FALSE, coefOutRotation=8, 
+           rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
            returnParams=FALSE, returnMod=FALSE, ...)
   {
     my.date <- "2026-01-01" # expiry date
@@ -60,7 +60,8 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
     lmerc$addmat <- NULL
     lmerc$dateWarning <- NULL
     lmerc$returnParams <- NULL
-    lmerc$rotation <- NULL 
+    lmerc$rotation <- NULL
+    lmerc$rotationK <- NULL
     lmerc$coefOutRotation <- NULL
     lmerc$family <- family
     lmerc$control <- control
@@ -96,11 +97,14 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
     if(length(relmat) > 0){ # get cholesky factor
       if(rotation){ # if UDU decomposition + Cholesky is requested
         if(length(relmat) > 1){warning("Rotation is only reported to be accurate with one relationship matrix.", call. = FALSE)}
-        udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, data=data, addmat = addmat)
+        # print("udu started")
+        udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, data=data, addmat = addmat, k=rotationK)
+        # print("udu done")
         # if rotation we impute
         data[,response] <- imputev(x=data[,response],method="median",by=udu$record)
-        goodRecords <- 1:nrow(data)          
-        newValues <- (udu$Utn[goodRecords,goodRecords] %*% data[goodRecords,response])[,1]
+        goodRecords <- 1:nrow(data)
+        newValues <- udu$Utn %*% Matrix::Matrix(data[,response])
+        newValues <- newValues[goodRecords,1]
         outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
         if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
         data[goodRecords,response] <- newValues

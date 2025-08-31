@@ -52,6 +52,7 @@ modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
                  relmat = list(fema=A),
                  data=DT)
 vc <- VarCorr(modh); print(vc,comp=c("Variance"))
+sigma(modh)^2 # error variance
 
 }
 

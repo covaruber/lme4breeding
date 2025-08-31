@@ -30,7 +30,7 @@ DT <- DT_fulldiallel
 head(DT)
 mix <- lmebreed(stems~1 + (1|female)+(1|male), data=DT)
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
-
+sigma(mix)^2 # error variance
 
 }
 \keyword{datasets}
