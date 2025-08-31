@@ -98,10 +98,11 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
       if(rotation){ # if UDU decomposition + Cholesky is requested
         if(length(relmat) > 1){warning("Rotation is only reported to be accurate with one relationship matrix.", call. = FALSE)}
         # print("udu started")
-        udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, data=data, addmat = addmat, k=rotationK)
+        udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, 
+                    data=data, addmat = addmat, k=rotationK)
         # print("udu done")
         # if rotation we impute
-        data[,response] <- imputev(x=data[,response],method="median",by=udu$record)
+        data[,response] <- imputev(x=data[,response],method="median") # ,by=udu$record)
         goodRecords <- 1:nrow(data)
         newValues <- udu$Utn %*% Matrix::Matrix(data[,response])
         newValues <- newValues[goodRecords,1]
@@ -113,6 +114,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
         for(iD in names(udu$D)){
           relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
         }
+        udu$newValues <- newValues
         if(verbose){message("* Cholesky decomposition finished.")}
       }else{ # classical approach, just cholesky
         for (i in seq_along(relmat)) {

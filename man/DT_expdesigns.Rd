@@ -52,6 +52,8 @@ mix1 <- lmebreed(yield~entryc + (1|block)+(1|trt),
              data=data1)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 sigma(mix1)^2 # error variance
+BLUP <- ranef(mix1, condVar=TRUE)
+SEs <- attr(BLUP$trt, which="postVar")[,,]
 
 }
 

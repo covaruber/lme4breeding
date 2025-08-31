@@ -8,7 +8,7 @@
     stop("This package requires R 3.5.0 or later")
   if(interactive()) {
     packageStartupMessage(blue(paste("[]==================================================================[]")),appendLF=TRUE)
-    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.7 (2025-08) []",sep="")),appendLF=TRUE)
+    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.8 (2025-12) []",sep="")),appendLF=TRUE)
     packageStartupMessage(paste0(blue("[] Author: Giovanny Covarrubias-Pazaran",paste0(bgGreen(white(" ")), bgWhite(magenta("*")), bgRed(white(" "))),"                        []")),appendLF=TRUE)
     packageStartupMessage(blue("[] Dedicated to the University of Chapingo and UW-Madison           []"),appendLF=TRUE)
     packageStartupMessage(blue("[] Type 'vignette('lmebreed.gxe')' for a short tutorial             []"),appendLF=TRUE)
@@ -121,6 +121,8 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     # ZU <- Zu[[iel]] %*% Ul[[iel]]
     # UnList[[iel]] <- tcrossprod( ZU , Zu[[iel]] ) * ZrZrt[[iel]]
     
+    # UnList[[iel]] <- do.call(Matrix::bdiag, rep(list(t(Ul[[iel]])), nLev[[iel]]) )
+    
     UnList[[iel]] <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iel]]),t(Ul[[iel]]))
 
   }
@@ -130,8 +132,11 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   # UBind <- do.call(Matrix::bdiag, Ul)
   # part1 <- ZuBind%*%UBind%*%t(ZuBind)
   # W0 <- part0 * part1
+  
   return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
-              effect=idProvided, record=data$recordF))
+              effect=idProvided, 
+              record=idProvided # data$recordF
+              ))
 }
 ###
 adjBeta <- function(x){
@@ -487,7 +492,7 @@ imputev <- function (x, method = "median", by=NULL) {
     }
     ms <- aggregate(x~by, FUN=method, na.rm=TRUE)
     rownames(ms) <- ms$by
-    y <- ms[by,"x"]
+    y <- ms[by,2]
     x[which(is.na(x))] <- y[which(is.na(x))]
   } else { # if factor
     tt <- table(x)

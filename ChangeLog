@@ -21,3 +21,7 @@
 2025-07-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
 
       * [r_1.0.70] updated CRAN version
+
+2025-12-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+
+      * [r_1.0.80] we moved to build the U matrix (n x n) using the kronecker product to speed up computations in big models

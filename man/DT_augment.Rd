@@ -35,6 +35,8 @@ mix1 <- lmebreed(TSW ~ Check.Gen + (1|Block) + (1|Genotype:Check),
              data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 sigma(mix1)^2 # error variance
+BLUP <- ranef(mix1, condVar=TRUE)
+SEs <- attr(BLUP$`Genotype:Check`, which="postVar")[,,]
 
 }
 \keyword{datasets}

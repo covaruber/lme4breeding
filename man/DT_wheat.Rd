@@ -77,6 +77,8 @@ mix0 <- lmebreed(pheno ~ (1|id),
                  )
 vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
 sigma(mix0)^2 # error variance
+BLUP <- ranef(mix0, condVar=TRUE)
+SEs <- attr(BLUP$id, which="postVar")[,,]
 
 #### unstructured model
 Z <- with(DT, smm(env))

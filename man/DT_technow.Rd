@@ -44,6 +44,8 @@ Af <- Af + diag(1e-4, ncol(Af), ncol(Af))
 ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
                  data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
+BLUP <- ranef(ans2, condVar=TRUE)
+SEs <- attr(BLUP$dent, which="postVar")[,,]
 
 \donttest{
 

@@ -7,3 +7,10 @@ simage <- function(data, Var1=NULL, Var2=NULL, ...){
                 xlab=name1, ylab=name2, 
                 colorkey=TRUE, ...)
 }  
+
+simage2 <- function(X, ...){
+  
+  Matrix::image(as(as(as( X ,  "dMatrix"), "generalMatrix"), "CsparseMatrix"), #as(t(M2), Class = "dgCMatrix"), 
+                # xlab=name1, ylab=name2, 
+                colorkey=TRUE, ...)
+}  

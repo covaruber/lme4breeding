@@ -56,6 +56,7 @@ sigma(mix)^2 # error variance
 
 ### multi-trait model
 traits <- c("Flowering.time.at.Arkansas" ,"Seed.volume", "Protein.content")
+for(iTrait in traits){DT[,iTrait] <- scale(DT[,iTrait])}
 DTL <- reshape(DT[,c("geno", traits)], idvar = "geno", varying = traits,
         v.names = "value", direction = "long",
         timevar = "trait", times = traits )

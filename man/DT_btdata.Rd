@@ -33,6 +33,29 @@ mix4 <- lmebreed(tarsus ~ sex + (1|dam) + (1|fosternest),
              data = DT)
 vc <- VarCorr(mix4); print(vc,comp=c("Variance"))
 sigma(mix4)^2 # error variance
+BLUP <- ranef(mix4, condVar=TRUE)
+SEs <- attr(BLUP$dam, which="postVar")[,,]
+
+### multi-trait model
+traits <- c("tarsus" ,"back", "hatchdate")
+for(iTrait in traits){DT[,iTrait] <- scale(DT[,iTrait])}
+DTL <- reshape(DT[,c("animal", traits)], idvar = "animal", varying = traits,
+               v.names = "value", direction = "long",
+               timevar = "trait", times = traits )
+DTL <- merge(DTL, unique(DT[,c("animal","dam","fosternest","sex")]), 
+             by="animal", all.x = TRUE)
+DTL <- DTL[with(DTL, order(trait)), ]
+head(DTL)
+
+system.time(
+  mix <- lmebreed(value ~ (0+trait|dam),
+                  # relmat = list(geno=A),
+                  # rotation = TRUE,
+                  data=DTL)
+)
+vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+cov2cor(vc$dam)
+sigma(mix)^2 # error variance
 
 }
 

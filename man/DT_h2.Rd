@@ -44,6 +44,7 @@ ans1b <- lmebreed(as.formula(form),
 vc <- VarCorr(ans1b); print(vc,comp=c("Variance"))
 sigma(ans1b)^2 # error variance
 
+
 }
 
 

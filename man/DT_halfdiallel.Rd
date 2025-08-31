@@ -54,6 +54,9 @@ modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
 vc <- VarCorr(modh); print(vc,comp=c("Variance"))
 sigma(modh)^2 # error variance
 
+BLUP <- ranef(modh, condVar=TRUE)
+SEs <- attr(BLUP$genof, which="postVar")[,,]
+
 }
 
 }
