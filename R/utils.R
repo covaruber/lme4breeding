@@ -30,7 +30,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   if(!is.list(relmat)){stop("relmat argument should be a named list of relationship matrices", call. = FALSE)}
   
   idProvided <- all.vars(formula)
-  # if(length(idProvided) > 1){stop("Only one factor can be provided in the formula.")}
+  if(length(idProvided) > 1){message("Only one relationship matrix can be eigen decomposed.")}
   ## build the layout matrix
   # ZrZrt <- list()
   # for(iProv in idProvided){ # iProv = idProvided[1]
@@ -76,7 +76,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   # build the U nxn matrix
   Ul <- Dl <- Zu <- nLev <- list()
   nLev <- numeric()
-  for(iProv in idProvided){
+  for(iProv in idProvided[1]){
     nLev[[iProv]] <- max(table(data[,idProvided]))
     if(iProv %in% colnames(data)){
       Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
@@ -93,7 +93,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
       }
     }
     # UD <- eigen(relmat[[iProv]])
-    if(is.null(k)){k<- ncol(relmat[[iProv]])}
+    if(is.null(k)){k<- nrow(relmat[[iProv]])}
     # print("using rspectra")
     suppressWarnings( UD <- RSpectra::eigs_sym(relmat[[iProv]], k=k, which = "LM"), classes = "warning")
     # print("finish rspectra")
@@ -132,6 +132,10 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   # UBind <- do.call(Matrix::bdiag, Ul)
   # part1 <- ZuBind%*%UBind%*%t(ZuBind)
   # W0 <- part0 * part1
+  
+    if(nrow(Utn) != nrow(data)){
+      stop("The eigen decomposition only works for balanced datasets.\n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
+    }
   
   return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
               effect=idProvided, 

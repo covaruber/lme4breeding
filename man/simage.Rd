@@ -16,6 +16,27 @@ simage(data, Var1=NULL, Var2=NULL, \dots)
   vector of image
  }
 \author{Giovanny Covarrubias}
+\examples{
+
+# row x column combinations
+data(DT_cpdata)
+DT <- DT_cpdata
+head(DT)
+simage(data=DT, Var1 = "Rowf", Var2 = "Colf")
+
+# dent x flint combinations
+data(DT_technow)
+DT <- DT_technow
+head(DT)
+simage(data=DT, Var1 = "dent", Var2 = "flint")
+
+# male x female combinations
+data(DT_halfdiallel)
+DT <- DT_halfdiallel
+head(DT)
+simage(data=DT, Var1 = "male", Var2 = "female")
+
+}
 \seealso{\code{\link{image}}, \code{\link{lmebreed}}}
 \keyword{models}
 
