@@ -144,10 +144,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
     ## transform X if rotation is needed
     if(length(relmat) > 0){
       if(rotation){
-        # toZero <- which(lmod$X == 0, arr.ind = TRUE)
-        # lmod$X <- udu$Utn[goodRecords,goodRecords] %*% lmod$X
-        # lmod$X[toZero] =0
-        lmod$X <- udu$Utn %*% lmod$X
+        lmod$X <- (udu$Utn %*% lmod$X) * lmod$X
         if(verbose){message("* Rotation applied to the X matrix.")}
       }
     }
@@ -228,6 +225,11 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
     }
     
     if(verbose){message("* Relfactors (relmat) applied to Z")}
+    # if(rotation){
+      # print(dim(Zt))
+      # print(dim( udu$Utn))
+      # Zt <- Zt %*% udu$Utn
+      # }
     reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                    lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
     dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, formula=formula,
