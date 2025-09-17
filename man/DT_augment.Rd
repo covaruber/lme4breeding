@@ -32,6 +32,9 @@ head(DT)
 
 ## fit the mixed model and check summary
 mix1 <- lmebreed(TSW ~ Check.Gen + (1|Block) + (1|Genotype:Check),
+                 control = lmerControl( # how to control n iterations
+                   optCtrl = list(maxfun = 50, maxeval = 50)
+                   ),
              data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 sigma(mix1)^2 # error variance

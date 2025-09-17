@@ -30,6 +30,9 @@ head(DT)
 \donttest{
 
 mix4 <- lmebreed(tarsus ~ sex + (1|dam) + (1|fosternest),
+                 control = lmerControl( # how to control n iterations
+                   optCtrl = list(maxfun = 50, maxeval = 50)
+                   ),
              data = DT)
 vc <- VarCorr(mix4); print(vc,comp=c("Variance"))
 sigma(mix4)^2 # error variance

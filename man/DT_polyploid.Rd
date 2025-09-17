@@ -57,6 +57,9 @@ A <- A.mat(marks)
 A <- A + diag(1e-4,ncol(A),ncol(A))
 ans <- lmebreed(tuber_shape~ (1|Name),
                 relmat = list(Name=A),
+                control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
                 data=DT2)
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 sigma(ans)^2 # error variance

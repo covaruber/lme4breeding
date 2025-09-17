@@ -53,6 +53,9 @@ SEs <- attr(BLUP$dent, which="postVar")[,,]
 ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
              relmat = list(dent=Ad,
                            flint=Af),
+             control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
              data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 

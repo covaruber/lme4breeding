@@ -43,6 +43,9 @@ head(DT)
 
 mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
+                 control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 sigma(mix1)^2 # error variance

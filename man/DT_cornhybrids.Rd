@@ -47,6 +47,9 @@ rownames(S) <- colnames(S) <- levels(DT$SCA)
 ans <- lmebreed(Yield ~ Location + (1| GCA1) + (1|GCA2),
                 relmat = list(GCA1=K1,
                               GCA2=K2),
+                control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
                 data=DT)
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 sigma(ans)^2 # error variance

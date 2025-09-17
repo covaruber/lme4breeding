@@ -39,6 +39,9 @@ form <- paste0( "Y ~ Xf + (0+", paste(colnames(Z), collapse = "+"), "|| SUBJECT)
 form <- paste0( "Y ~ Xf + (0+", paste(colnames(Z), collapse = "+"), "| SUBJECT)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 mRR2b<-lmebreed(as.formula(form),
+                control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
            , data=DT)
 vc <- VarCorr(mRR2b); print(vc,comp=c("Variance"))
 sigma(mRR2b)^2 # error variance

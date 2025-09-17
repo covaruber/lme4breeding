@@ -73,6 +73,9 @@ head(DT)
 system.time(
 mix0 <- lmebreed(pheno ~ (1|id),
                  relmat = list(id=K),
+                 control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
                  data=DT)
                  )
 vc <- VarCorr(mix0); print(vc,comp=c("Variance"))
@@ -87,6 +90,9 @@ system.time(
 mix1 <- lmebreed(pheno ~ (0 + e1 + e2 + e3 + e4 | id),
                  relmat = list(id=K),
                  rotation = TRUE,
+                 control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
                  data=DT)
 )
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))

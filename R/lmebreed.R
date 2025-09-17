@@ -106,7 +106,11 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
         goodRecords <- 1:nrow(data)
         newValues <- udu$Utn %*% Matrix::Matrix(data[,response])
         newValues <- newValues[goodRecords,1]
+        # print(newValues)
+        # print(coefOutRotation)
         outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
+        # print(grDevices::boxplot.stats(x=newValues,coef=coefOutRotation ))
+        # print(outlier)
         if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
         data[goodRecords,response] <- newValues
         lmerc$data <- data
@@ -143,7 +147,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE, relmat = list()
         # toZero <- which(lmod$X == 0, arr.ind = TRUE)
         # lmod$X <- udu$Utn[goodRecords,goodRecords] %*% lmod$X
         # lmod$X[toZero] =0
-        # lmod$X <- udu$Utn %*% lmod$X
+        lmod$X <- udu$Utn %*% lmod$X
         if(verbose){message("* Rotation applied to the X matrix.")}
       }
     }

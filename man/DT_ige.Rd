@@ -42,6 +42,9 @@ A_ige <- A_ige + diag(1e-4, ncol(A_ige), ncol(A_ige) )
 modIGE <- lmebreed(trait ~ block + (1|focal) + (1|neighbour),
                    relmat = list(focal=A_ige,
                                  neighbour=A_ige),
+                   control = lmerControl( # how to control n iterations
+                            optCtrl = list(maxfun = 50, maxeval = 50)
+                          ),
                    data = DT)
 vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
 
