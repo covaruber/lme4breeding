@@ -20,6 +20,7 @@ The purpose of this vignette is to show how to fit different genotype by environ
 5.2) Multienvironment model: Finlay-Wilkinson regression
 6) Multienvironment model: Factor analytic (reduced rank) model (FA)
 7) Two stage analysis
+8) How to deal with massive GxE models or massive number of individuals
 
 When the breeder decides to run a trial and apply selection in a single environment (whether because the amount of seed is a limitation or there's no availability for a location) the breeder takes the risk of selecting material for a target population of environments (TPEs) using an environment that is not representative of the larger TPE. Therefore, many breeding programs try to base their selection decision on multi-environment trial (MET) data. Models could be adjusted by adding additional information like spatial information, experimental design information, etc. In this tutorial we will focus mainly on the covariance structures for GxE and the incorporation of relationship matrices for the genotype effect.
 
@@ -275,7 +276,43 @@ vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
 
 ```
+
+## 8) How to deal with massive GxE models or a massive number of individuals
+
+Up to now, the problem of dealing with a massive number of environments and genotyped
+individuals is a headeache for everyone. In this section i just aim to give you some ideas
+of what you could do to fit massive models with limited trade-off in accuracy.
+
+The lme4breeding package includes the argument 'rotation' to implement the proposed
+eigen decomposition of the genomic relationship matrix and be able to fit a fully sparse
+mixed model (Lee and Van der Werf, 2006). This trick can be used in any software that can
+take the relationship matrix. The main inconvenience is that the current mathematical 
+derivation only allows for a single random effect and this needs to be balanced and
+complete (no missing data). Still extremely powerful:
+
+```{r}
+
+#TBD
+
+```
  
+Next, we have to deal with a big number of environments (in the order of hundreds). This requires a massive amount of computational time when the genomic relationship matrix needs to be included. My proposal (please cite this vignette if you use it since I am not planning to publish it), is:
+
+1) Define the unit of environment to balance (e.g., environment by replicate)
+2) Make your dataset fully balanced for the environment unit (each individual should show up everywhere)
+3) Impute with the mean value of each environment the missing-data cells
+4) Perform the eigen decomposition of the relationship matrix as define at the beggining of this section.
+4) Run a GxE diagonal model with the argument rotation=TRUE
+5) Use the results to run a reduced rank GxE model (e.g., 3 factors) as specified in the section 6 of this vignette.
+
+My simulations show that this model is extremely accurate to predict the environment-specific breeding values along with the across-environment breeding values. The computation time is extremely low and the accuracy is comparable to the classical model which would take hundreds of time to get similar results
+
+```{r}
+
+#TBD
+
+```
+
 ## Literature
 
 Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.

@@ -31,48 +31,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   
   idProvided <- all.vars(formula)
   if(length(idProvided) > 1){message("Only one relationship matrix can be eigen decomposed.")}
-  ## build the layout matrix
-  # ZrZrt <- list()
-  # for(iProv in idProvided){ # iProv = idProvided[1]
-  #   data$record <- NA
-  #   if(iProv %in% colnames(data)){
-  #     ids <- as.character(na.omit(unique(data[,iProv])))
-  #     for(iId in ids){ # iId<- ids[1]
-  #       found <- which(data[,iProv] == iId)
-  #       data[found,"record"] <- 1:length(found)
-  #     }
-  #   }else{ # addmat effect
-  #     if(iProv %in% names(addmat)){
-  #       if(is.list(addmat[[iProv]])){ # indirect genetic effects
-  #         ids <- colnames(addmat[[iProv]][[1]])
-  #         provMat <- Reduce("+", addmat[[iProv]]) # sum matrices
-  #       }else{ # regular model with single incidence matrix
-  #         ids <- colnames(addmat[[iProv]])
-  #         provMat <- addmat[[iProv]]
-  #       }
-  #       for(iId in ids){ # iId<- ids[1]
-  #         found <- which(provMat[,iId] > 0)
-  #         data[found,"record"] <- 1:length(found)
-  #       }
-  #     }else{
-  #       stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
-  #     }
-  #   }
-  #   tabRec <- table(data$record)
-  #   if(length(tabRec) > 1){
-  #     if( var(tabRec) > 0 ){stop("The eigen decomposition only works for balanced datasets. Please ensure you fill the dataset to make it balanced for the 'relmat' terms or set to FALSE.", call. = FALSE)}
-  #   }
-  #   data$recordF <- as.factor(data$record)
-  #   nLev <- length(levels(data$recordF))
-  #   if(nLev > 1){
-  #     Zr <- sparse.model.matrix(~recordF-1, data=data)
-  #   }else{
-  #     Zr <- Matrix::Matrix(1, ncol=1, nrow=nrow(data))
-  #   }
-  #   ZrZrt[[iProv]] <- Zr %*% t(Zr)
-  #   # print("zrz matrix created")
-  # }
-  # 
+ 
   # build the U nxn matrix
   Ul <- Dl <- Zu <- nLev <- list()
   nLev <- numeric()
@@ -92,11 +51,8 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
         stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
       }
     }
-    # UD <- eigen(relmat[[iProv]])
     if(is.null(k)){k<- nrow(relmat[[iProv]])}
-    # print("using rspectra")
     suppressWarnings( UD <- RSpectra::eigs_sym(relmat[[iProv]], k=k, which = "LM"), classes = "warning")
-    # print("finish rspectra")
     difference <- ncol(relmat[[iProv]]) - k
     if(difference > 0){
       UD$values <- c(UD$values, rep(1e-6, difference))
@@ -108,30 +64,13 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     rownames(U) <- colnames(U) <- rownames(relmat[[iProv]])
     common <- intersect(colnames(U), colnames(Z))
     Ul[[iProv]]<- U[common,common]
-    # Ul[[iProv]]<- (t(Z[,common]%*%t(U[common,common]))%*%Z[,common])/4
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
-    # Zu[[iProv]] <- Z[,common]
   }
-  # print("doing zuz")
-  # print(str(Zu))
-  # print(Ul)
   UnList <- list()
   for(iel in 1:length(Ul)){ # for each random effect
-    
-    # ZU <- Zu[[iel]] %*% Ul[[iel]]
-    # UnList[[iel]] <- tcrossprod( ZU , Zu[[iel]] ) * ZrZrt[[iel]]
-    
-    # UnList[[iel]] <- do.call(Matrix::bdiag, rep(list(t(Ul[[iel]])), nLev[[iel]]) )
-    
     UnList[[iel]] <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iel]]),t(Ul[[iel]]))
-
   }
-  # Utn <- t(Reduce("+",UnList))
   Utn <- Reduce("+",UnList)
-  # ZuBind <- do.call(cbind, Zu)
-  # UBind <- do.call(Matrix::bdiag, Ul)
-  # part1 <- ZuBind%*%UBind%*%t(ZuBind)
-  # W0 <- part0 * part1
   
     if(nrow(Utn) != nrow(data)){
       stop("The eigen decomposition only works for balanced datasets.\n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
@@ -142,6 +81,16 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
               record=idProvided # data$recordF
               ))
 }
+
+expandData <- function(dt, slope=NULL, intercept=NULL){
+  slopeLevs = unique(dt[,slope])
+  interLevs = unique(dt[,intercept])
+  balanced = expand.grid(slopeLevs, interLevs)
+  colnames(balanced) <- c(slope,intercept)
+  balanced = merge(balanced, dt, by=c(intercept, slope))
+  return(balanced)
+}
+
 ###
 adjBeta <- function(x){
   if(length(x) > 1){
