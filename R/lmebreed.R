@@ -67,9 +67,6 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
     return(eval.parent(lmerc))
   }            # call [g]lmer instead
   
-  
-  
-  
   ## DO TRANSFORMATION BEFORE EVALUATING THE CALL
   '%!in%' <- function(x,y)!('%in%'(x,y)) 
   response <- all.vars(formula)[1]
@@ -91,17 +88,18 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
   # >>>>>>>>> get cholesky factor (and new response if rotation)
   if(length(relmat) > 0){ 
     if(rotation){ # if UDU decomposition + Cholesky is requested
-      if(length(relmat) > 1){warning("Rotation is only reported to be accurate with one relationship matrix.", call. = FALSE)}
+      if(length(relmat) > 1){stop("Rotation is only reported to be accurate with one relationship matrix.", call. = FALSE)}
+      idsOrdered <- as.character(unique(data[,names(relmat)])) # when we rotate we need to have relmat already ordered before creating the matrices
+      relmat[[1]] = relmat[[1]][ idsOrdered , idsOrdered ]
       udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, 
                   data=data, addmat = addmat, k=rotationK)
       # if rotation we impute the response
-      data[,response] <- imputev(x=data[,response],method="median") # ,by=udu$record)
-      goodRecords <- 1:nrow(data)
+      data[,response] <- imputev(x=data[,response],method="median")#, by=data[udu$effect])
       newValues <- udu$Utn %*% Matrix::Matrix(data[,response])
-      newValues <- newValues[goodRecords,1]
+      newValues <- newValues[,1]
       outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
       if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
-      data[goodRecords,response] <- newValues
+      data[,response] <- newValues
       if(verbose){message("* Rotation of response finished.")}
       for(iD in names(udu$D)){
         relmat[[iD]] <- Matrix::chol(udu$D[[iD]])

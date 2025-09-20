@@ -37,6 +37,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   nLev <- numeric()
   for(iProv in idProvided[1]){
     nLev[[iProv]] <- max(table(data[,idProvided]))
+    levsInA = unique(data[,idProvided])
     if(iProv %in% colnames(data)){
       Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
       colnames(Z) <- gsub(iProv,"", colnames(Z))
@@ -62,7 +63,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'
     rownames(D) <- colnames(D) <- rownames(relmat[[iProv]])
     rownames(U) <- colnames(U) <- rownames(relmat[[iProv]])
-    common <- intersect(colnames(U), colnames(Z))
+    common <- intersect(colnames(Z),colnames(U))
     Ul[[iProv]]<- U[common,common]
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
   }
