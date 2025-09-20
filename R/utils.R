@@ -63,7 +63,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'
     rownames(D) <- colnames(D) <- rownames(relmat[[iProv]])
     rownames(U) <- colnames(U) <- rownames(relmat[[iProv]])
-    common <- intersect(colnames(Z),colnames(U))
+    common <- intersect(colnames(U), colnames(Z))
     Ul[[iProv]]<- U[common,common]
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
   }
@@ -87,11 +87,13 @@ balanceData <- function(data, slope=NULL, intercept=NULL, impute=TRUE){
   if(is.null(slope)){stop("Please provide the column name corresponsing to the slope (e.g., treatments).", call. = FALSE)}
   if(is.null(intercept)){stop("Please provide the column name corresponsing to the slope (e.g., treatments).", call. = FALSE)}
   slopeLevs = unique(data[,slope])
-  interLevs = unique(data[,intercept])
+  data[,paste0(intercept, collapse = "_")] <- apply(data[,intercept],1,function(x){paste0(x, collapse = "_")})
+  interLevs = unique(data[,paste0(intercept, collapse = "_")])
   balanced = expand.grid(slopeLevs, interLevs)
-  colnames(balanced) <- c(slope,intercept)
-  balanced = merge(balanced, data, by=c(intercept, slope), all.x = TRUE)
-  balanced = balanced[ order(balanced[,intercept], balanced[,slope]), ]
+  colnames(balanced) <- c(slope,paste0(intercept, collapse = "_"))
+  balanced = merge(balanced, data, by=c(paste0(intercept, collapse = "_"), slope), 
+                   all.x = TRUE)
+  balanced = balanced[ order(balanced[,paste0(intercept, collapse = "_")], balanced[,slope]), ]
   return(balanced)
 }
 
