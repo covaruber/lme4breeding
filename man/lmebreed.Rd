@@ -56,8 +56,9 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   
   \item{rotation}{an logical value indicating if you want to compute the eigen decomposition 
   of the relationship matrix to rotate the response vector y and the fixed effect matrix X 
-  in order to accelerate the computation. See details to understand the requirements to
-  use this argument.}
+  in order to accelerate the computation. This argument requires the dataset to be balanced and without
+  missing data for the slope variable, intercept variables, and the response involved in the model.
+  See details to understand more about this argument and vignettes for examples.}
   
   \item{rotationK}{an integer value indicating the number of eigen vectors to compute
   when the rotation argument is set to TRUE. By default all vectors are computed.}

@@ -82,12 +82,15 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
               ))
 }
 
-balanceData <- function(data, slope=NULL, intercept=NULL){
+balanceData <- function(data, slope=NULL, intercept=NULL, impute=TRUE){
+  if(is.null(slope)){stop("Please provide the column name corresponsing to the slope (e.g., treatments).", call. = FALSE)}
+  if(is.null(intercept)){stop("Please provide the column name corresponsing to the slope (e.g., treatments).", call. = FALSE)}
   slopeLevs = unique(data[,slope])
   interLevs = unique(data[,intercept])
   balanced = expand.grid(slopeLevs, interLevs)
   colnames(balanced) <- c(slope,intercept)
   balanced = merge(balanced, data, by=c(intercept, slope), all.x = TRUE)
+  balanced = balanced[ order(balanced[,intercept], balanced[,slope]), ]
   return(balanced)
 }
 

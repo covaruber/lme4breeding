@@ -107,6 +107,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
         relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
       }
       udu$newValues <- newValues
+      lmerc$data <- data
       if(verbose){message("* Cholesky decomposition finished.")}
     }else{ # classical approach, just cholesky
       for (i in seq_along(relmat)) {
