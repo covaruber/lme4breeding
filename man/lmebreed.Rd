@@ -9,9 +9,9 @@
 lmebreed(formula, data, REML = TRUE, control = list(), start = NULL, 
          verbose = 0L, subset, weights, na.action, offset, contrasts = NULL, 
          # lmebreed special params
-         family = NULL, relmat = list(), addmat = list(), dateWarning=TRUE, 
-         rotation=FALSE,  rotationK=NULL, coefOutRotation=8, returnParams=FALSE, 
-         returnMod=FALSE, ...)
+         family = NULL, relmat = list(), addmat = list(), trace=1L,
+         dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=8, 
+         returnParams=FALSE, returnMod=FALSE, ...)
 }
 \arguments{
 
@@ -50,6 +50,9 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
     random-effects terms in the \code{formula} argument. Depending on the use-case
     the element in the list may be a single matrix or a list of matrices. Please see
     examples and vignettes to learn how to use it.}
+    
+  \item{trace}{integer scalar. If > 0 verbose output is generated during the progress 
+  of the model fit.}
     
   \item{dateWarning}{a logical value indicating if you want to be warned when a new 
   version of lme4breeding is available on CRAN. Default is TRUE.}

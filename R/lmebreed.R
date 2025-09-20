@@ -3,7 +3,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
                       control = list(), start = NULL, verbose = 0L, 
                       subset, weights, na.action, offset, contrasts = NULL,
                       # new params
-                      relmat = list(),  addmat=list(), 
+                      relmat = list(),  addmat=list(), trace=1L,
                       dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
                       returnParams=FALSE, returnMod=FALSE, ...)
 {
@@ -100,18 +100,18 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
       outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
       if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
       data[,response] <- newValues
-      if(verbose){message("* Rotation of response finished.")}
+      if(trace){message("* Rotation of response finished.")}
       for(iD in names(udu$D)){
         relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
       }
       udu$newValues <- newValues
       lmerc$data <- data
-      if(verbose){message("* Cholesky decomposition finished.")}
+      if(trace){message("* Cholesky decomposition finished.")}
     }else{ # classical approach, just cholesky
       for (i in seq_along(relmat)) {
         relmat[[i]] <- Matrix::chol(relmat[[i]])
       }
-      if(verbose){message("* Cholesky decomposition finished.")}
+      if(trace){message("* Cholesky decomposition finished.")}
     }
   }
   
@@ -146,7 +146,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
     if(rotation){
       if(ncol(udu$Utn) != nrow(lmod$X)){stop("Rotation approach requires your dataset to be balanced and imputed.")}
       lmod$X <- (udu$Utn %*% lmod$X) * lmod$X
-      if(verbose){message("* Rotation applied to the X matrix.")}
+      if(trace){message("* Rotation applied to the X matrix.")}
     }
   }
   ##############################
@@ -173,7 +173,7 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
         Zt[rowsi,] <- provZt[rownames(Zt[rowsi,]),]
       }
     }
-    if(verbose){message("* Additional matrices (addmat) added.")}
+    if(trace){message("* Additional matrices (addmat) added.")}
   }
   
   # >>>>>>>>> time to apply the relmat
@@ -226,11 +226,11 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
     }
   }
   
-  if(verbose){message("* Relfactors (relmat) applied to Z")}
+  if(trace){message("* Relfactors (relmat) applied to Z")}
 
   reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                  lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
-  dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, formula=formula,
+  dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, formula=formula, verbose=verbose,
               start=if(is.null(start)){lmod$reTrms$theta}else{start},
               control=control)
   # print(str(dfl))
@@ -247,14 +247,14 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
   if(returnParams){ # if user only wants the incidence matrices
     return(dfl)
   }else{
-    if(verbose){message("* Optimizing ...")}
+    if(trace){message("* Optimizing ...")}
     if (gaus) { # gaussian distribution
       dfl$REML = REML # TRUE# resp$REML > 0L
       suppressWarnings( devfun <- do.call(mkLmerDevfun, dfl ), classes = "warning") # creates a deviance function
       if(returnMod){ # user wants to force variance components without fitting a model
         opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
       }else{ # # user wants to optimize the varcomp optimizer
-        suppressWarnings( opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, ...)   , classes = "warning") # need to pass control 
+        suppressWarnings( opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, verbose=dfl$verbose, ...)   , classes = "warning") # need to pass control 
       } 
     } else { # exponential family of distributions
       dfl$family <- family
@@ -262,10 +262,10 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
       if(returnMod){ # user wants to force variance components without optimizing
         opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
       }else{ # user wants to optimize the varcomp optimizer
-        suppressWarnings( opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer[1], control = dfl$control$optCtrl,  ...)  ) # need to pass control 
+        suppressWarnings( opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer[1], control = dfl$control$optCtrl, verbose=dfl$verbose,  ...)  ) # need to pass control 
       } 
     }
-    if(verbose){message("* Done!!")}
+    if(trace){message("* Done!!")}
     # make results in a mkMerMod object format
     suppressWarnings( mm <- mkMerMod(environment(devfun), opt, dfl$reTrms, dfl$fr, mc), classes = "warning" )
     cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
