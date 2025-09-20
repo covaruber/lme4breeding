@@ -1,25 +1,49 @@
 \name{lmebreed}
 \alias{lmebreed}
-\title{Fit mixed-effects models incorporating relationships}
+\title{Fit flexible mixed-effects models}
 \description{
-  Fit linear or generalized linear mixed models incorporating the
-  effects of relationships.
+  Fits linear or generalized linear mixed models incorporating known relationships 
+  (e.g., genetic relationship matrices) and customized random effects (e.g., overlay models).
 }
 \usage{
-lmebreed(formula, data, family = NULL, REML = TRUE,
-           relmat = list(), addmat = list(), control = list(),
-           start = NULL, verbose = TRUE, subset, weights,
-           na.action, offset, contrasts = NULL, model = TRUE,
-           x = TRUE, dateWarning=TRUE, rotation=FALSE, 
-           rotationK=NULL,
-           coefOutRotation=8, returnParams=FALSE,
-           returnMod=FALSE, ...)
+lmebreed(formula, data, REML = TRUE, control = list(), start = NULL, 
+         verbose = 0L, subset, weights, na.action, offset, contrasts = NULL, 
+         # lmebreed special params
+         family = NULL, relmat = list(), addmat = list(), dateWarning=TRUE, 
+         rotation=FALSE,  rotationK=NULL, coefOutRotation=8, returnParams=FALSE, 
+         returnMod=FALSE, ...)
 }
 \arguments{
-  \item{relmat}{an optional named list of relationship matrices (not the inverse). 
-    Internally the Cholesky decomposition of those matrices will be computed.
-    The names of the elements must correspond to the names of grouping factors for
-    random-effects terms in the \code{formula} argument.}
+
+  \item{formula}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{data}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{REML}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{control}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{start}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{verbose}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{subset}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{weights}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{na.action}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{offset}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{contrasts}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{family}{as in \code{\link[lme4]{glmer}}}
+  
+  \item{relmat}{an optional named list of relationship matrices between levels of a
+    given random effect (not the inverse). 
+    Internally the Cholesky decomposition of those matrices is computed to adjust the
+    incidence matrices. The names of the elements in the list must correspond to 
+    the names of slope factors for random-effects terms in the \code{formula} argument.}
     
   \item{addmat}{an optional named list of customized incidence matrices.
     The names of the elements must correspond to the names of grouping factors for
@@ -27,11 +51,13 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
     the element in the list may be a single matrix or a list of matrices. Please see
     examples and vignettes to learn how to use it.}
     
-  \item{dateWarning}{an logical value indicating if you want to be warned when a new 
-  version of lme4breeding is available on CRAN.}
+  \item{dateWarning}{a logical value indicating if you want to be warned when a new 
+  version of lme4breeding is available on CRAN. Default is TRUE.}
   
   \item{rotation}{an logical value indicating if you want to compute the eigen decomposition 
-  of the relationship matrix to rotate y and X and accelerate the computation. See details.}
+  of the relationship matrix to rotate the response vector y and the fixed effect matrix X 
+  in order to accelerate the computation. See details to understand the requirements to
+  use this argument.}
   
   \item{rotationK}{an integer value indicating the number of eigen vectors to compute
   when the rotation argument is set to TRUE. By default all vectors are computed.}
@@ -41,7 +67,8 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   overshooting.}
   
   \item{returnParams}{a logical value indicating if you want to only get the incidence 
-  matrices of the model.}
+  matrices of the model for any particular purpose you may have in mind. This is normally
+  just used for debugging.}
   
   \item{returnMod}{a logical value indicating if you want to force the model to use 
     your customized variance components without estimating them. The variance components
@@ -53,20 +80,6 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
     which returns a vector with theta values.
     
     }
-  \item{formula}{as in \code{\link[lme4]{lmer}}}
-  \item{data}{as in \code{\link[lme4]{lmer}}}
-  \item{family}{as in \code{\link[lme4]{glmer}}}
-  \item{REML}{as in \code{\link[lme4]{lmer}}}
-  \item{control}{as in \code{\link[lme4]{lmer}}}
-  \item{start}{as in \code{\link[lme4]{lmer}}}
-  \item{verbose}{as in \code{\link[lme4]{lmer}}}
-  \item{subset}{as in \code{\link[lme4]{lmer}}}
-  \item{weights}{as in \code{\link[lme4]{lmer}}}
-  \item{na.action}{as in \code{\link[lme4]{lmer}}}
-  \item{offset}{as in \code{\link[lme4]{lmer}}}
-  \item{contrasts}{as in \code{\link[lme4]{lmer}}}
-  \item{model}{as in \code{\link[lme4]{lmer}}}
-  \item{x}{as in \code{\link[lme4]{lmer}}}
   \item{\dots}{as in \code{\link[lme4]{lmer}}}
 }
 \details{
@@ -80,10 +93,10 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   matrices in the addmat argument must match the dimensions of the final fit (pay 
   attention to missing data in responses).
   
-  It is important to remember that when you use the \code{relmat} argument you are providing
-  the square root of the relationship matrix and to recover the correct BLUPs for those effects
-  you need to use the \code{\link[lme4]{ranef}} function which internally multiple those BLUPs the 
-  square root of the relationship matrix one more time to recover the correct BLUPs.
+  When you use the \code{relmat} argument the square root of the relationship matrix
+  will be computed internally. Therefore, to recover the correct BLUPs for those effects
+  you need to use the \code{\link[lme4]{ranef}} function which internally multiple the
+  obtained BLUPs by the square root of the relationship matrix one more time to recover the correct BLUPs.
   
   The argument \code{rotation} applies the eigen decomposition proposed by Lee and Van der Werf in 2016
   and makes the genetic evaluation totally sparse leading to incredible gains in speed compared 
@@ -93,7 +106,7 @@ lmebreed(formula, data, family = NULL, REML = TRUE,
   By default is not activated since this may not provide the exact same variance components than other software due to
   numerical reasons. If you would like to obtain the exact same variance components than other software you will
   have to keep \code{rotation=FALSE}. This will slow down considerably the speed. Normally when the rotation is 
-  activated and variance components differ slightly with other software they will still provide highly similar 
+  activated and variance components differ slightly with other software they will still provide extremely similar 
   estimates at the speed of hundreds or thousands of times faster. Please consider this.
   
   Additional useful functions are; \code{\link{tps}} for spatial kernels, \code{\link{rrm}} 

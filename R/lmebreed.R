@@ -1,11 +1,9 @@
 #### "relmat" class methods
 lmebreed <-  function(formula, data, family = NULL, REML = TRUE, 
-                      relmat = list(),  addmat=list(), 
-                      # basic params
-                      control = list(), start = NULL, verbose = TRUE, 
+                      control = list(), start = NULL, verbose = 0L, 
                       subset, weights, na.action, offset, contrasts = NULL,
-                      model = TRUE, x = TRUE, 
                       # new params
+                      relmat = list(),  addmat=list(), 
                       dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
                       returnParams=FALSE, returnMod=FALSE, ...)
 {

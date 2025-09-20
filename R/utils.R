@@ -82,12 +82,12 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
               ))
 }
 
-expandData <- function(dt, slope=NULL, intercept=NULL){
-  slopeLevs = unique(dt[,slope])
-  interLevs = unique(dt[,intercept])
+balanceData <- function(data, slope=NULL, intercept=NULL){
+  slopeLevs = unique(data[,slope])
+  interLevs = unique(data[,intercept])
   balanced = expand.grid(slopeLevs, interLevs)
   colnames(balanced) <- c(slope,intercept)
-  balanced = merge(balanced, dt, by=c(intercept, slope))
+  balanced = merge(balanced, data, by=c(intercept, slope), all.x = TRUE)
   return(balanced)
 }
 
