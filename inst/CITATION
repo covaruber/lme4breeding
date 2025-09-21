@@ -10,9 +10,9 @@ bibentry(
 	pages="start-end",
 	header       = "To cite lme4breeding in publications use:",
 	textVersion  =
-  paste("Covarrubias-Pazaran Giovanny (2015).",
+  paste("Covarrubias-Pazaran Giovanny (2025).",
         "Quantitative genetics using the lme4breeding package.",
-        "To be submitted.")
+        "https://CRAN.R-project.org/package=lme4breeding")
      )
 
 bibentry(bibtype = "Article",
