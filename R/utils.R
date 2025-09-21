@@ -31,11 +31,11 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   
   idProvided <- all.vars(formula)
   if(length(idProvided) > 1){message("Only one relationship matrix can be eigen decomposed.")}
- 
+  
   # build the U nxn matrix
   Ul <- Dl <- Zu <- nLev <- list()
   nLev <- numeric()
-  for(iProv in idProvided[1]){
+  for(iProv in idProvided){
     nLev[[iProv]] <- max(table(data[,idProvided]))
     levsInA = unique(data[,idProvided])
     if(iProv %in% colnames(data)){
@@ -68,19 +68,19 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
   }
   UnList <- list()
-  for(iel in 1:length(Ul)){ # for each random effect
+  for(iel in 1:1){ # we only use the first relationship matrix for the rotation # length(Ul)
     UnList[[iel]] <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iel]]),t(Ul[[iel]]))
   }
   Utn <- Reduce("+",UnList)
   
-    if(nrow(Utn) != nrow(data)){
-      stop("The eigen decomposition only works for balanced datasets.\n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
-    }
+  if(nrow(Utn) != nrow(data)){
+    stop("The eigen decomposition only works for balanced datasets.\n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
+  }
   
   return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
               effect=idProvided, 
               record=idProvided # data$recordF
-              ))
+  ))
 }
 
 balanceData <- function(data, slope=NULL, intercept=NULL, impute=TRUE){

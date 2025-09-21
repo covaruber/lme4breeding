@@ -88,9 +88,12 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
   # >>>>>>>>> get cholesky factor (and new response if rotation)
   if(length(relmat) > 0){ 
     if(rotation){ # if UDU decomposition + Cholesky is requested
-      if(length(relmat) > 1){stop("Rotation is only reported to be accurate with one relationship matrix.", call. = FALSE)}
-      idsOrdered <- as.character(unique(data[,names(relmat)])) # when we rotate we need to have relmat already ordered before creating the matrices
-      relmat[[1]] = relmat[[1]][ idsOrdered , idsOrdered ]
+      if(length(relmat) > 1){warning("Rotation is only reported to be accurate with one relationship matrix. Make sure you are using the same relationship matrix for the different random effects for the rotation approach.", call. = FALSE)}
+      for(iRel in 1:length(relmat)){
+        idsOrdered <- as.character(unique(data[,names(relmat)[iRel]])) # when we rotate we need to have relmat already ordered before creating the matrices
+        relmat[[iRel]] = relmat[[iRel]][ idsOrdered , idsOrdered ]
+      }
+      # only the first relmat will be used so if more, the rotation will only work if it is the same relmat in the next random effects
       udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, 
                   data=data, addmat = addmat, k=rotationK)
       # if rotation we impute the response
