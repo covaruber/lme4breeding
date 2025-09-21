@@ -177,11 +177,6 @@ spatial <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 # fit model
 mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
                  addmat =list(spatial=Z),
-                 control = lmerControl(
-                   check.nobs.vs.nlev = "ignore",
-                   check.nobs.vs.rankZ = "ignore",
-                   check.nobs.vs.nRE="ignore"
-                 ),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 

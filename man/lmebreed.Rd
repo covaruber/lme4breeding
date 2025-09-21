@@ -57,22 +57,22 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   \item{dateWarning}{a logical value indicating if you want to be warned when a new 
   version of lme4breeding is available on CRAN. Default is TRUE.}
   
-  \item{rotation}{an logical value indicating if you want to compute the eigen decomposition 
+  \item{rotation}{a logical value indicating if you want to compute the eigen decomposition 
   of the relationship matrix to rotate the response vector y and the fixed effect matrix X 
   in order to accelerate the computation. This argument requires the dataset to be balanced and without
   missing data for the slope variable, intercept variables, and the response involved in the model.
   See details to understand more about this argument and vignettes for examples.}
   
   \item{rotationK}{an integer value indicating the number of eigen vectors to compute
-  when the rotation argument is set to TRUE. By default all vectors are computed.}
+  when the rotation argument is set to TRUE. By default all eigen vectors are computed.}
   
   \item{coefOutRotation}{a numeric value denoting the inter-quantile outlier coefficient to
   be used in the rotation of the response when using the eigen decomposition to avoid 
   overshooting.}
   
-  \item{returnParams}{a logical value indicating if you want to only get the incidence 
-  matrices of the model for any particular purpose you may have in mind. This is normally
-  just used for debugging.}
+  \item{returnParams}{a logical value indicating if you want to only get the results from
+  the \code{\link[lme4]{lFormula}} after the relmat and addmat arguments have been applied.
+  This is normally just used for debugging.}
   
   \item{returnMod}{a logical value indicating if you want to force the model to use 
     your customized variance components without estimating them. The variance components

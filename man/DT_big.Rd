@@ -7,7 +7,8 @@ Big GxE Quantitative Genetic Simulation
 \description{
 
 A data frame and genetic markers for a population of 1000 individuals evaluated in 
-50 environments and 2 replicates per environment to show how to fit big GxE models.
+25 environments and 2 replicates per environment giving a total of 50 K records
+to show how to fit big GxE models with genomic information.
 
 }
 \usage{data("DT_big")}
