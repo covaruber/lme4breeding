@@ -1,12 +1,18 @@
 
 bibentry(
    bibtype = "Article",
-   title = "lme4breeding: enabling genetic evaluation in the age of genomic data.",
-   author = as.person("Covarrubias-Pazaran Giovanny"),
+   title = "Quantitative genetics using the lme4breeding package.",
+   author = c(person(given = "Giovanny",
+                          family = "Covarrubias-Pazaran")),
    journal="TBS",
-	year=2024,
+	year=2025,
 	volume="N",
-	pages="start-end"
+	pages="start-end",
+	header       = "To cite lme4breeding in publications use:",
+	textVersion  =
+  paste("Covarrubias-Pazaran Giovanny (2015).",
+        "Quantitative genetics using the lme4breeding package.",
+        "To be submitted.")
      )
 
 bibentry(bibtype = "Article",
@@ -26,7 +32,7 @@ bibentry(bibtype = "Article",
   pages        = "1--48",
   doi          = "10.18637/jss.v067.i01",
 
-  header       = "To cite lme4 in publications use:",
+  header       = "When citing lme4breeding please also cite lme4:",
   textVersion  =
   paste("Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015).",
         "Fitting Linear Mixed-Effects Models Using lme4.",
