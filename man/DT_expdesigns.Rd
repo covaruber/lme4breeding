@@ -49,9 +49,10 @@ head(data1)
 ## treatments, personal names for replicated and non-replicated: "trt"
 ## check no check indicator: "new"
 mix1 <- lmebreed(yield~entryc + (1|block)+(1|trt),
-                 control = lmerControl( # how to control n iterations
-                            optCtrl = list(maxfun = 50, maxeval = 50)
-                          ),
+                 # how to control n iterations
+                 # control = lmerControl( 
+                 #  optCtrl = list(maxfun = 100, maxeval = 100)
+                 #   ),
              data=data1)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 sigma(mix1)^2 # error variance

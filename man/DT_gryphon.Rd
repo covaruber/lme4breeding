@@ -49,9 +49,10 @@ head(DT)
 ## fit the model with no fixed effects (intercept only)
 mix1 <- lmebreed(BWT~ (1|ANIMAL),
                  relmat = list(ANIMAL=A),
-                 control = lmerControl( # how to control n iterations
-                            optCtrl = list(maxfun = 50, maxeval = 50)
-                          ),
+                 # how to control n iterations
+                 # control = lmerControl( 
+                 #  optCtrl = list(maxfun = 100, maxeval = 100)
+                 #   ),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 sigma(mix1)^2 # error variance

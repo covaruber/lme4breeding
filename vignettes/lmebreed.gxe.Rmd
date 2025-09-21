@@ -292,7 +292,38 @@ complete (no missing data). Still extremely powerful:
 
 ```{r}
 
-#TBD
+# load data (phenotypes and genotypes)
+data(DT_big)
+DT = DT_big
+M = apply(M_big,2,as.numeric) # change from bits to numeric
+rownames(M) <- rownames(M_big)
+
+# compute the relationship matrix
+MMT <- tcrossprod(M)
+m <- sum(diag(MMT))/nrow(MMT)
+MMT <- MMT/m
+MMT <- MMT + diag(1e-05, ncol(MMT), ncol(MMT))
+
+## Fit the main effect model
+lmod <- lmebreed(formula=value~(1|id), data = DT, 
+                  relmat = list(id = MMT), 
+                  rotation=TRUE, 
+                  verbose=0L
+)
+
+# extract GEBVs
+ran0 <- ranef(lmod)
+xx=as.data.frame(as.matrix(ran0$id) %*% matrix(rep(1,50), nrow=1) )
+xx$id <- rownames(xx)
+
+# Compare against
+xxl <- reshape(xx, idvar = "id", varying = list(1:(ncol(xx)-1)),
+               v.names = "gebv", direction = "long", timevar = "envf_repf",
+               times = colnames(xx)[1:(ncol(xx)-1)])
+DTc <- merge(DT, xxl, by=c("id","envf_repf"), all.x = TRUE)
+with(DTc, plot(gebv,gv, col=cols))
+with(DTc, cor(gebv,gv)) # accuracy is 0.39 
+
 
 ```
  
@@ -309,9 +340,68 @@ My simulations show that this model is extremely accurate to predict the environ
 
 ```{r}
 
-#TBD
+# Add dummy variables to the dataset to estimate effects per environment
+DT[,"envf_repf"] = paste(DT[,"envf"],DT[,"repf"],sep="_")
+Z <- with(DT, smm(envf_repf))
+for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
+csdiagFormula <- paste0( "value ~ (1|envf) + (0+", paste(colnames(Z), collapse = "+"), "|| id)")
+
+## Fit the model
+lmod <- lmebreed(formula=as.formula(csdiagFormula), data = DT, 
+                  relmat = list(id = MMT), 
+                  # control = lmerControl( # how to control n iterations
+                  #   # optimizer="bobyqa",
+                  #   # calc.derivs = FALSE,
+                  #   # restart_edge = FALSE,
+                  #   optCtrl = list(maxfun = 2500, maxeval = 2500)
+                  # ),
+                  rotation=TRUE, #returnParams = T,
+                  verbose=0L
+)
+
+# Extract GEBVs
+ran0 <- ranef(lmod)
+xx=as.data.frame(ran0$id)# u=H0
+xx$id <- rownames(xx)
+
+# Compare against
+xxl <- reshape(xx, idvar = "id", varying = list(1:(ncol(xx)-1)),
+               v.names = "gebv", direction = "long", timevar = "envf_repf",
+               times = colnames(xx)[1:(ncol(xx)-1)])
+DTc <- merge(DT, xxl, by=c("id","envf_repf"), all.x = TRUE)
+with(DTc, plot(gebv,gv, col=cols))
+with(DTc, cor(gebv,gv)) # accuracy is 0.62
 
 ```
+
+Additionally, you could fit a different residual variance at each environments by creating the record number variable as a factor. Among the several ways you could do that here is one:
+
+```{r}
+
+# Create a custom matrix for residuals at each environment
+DT$units <- NA
+for(i in unique(DT$envf_repf)){
+  sam <- which(DT$envf_repf == i)
+  DT$units[sam] <- 1:length(sam)
+}
+DT$units <- as.factor(DT$units)
+Zu <- sparse.model.matrix(~units-1, data=DT)
+DT$res <- (rep(colnames(Zu), nrow(DT)))[1:nrow(DT)]
+residualFormula <- paste0( "(0+", paste(colnames(Z), collapse = "+"), "|| res)")
+csdiagFormula <- paste(csdiagFormula , residualFormula, sep="+")
+
+# lmodRes <- lmebreed(formula=as.formula(csdiagFormula), data = DT, 
+#                  relmat = list(id = MMT), 
+#                  addmat = list(res=Zu),
+#                  rotation=TRUE,
+#                  verbose=0L
+# )
+
+```
+
+For the sake of time we are not running this model. Also because the heterogeneous residual model does not increase the accuracy in this particular example.
+
+Notice that we have fitted an MET model with 1K individuals in 50 environments, with 2 replicates in each environment with a genomic relationship matrix in a few seconds. It hardly gets any better than this.
 
 ## Literature
 

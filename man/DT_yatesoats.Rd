@@ -40,9 +40,10 @@ DT <- DT_yatesoats
 head(DT)
 m3 <- lmebreed(Y ~ V + N + V:N +
              (1|B) + (1|B:MP),
-             control = lmerControl( # how to control n iterations
-                            optCtrl = list(maxfun = 50, maxeval = 50)
-                          ),
+             # how to control n iterations
+             # control = lmerControl( 
+             #  optCtrl = list(maxfun = 100, maxeval = 100)
+             #   ),
            data = DT)
 vc <- VarCorr(m3); print(vc,comp=c("Variance"))
 sigma(m3)^2 # error variance

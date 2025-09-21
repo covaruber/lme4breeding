@@ -29,9 +29,10 @@ data(DT_fulldiallel)
 DT <- DT_fulldiallel
 head(DT)
 mix <- lmebreed(stems~1 + (1|female)+(1|male), 
-                control = lmerControl( # how to control n iterations
-                            optCtrl = list(maxfun = 50, maxeval = 50)
-                          ),
+                # how to control n iterations
+                 # control = lmerControl( 
+                 #  optCtrl = list(maxfun = 100, maxeval = 100)
+                 #   ),
                 data=DT)
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 sigma(mix)^2 # error variance

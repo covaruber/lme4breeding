@@ -50,9 +50,10 @@ A <- diag(7); colnames(A) <- rownames(A) <- 1:7;A
 modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
                  addmat = list(fema=Z),
                  relmat = list(fema=A),
-                 control = lmerControl( # how to control n iterations
-                            optCtrl = list(maxfun = 50, maxeval = 50)
-                          ),
+                 # how to control n iterations
+                 # control = lmerControl( 
+                 #  optCtrl = list(maxfun = 100, maxeval = 100)
+                 #   ),
                  data=DT)
 vc <- VarCorr(modh); print(vc,comp=c("Variance"))
 sigma(modh)^2 # error variance

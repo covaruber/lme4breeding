@@ -49,7 +49,7 @@ mixm2 <- lmebreed(formula=as.formula(csdiagFormula), data = DT,
                   # control = lmerControl( # how to control n iterations
                   #   optimizer="bobyqa",
                   #   restart_edge = FALSE,
-                  #   optCtrl = list(maxfun = 50, maxeval = 50)
+                  #   optCtrl = list(maxfun = 500, maxeval = 500)
                   # ),
                   verbose=1L, rotation=TRUE
 )
