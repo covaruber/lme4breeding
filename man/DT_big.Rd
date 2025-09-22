@@ -47,11 +47,11 @@ csdiagFormula <- paste0( "value ~ (1|envf) + (0+", paste(colnames(Z), collapse =
 # fit the models
 mixm2 <- lmebreed(formula=as.formula(csdiagFormula), data = DT, 
                   relmat = list(id = MMT), 
-                  # control = lmerControl( # how to control n iterations
-                  #   optimizer="bobyqa",
-                  #   restart_edge = FALSE,
-                  #   optCtrl = list(maxfun = 500, maxeval = 500)
-                  # ),
+                  control = lmerControl( # how to control n iterations
+                   calc.derivs = FALSE,
+                   restart_edge = FALSE,
+                   optCtrl = list(maxfun = 5000, maxeval = 5000)
+                  ),
                   verbose=1L, rotation=TRUE
 )
 

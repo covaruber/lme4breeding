@@ -349,12 +349,11 @@ csdiagFormula <- paste0( "value ~ (1|envf) + (0+", paste(colnames(Z), collapse =
 ## Fit the model
 lmod <- lmebreed(formula=as.formula(csdiagFormula), data = DT, 
                   relmat = list(id = MMT), 
-                  # control = lmerControl( # how to control n iterations
-                  #   # optimizer="bobyqa",
-                  #   # calc.derivs = FALSE,
-                  #   # restart_edge = FALSE,
-                  #   optCtrl = list(maxfun = 2500, maxeval = 2500)
-                  # ),
+                  control = lmerControl( # how to control n iterations
+                   calc.derivs = FALSE,
+                   restart_edge = FALSE,
+                   optCtrl = list(maxfun = 5000, maxeval = 5000)
+                  ),
                   rotation=TRUE, #returnParams = T,
                   verbose=0L
 )
@@ -390,9 +389,14 @@ DT$res <- (rep(colnames(Zu), nrow(DT)))[1:nrow(DT)]
 residualFormula <- paste0( "(0+", paste(colnames(Z), collapse = "+"), "|| res)")
 csdiagFormula <- paste(csdiagFormula , residualFormula, sep="+")
 
-# lmodRes <- lmebreed(formula=as.formula(csdiagFormula), data = DT, 
-#                  relmat = list(id = MMT), 
+# lmodRes <- lmebreed(formula=as.formula(csdiagFormula), data = DT,
+#                  relmat = list(id = MMT),
 #                  addmat = list(res=Zu),
+#                  control = lmerControl( # how to control n iterations
+#                    calc.derivs = FALSE,
+#                    restart_edge = FALSE,
+#                    optCtrl = list(maxfun = 5000, maxeval = 5000)
+#                  ),
 #                  rotation=TRUE,
 #                  verbose=0L
 # )

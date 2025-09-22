@@ -233,44 +233,56 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
 
   reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                  lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
-  dfl <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, formula=formula, verbose=verbose,
+  lmod <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, formula=formula, verbose=verbose,
               start=if(is.null(start)){lmod$reTrms$theta}else{start},
               control=control)
-  # print(str(dfl))
+  # print(str(lmod))
   if(length(control) == 0){
     if(gaus){ # if user calls a gaussian response family
       control <- lmerControl()
-      dfl$control <- control
+      lmod$control <- control
     }else{ # any other family response
       control <- glmerControl()
       control$optimizer <- control$optimizer[1]
-      dfl$control <- control
+      lmod$control <- control
     }
   }
   if(returnParams){ # if user only wants the incidence matrices
-    return(dfl)
+    return(lmod)
   }else{
     if(trace){message("* Optimizing ...")}
     if (gaus) { # gaussian distribution
-      dfl$REML = REML # TRUE# resp$REML > 0L
-      suppressWarnings( devfun <- do.call(mkLmerDevfun, dfl ), classes = "warning") # creates a deviance function
+      lmod$REML = REML # TRUE# resp$REML > 0L
+      suppressWarnings( devfun <- do.call(mkLmerDevfun, lmod ), classes = "warning") # creates a deviance function
       if(returnMod){ # user wants to force variance components without fitting a model
         opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
       }else{ # # user wants to optimize the varcomp optimizer
-        suppressWarnings( opt <- optimizeLmer(devfun, optimizer = dfl$control$optimizer, control = dfl$control$optCtrl, verbose=dfl$verbose, ...)   , classes = "warning") # need to pass control 
+        suppressWarnings( opt <- optimizeLmer(devfun, optimizer = lmod$control$optimizer, 
+                                              control = lmod$control$optCtrl, 
+                                              verbose=lmod$verbose, 
+                                              calc.derivs=lmod$control$calc.derivs,
+                                              restart_edge=lmod$control$restart_edge,
+                                              boundary.tol=lmod$control$boundary.tol,
+                                              use.last.params=lmod$control$use.last.params, ...)   , classes = "warning") # need to pass control 
       } 
     } else { # exponential family of distributions
-      dfl$family <- family
-      suppressWarnings( devfun <- do.call(mkGlmerDevfun,dfl) , classes = "warning") # creates a deviance function
+      lmod$family <- family
+      suppressWarnings( devfun <- do.call(mkGlmerDevfun,lmod) , classes = "warning") # creates a deviance function
       if(returnMod){ # user wants to force variance components without optimizing
         opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
       }else{ # user wants to optimize the varcomp optimizer
-        suppressWarnings( opt <- optimizeGlmer(devfun, optimizer = dfl$control$optimizer[1], control = dfl$control$optCtrl, verbose=dfl$verbose,  ...)  ) # need to pass control 
+        suppressWarnings( opt <- optimizeGlmer(devfun, optimizer = lmod$control$optimizer, 
+                                               control = lmod$control$optCtrl, 
+                                               verbose=lmod$verbose, 
+                                               calc.derivs=lmod$control$calc.derivs,
+                                               restart_edge=lmod$control$restart_edge,
+                                               boundary.tol=lmod$control$boundary.tol,
+                                               use.last.params=lmod$control$use.last.params,  ...)  ) # need to pass control 
       } 
     }
     if(trace){message("* Done!!")}
     # make results in a mkMerMod object format
-    suppressWarnings( mm <- mkMerMod(environment(devfun), opt, dfl$reTrms, dfl$fr, mc), classes = "warning" )
+    suppressWarnings( mm <- mkMerMod(environment(devfun), opt, lmod$reTrms, lmod$fr, mc), classes = "warning" )
     cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
     ans <- do.call(new, list(Class=cls, relfac=relfac, udu=udu, #goodRecords=goodRecords,
                              frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
