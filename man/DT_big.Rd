@@ -1,5 +1,6 @@
 \name{DT_big}
 \alias{DT_big}
+\alias{M_big}
 \docType{data}
 \title{
 Big GxE Quantitative Genetic Simulation

@@ -483,6 +483,7 @@ rrm <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   if(cholD){
     ## OPTION 2. USING CHOLESKY
     Gamma <- t(chol(Sigma)); # LOADINGS  # same GE=LL' from cholesky  plot(unlist(Gamma%*%t(Gamma)), unlist(GE))
+    D=diag(nrow(Gamma))
   }else{
     ## OPTION 1. USING SVD
     U <- svd(Sigma)$u;  # V <- svd(GE)$v
@@ -509,7 +510,7 @@ rrm <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   rownames(Z) <- NULL
   
   if(returnGamma){
-    return(list(Gamma=Gamma, H=H, Sigma=Sigma, Zstar=Zstar))
+    return(list(Gamma=Gamma, H=H, Sigma=Sigma, Zstar=Zstar, D=D))
   }else{
     return(Zstar)
   }

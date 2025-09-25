@@ -26,6 +26,7 @@
 
       * [r_1.0.80] we moved to build the U matrix (n x n) using the kronecker product to speed up computations in big models
       * [r_1.0.80] closure issue fixed by using the native match.call() and just changing from lmer/glmer to lFormula/glFormula
+      * [r_1.0.80] proper specification of the modular functions from lme4
 
 ** TO DO
 

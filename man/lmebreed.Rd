@@ -1,13 +1,15 @@
 \name{lmebreed}
 \alias{lmebreed}
-\title{Fit flexible mixed-effects models}
+\title{Fit breeding-related mixed-effects models}
 \description{
   Fits linear or generalized linear mixed models incorporating known relationships 
   (e.g., genetic relationship matrices) and customized random effects (e.g., overlay models).
+  Big-data genomic models can be fitted using the eigen decomposition proposed by Lee 
+  and Van der Werf (2006).
 }
 \usage{
 lmebreed(formula, data, REML = TRUE, control = list(), start = NULL, 
-         verbose = 0L, subset, weights, na.action, offset, contrasts = NULL, 
+         verbose = 1L, subset, weights, na.action, offset, contrasts = NULL, 
          # lmebreed special params
          family = NULL, relmat = list(), addmat = list(), trace=1L,
          dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=8, 
@@ -141,32 +143,59 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
                        data=imputedData)
   }
   
+  It is also worth mentioning that when the user does not provide the (g)lmerControl
+  we take the freedom to specify it to avoid some common warning or error messages such
+  as calculating the second derivatives for big models or not allowing to have a single 
+  record per treatment level:
+  
+  \code{
+  control <- (g)lmerControl(
+        calc.derivs = FALSE,
+        restart_edge = FALSE, 
+        check.nobs.vs.nlev = "ignore", 
+        check.nobs.vs.rankZ = "ignore", 
+        check.nobs.vs.nRE="ignore" 
+      )
+  }
+  
+  This is important to notice because if the user decides to specify its own controls
+  then the user should also consider some of these arguments that are the defaults in lmebreed.
+  
   
   \strong{Example Datasets}
 
 The package has been equiped with several datasets to learn how to use the lme4breeding package:
 
-* \code{\link{DT_halfdiallel}}, \code{\link{DT_fulldiallel}} and \code{\link{DT_mohring}} datasets have examples to fit half and full diallel designs.
-
-* \code{\link{DT_h2}} to calculate heritability
-
-* \code{\link{DT_cornhybrids}} and \code{\link{DT_technow}} datasets to perform genomic prediction in hybrid single crosses
-
-* \code{\link{DT_wheat}} dataset to do genomic prediction in single crosses in species displaying only additive effects.
-
-* \code{\link{DT_cpdata}} dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects.
-
-* \code{\link{DT_polyploid}} to fit genomic prediction and GWAS analysis in polyploids.
-
-* \code{\link{DT_gryphon}} data contains an example of an animal model including pedigree information.
+* \code{\link{DT_big}} simulated dataset containing 1K individuals in 50 environments to show how to fit big models.
 
 * \code{\link{DT_btdata}} dataset contains an animal (birds) model.
 
-* \code{\link{DT_legendre}} simulated dataset for random regression model.
+* \code{\link{DT_cornhybrids}} dataset to perform genomic prediction in hybrid single crosses 
 
-* \code{\link{DT_sleepstudy}} dataset to know how to translate lme4 models to sommer models.
+* \code{\link{DT_cpdata}} dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects. 
+
+* \code{\link{DT_fulldiallel}} dataset with examples to fit full diallel designs. 
+
+* \code{\link{DT_gryphon}} data contains an example of an animal model including pedigree information.
+
+* \code{\link{DT_halfdiallel}} dataset with examples to fit half diallel designs. 
+
+* \code{\link{DT_h2}} to calculate heritability
 
 * \code{\link{DT_ige}} dataset to show how to fit indirect genetic effect models.
+
+* \code{\link{DT_legendre}} simulated dataset for random regression model.
+
+* \code{\link{DT_mohring}} datasets with examples to fit half diallel designs.
+
+* \code{\link{DT_polyploid}} to fit genomic prediction and GWAS analysis in polyploids. 
+
+* \code{\link{DT_sleepstudy}} dataset to know how to translate lme4 models to lme4breeding models.
+
+* \code{\link{DT_technow}} dataset to perform genomic prediction in hybrid single crosses 
+
+* \code{\link{DT_wheat}} dataset to do genomic prediction in single crosses in species displaying only additive effects.
+
 
 }
 \value{

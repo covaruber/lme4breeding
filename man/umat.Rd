@@ -5,7 +5,7 @@
   `umat` creates the equivalent of a U matrix from the eigen decomposition of a relationship matrix of dimensions equal to the number of records equivalent to Lee and Van der Werf (2016).
 }
 \usage{
-  umat(formula, relmat, data, addmat)
+  umat(formula, relmat, data, addmat, k=NULL)
 }
 
 \arguments{
@@ -13,6 +13,8 @@
   \item{relmat}{an optional matrix of features explaining the levels of x. If not provided is assumed that the entire incidence matrix has been provided in x. But if provided, the decomposition occurs in the matrix M. }
   \item{data}{a dataset to be used for modeling.}
   \item{addmat}{additional matrices.}
+  \item{k}{an integer value indicating the number of eigen vectors to compute
+  when the rotation argument is set to TRUE. By default all eigen vectors are computed.}
 }
 \value{
   \describe{

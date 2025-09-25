@@ -1,9 +1,8 @@
 #### "relmat" class methods
-lmebreed <-  function(formula, data, family = NULL, REML = TRUE, 
-                      control = list(), start = NULL, verbose = 0L, 
-                      subset, weights, na.action, offset, contrasts = NULL,
+lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL, 
+                      verbose = 1L, subset, weights, na.action, offset, contrasts = NULL,
                       # new params
-                      relmat = list(),  addmat=list(), trace=1L,
+                      family = NULL, relmat = list(),  addmat=list(), trace=1L,
                       dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
                       returnParams=FALSE, returnMod=FALSE, ...)
 {
@@ -36,12 +35,16 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
   if(length(control)==0){
     if(gaus){
       control <- lmerControl(
+        calc.derivs = FALSE,
+        restart_edge = FALSE,
         check.nobs.vs.nlev = "ignore",
         check.nobs.vs.rankZ = "ignore",
         check.nobs.vs.nRE="ignore"
       )
     }else{
       control <- glmerControl(
+        calc.derivs = FALSE,
+        restart_edge = FALSE,
         check.nobs.vs.nlev = "ignore",
         check.nobs.vs.rankZ = "ignore",
         check.nobs.vs.nRE="ignore"
@@ -62,8 +65,11 @@ lmebreed <-  function(formula, data, family = NULL, REML = TRUE,
   if (!gaus) {lmerc$REML <- NULL}
   ## if there are no relmats or additional matrices just return th regular lmer model
   if (!length(relmat) & !length(addmat))  {
-    lmerc$relmat <- NULL # remove relmat from the match call
+    lmerc$relmat <- NULL # remove relmat from the match call to avoid errors when evaluating the call
     lmerc$addmat <- NULL # remove relmat from the match call
+    lmerc$trace <- NULL # remove relmat from the match call
+    lmerc$dateWarning=NULL; lmerc$rotation=NULL; lmerc$rotationK=NULL
+    lmerc$coefOutRotation=NULL; lmerc$returnParams=NULL; lmerc$returnMod=NULL
     return(eval.parent(lmerc))
   }            # call [g]lmer instead
   

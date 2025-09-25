@@ -55,7 +55,7 @@ ans <- lmebreed(Yield ~ Location + (1| GCA1) + (1|GCA2),
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 sigma(ans)^2 # error variance
 BLUP <- ranef(ans, condVar=TRUE)
-SEs <- attr(GCA1, which="postVar")[,,]
+SEs <- attr(BLUP$GCA1, which="postVar")[,,]
 
 }
 
