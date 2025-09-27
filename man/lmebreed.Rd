@@ -41,7 +41,10 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   \item{contrasts}{as in \code{\link[lme4]{lmer}}}
   
   \item{calc.derivs}{as in \code{\link[lme4]{lmerControl}}. The intention of having
-  it at this level is to set it as FALSE as default to speed up computation. }
+  this argument at the level of main argument is to set it as FALSE as default 
+  to speed up computation. This means that in lme4breeding if you pass calc.derivs
+  inside the lmerControl object it won't have any effect. You need to set it using the 
+  argument in the lmebreed function.}
   
   \item{family}{as in \code{\link[lme4]{glmer}}}
   
