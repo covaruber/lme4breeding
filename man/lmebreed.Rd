@@ -10,6 +10,7 @@
 \usage{
 lmebreed(formula, data, REML = TRUE, control = list(), start = NULL, 
          verbose = 1L, subset, weights, na.action, offset, contrasts = NULL, 
+         calc.derivs = FALSE,
          # lmebreed special params
          family = NULL, relmat = list(), addmat = list(), trace=1L,
          dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=8, 
@@ -38,6 +39,9 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   \item{offset}{as in \code{\link[lme4]{lmer}}}
   
   \item{contrasts}{as in \code{\link[lme4]{lmer}}}
+  
+  \item{calc.derivs}{as in \code{\link[lme4]{lmerControl}}. The intention of having
+  it at this level is to set it as FALSE as default to speed up computation. }
   
   \item{family}{as in \code{\link[lme4]{glmer}}}
   

@@ -1,6 +1,7 @@
 #### "relmat" class methods
 lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL, 
                       verbose = 1L, subset, weights, na.action, offset, contrasts = NULL,
+                      calc.derivs=FALSE,
                       # new params
                       family = NULL, relmat = list(),  addmat=list(), trace=1L,
                       dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
@@ -54,6 +55,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     control$checkControl$check.nobs.vs.nlev = "ignore"
     control$checkControl$check.nobs.vs.rankZ = "ignore"
     control$checkControl$check.nobs.vs.nRE="ignore"
+    control$calc.derivs = calc.derivs
   }
   # lmerc$formula <- formula; lmerc$data <- data; 
   # lmerc$control <- control # only if we are using it 

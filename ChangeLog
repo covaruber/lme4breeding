@@ -27,9 +27,12 @@
       * [r_1.0.80] we moved to build the U matrix (n x n) using the kronecker product to speed up computations in big models
       * [r_1.0.80] closure issue fixed by using the native match.call() and just changing from lmer/glmer to lFormula/glFormula
       * [r_1.0.80] proper specification of the modular functions from lme4
+      * [r_1.0.80] added balanceData function
+      * [r_1.0.80] added a new dataset DT_big to show how to fit big genomic models
 
 ** TO DO
 
 + do not store Utn
++ check why the rotation is not working properly when we have more than one random effect
 
 
