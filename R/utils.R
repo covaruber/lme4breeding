@@ -1549,30 +1549,31 @@ mkReIndex <- function(object) {
   # names of the variables
   # associated with each random
   # effect
-  variableNames <- groupl <- list(); counter=1
+  variableNames <- groupl <- levsl <- list(); counter=1
   for(i in 1:length(rp$cnms)){
     variableNames[[counter]] <- rep(rp$cnms[[i]], rp$nlevs[ attr(rp$flist, "assign")[i] ] )
-    groupl[[counter]] <- rep( names(rp$cnms)[i], rp$nlevs[ attr(rp$flist, "assign")[i] ] )
+    groupl[[counter]] <- rep( rep( names(rp$cnms)[i],  length(rp$cnms[[i]]) ), rp$nlevs[ attr(rp$flist, "assign")[i] ] )
+    levsl[[counter]] <- sort( rep(levs[[attr(rp$flist, "assign")[i]] ], length(rp$cnms[[i]])) )
     counter=counter+1
   }
   variableNames <- unlist(variableNames, use.names = FALSE)
   groupl <- unlist(groupl, use.names = FALSE)
-  level <- unlist(levs[attr(rp$flist, "assign")], use.names = FALSE)
+  level <- unlist(levsl, use.names = FALSE) # unlist(levs[attr(rp$flist, "assign")], use.names = FALSE)
   res <- data.frame(index=1:length(level), level, variable=variableNames, group=groupl)
-  # variableNames <- 
+  # variableNames <-
   #   mapply(rep, rp$cnms,
   #          times = rp$nlevs[attr(rp$flist, "assign")],
   #          SIMPLIFY = FALSE) %>%
   #   unlist(use.names = FALSE)
   # construct the output data
   # frame
-  # rep %>%
+  # xx <- rep %>%
   #   mapply(levs[attr(rp$flist, "assign")], # levels associated with each RE term
   #          each = rp$ncols,                # num vars associated with each RE term
   #          SIMPLIFY = FALSE) %>%
-  #   melt() %>% 
+  #   melt() %>%
   #   setNames(c("level", "group")) %>%
-  #   mutate(variable = variableNames) %>%  
+  #   mutate(variable = variableNames) %>%
   #   mutate(index = row_number()) %>%
   #   select(index, level, variable, group)
   return(res)

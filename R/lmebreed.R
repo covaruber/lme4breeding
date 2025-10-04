@@ -111,18 +111,18 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
       if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
       data[,response] <- newValues
-      if(trace){message("* Rotation of response finished.")}
+      if(trace){message(magenta("* Rotation of response finished."))}
       for(iD in names(udu$D)){
         relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
       }
       udu$newValues <- newValues
       lmerc$data <- data
-      if(trace){message("* Cholesky decomposition finished.")}
+      if(trace){message(magenta("* Cholesky decomposition finished."))}
     }else{ # classical approach, just cholesky
       for (i in seq_along(relmat)) {
         relmat[[i]] <- Matrix::chol(relmat[[i]])
       }
-      if(trace){message("* Cholesky decomposition finished.")}
+      if(trace){message(magenta("* Cholesky decomposition finished."))}
     }
   }
   
@@ -157,7 +157,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     if(rotation){
       if(ncol(udu$Utn) != nrow(lmod$X)){stop("Rotation approach requires your dataset to be balanced and imputed.")}
       lmod$X <- (udu$Utn %*% lmod$X) * lmod$X
-      if(trace){message("* Rotation applied to the X matrix.")}
+      if(trace){message(magenta("* Rotation applied to the X matrix."))}
     }
   }
   ##############################
@@ -184,7 +184,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         Zt[rowsi,] <- provZt[rownames(Zt[rowsi,]),]
       }
     }
-    if(trace){message("* Additional matrices (addmat) added.")}
+    if(trace){message(magenta("* Additional matrices (addmat) added."))}
   }
   
   # >>>>>>>>> time to apply the relmat
@@ -237,7 +237,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     }
   }
   
-  if(trace){message("* Relfactors (relmat) applied to Z")}
+  if(trace){message(magenta("* Relfactors (relmat) applied to Z"))}
   
   reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                  lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
@@ -258,7 +258,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   if(returnParams){ # if user only wants the incidence matrices
     return(lmod)
   }else{
-    if(trace){message("* Optimizing ...")}
+    if(trace){message(magenta("* Optimizing ..."))}
     if (gaus) { # gaussian distribution
       lmod$REML = REML # TRUE# resp$REML > 0L
       suppressWarnings( devfun <- do.call(mkLmerDevfun, lmod ), classes = "warning") # creates a deviance function
@@ -288,7 +288,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
                                                use.last.params=lmod$control$use.last.params,  ...)  ) # need to pass control 
       } 
     }
-    if(trace){message("* Done!!")}
+    if(trace){message(magenta("* Done!!"))}
     # make results in a mkMerMod object format
     suppressWarnings( mm <- mkMerMod(environment(devfun), opt, lmod$reTrms, lmod$fr, mc), classes = "warning" )
     cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
@@ -361,11 +361,11 @@ setMethod("ranef", signature(object = "lmebreed"),
             ans <- ans[whichel]
             if (relmat) { # transform back when relfac was used
               rf <- object@relfac
-              for (nm in names(rf)) { # for each random effect nm <- names(rf)[1]
+              for (nm in names(rf)) { # for each random effect # nm <- names(rf)[1]
                 dm <- data.matrix(ans[[nm]])
                 cn <- colnames(dm)
                 rn <- rownames(dm)
-                message("Rotating BLUPs")
+                message(magenta(paste("Rotating back BLUPs (u=L'u*) by transpose of Cholesky (L') for:", nm)))
                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
                 # rotate one more time if a UDU rotation was used in the response
                 if(length(object@udu) > 0){ # rotation was used
@@ -383,24 +383,32 @@ setMethod("ranef", signature(object = "lmebreed"),
                   X <- getME(object, "X") 
                   Ci <- getCi(object)
                   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  for(j in 1:length(tn)){ # for each intercept # j=1
-                    message(paste("Rotating condVar for intercept-level",j,"in", nm))
+                  if(length(tn) > 1){ # diagonal model
+                    intercepts <- unlist(object@cnms, use.names = FALSE)[tn] # intercepts
+                  }else{ # unstructured
+                    intercepts <- object@cnms[[tn]] # intercepts
+                    tn <- rep(tn, length(intercepts))
+                  }
+                  for(j in 1:length(intercepts)){ # for each intercept # j=1
+                    message(magenta(paste("Rotating condVar for intercept-level",intercepts[j],"in", nm)))
                     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
                     rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
                     # rotate by the relfac
-                    CiSub <- Ci[rowsi,rowsi] 
+                    CiSub <- Ci[rowsi,rowsi]  # subset to a given slope
+                    jIntercept <- which(CiSub@Dimnames[[2]] == intercepts[j])
+                    CiSub <- CiSub[jIntercept,jIntercept]
                     rownames(CiSub) <- colnames(CiSub) <-  CiSub@Dimnames[[1]]
                     CiSub <- t(rf[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% rf[[nm]][rn,rn]
-                    colnames(CiSub) <- rownames(CiSub) <- Ci@Dimnames[[1]][rowsi]
+                    colnames(CiSub) <- rownames(CiSub) <- CiSub@Dimnames[[1]]#[rowsi]
                     if(length(object@udu) > 0){ # eigen rotation was used
                       if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
                         CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
                       }
                     }
-                    if(is.list(attr(ans[[nm]], which="postVar"))){ # unstructured model
+                    if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
                       attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
-                    }else{ # simple model
-                      attr(ans[[nm]], which="postVar")[,,] <- diag(CiSub)
+                    }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
+                      attr(ans[[nm]], which="postVar")[j,j,] <- diag(CiSub)
                     }
                   }
                   
@@ -433,7 +441,7 @@ setMethod("predict", signature(object = "lmebreed"),
                 dm <- data.matrix(ans[[nm]])
                 cn <- colnames(dm)
                 rn <- rownames(dm)
-                message("Rotating BLUPs")
+                message(magenta("Rotating BLUPs"))
                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
                 # rotate one more time if a UDU rotation was used in the response
                 if(length(object@udu) > 0){ # rotation was used
@@ -452,7 +460,7 @@ setMethod("predict", signature(object = "lmebreed"),
                   Ci <- getCi(object)
                   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
                   for(j in 1:length(tn)){ # for each intercept # j=1
-                    message(paste("Rotating condVar for intercept-level",j,"in", nm))
+                    message(magenta(paste("Rotating condVar for intercept-level",j,"in", nm)))
                     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
                     rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
                     # rotate by the relfac

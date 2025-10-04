@@ -22,17 +22,23 @@
 
       * [r_1.0.70] updated CRAN version
 
-2025-12-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+2025-09-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
 
       * [r_1.0.80] we moved to build the U matrix (n x n) using the kronecker product to speed up computations in big models
       * [r_1.0.80] closure issue fixed by using the native match.call() and just changing from lmer/glmer to lFormula/glFormula
       * [r_1.0.80] proper specification of the modular functions from lme4
       * [r_1.0.80] added balanceData function
       * [r_1.0.80] added a new dataset DT_big to show how to fit big genomic models
+      
+2025-12-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+
+      * [r_1.0.90] now we use get the standard error of BLUPs using the lme4:::condVar function and then we apply the rotations and subset. That makes everything faster
+      * [r_1.0.90] 
 
 ** TO DO
 
 + do not store Utn
 + check why the rotation is not working properly when we have more than one random effect
++ make predict function
 
 
