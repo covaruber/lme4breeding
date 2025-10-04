@@ -238,12 +238,12 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   }
   
   if(trace){message("* Relfactors (relmat) applied to Z")}
-
+  
   reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                  lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
   lmod <- list(fr=lmod$fr, X=lmod$X, reTrms=reTrms, formula=formula, verbose=verbose,
-              start=if(is.null(start)){lmod$reTrms$theta}else{start},
-              control=control)
+               start=if(is.null(start)){lmod$reTrms$theta}else{start},
+               control=control)
   # print(str(lmod))
   if(length(control) == 0){
     if(gaus){ # if user calls a gaussian response family
@@ -302,18 +302,70 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   
 }
 
+# setMethod("ranef", signature(object = "lmebreed"),
+#           function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), ...)
+#           {
+#             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
+#             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
+#             ans <- ans[whichel]
+#             if (relmat) { # transform back when relfac was used
+#               rf <- object@relfac
+#               for (nm in names(rf)) { # nm <- names(rf)[1]
+#                 dm <- data.matrix(ans[[nm]])
+#                 cn <- colnames(dm)
+#                 rn <- rownames(dm)
+#                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
+#                 # rotate one more time if a UDU rotation was used in the response
+#                 if(length(object@udu) > 0){ # rotation was used
+#                   if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
+#                     dm <- object@udu$U[[nm]][rn,rn] %*% dm
+#                   }
+#                 }
+#                 colnames(dm) <- cn
+#                 rownames(dm) <- rn
+#                 for(kCol in 1:ncol(ans[[nm]])){ # put in a nice shape
+#                   ans[[nm]][[kCol]] <- as.numeric(dm[,kCol])# data.frame(dm[[kCol]], check.names = FALSE)
+#                 }
+#                 # replace postVar if condVar=TRUE
+#                 if (condVar){
+#                   X <- getME(object, "X") 
+#                   Ci <- getMME(object)$Ci
+#                   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
+#                   for(j in 1:length(tn)){ # j=1
+#                     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+#                     rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
+#                     CiSub <- Ci[rowsi,rowsi]
+#                     if(length(object@udu) > 0){ # rotation was used
+#                       if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
+#                         CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
+#                       }
+#                     }
+#                     if(is.list(attr(ans[[nm]], which="postVar"))){ # unstructured model
+#                       attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
+#                     }else{ # simple model
+#                       attr(ans[[nm]], which="postVar")[,,] <- diag(CiSub)
+#                     }
+#                   }
+#                   
+#                 }
+#               }
+#             }
+#             return(ans)
+#           })
+
 setMethod("ranef", signature(object = "lmebreed"),
-          function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), ...)
-          {
+          function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), ...)  {
+            # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
             ans <- ans[whichel]
             if (relmat) { # transform back when relfac was used
               rf <- object@relfac
-              for (nm in names(rf)) { # nm <- names(rf)[1]
+              for (nm in names(rf)) { # for each random effect nm <- names(rf)[1]
                 dm <- data.matrix(ans[[nm]])
                 cn <- colnames(dm)
                 rn <- rownames(dm)
+                message("Rotating BLUPs")
                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
                 # rotate one more time if a UDU rotation was used in the response
                 if(length(object@udu) > 0){ # rotation was used
@@ -329,13 +381,18 @@ setMethod("ranef", signature(object = "lmebreed"),
                 # replace postVar if condVar=TRUE
                 if (condVar){
                   X <- getME(object, "X") 
-                  Ci <- getMME(object)$Ci
+                  Ci <- getCi(object)
                   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  for(j in 1:length(tn)){ # j=1
+                  for(j in 1:length(tn)){ # for each intercept # j=1
+                    message(paste("Rotating condVar for intercept-level",j,"in", nm))
                     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
                     rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
-                    CiSub <- Ci[rowsi,rowsi]
-                    if(length(object@udu) > 0){ # rotation was used
+                    # rotate by the relfac
+                    CiSub <- Ci[rowsi,rowsi] 
+                    rownames(CiSub) <- colnames(CiSub) <-  CiSub@Dimnames[[1]]
+                    CiSub <- t(rf[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% rf[[nm]][rn,rn]
+                    colnames(CiSub) <- rownames(CiSub) <- Ci@Dimnames[[1]][rowsi]
+                    if(length(object@udu) > 0){ # eigen rotation was used
                       if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
                         CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
                       }
@@ -363,3 +420,61 @@ setMethod("residuals", signature(object = "lmebreed"),
           function(object, ...) {
             stop("residuals() not applicable to lmebreed objects")
           })
+
+setMethod("predict", signature(object = "lmebreed"),
+          function(object, Dtable=NULL, D, ...)  {
+            # print("new")
+            relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
+            ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
+            ans <- ans[whichel]
+            if (relmat) { # transform back when relfac was used
+              rf <- object@relfac
+              for (nm in names(rf)) { # for each random effect nm <- names(rf)[1]
+                dm <- data.matrix(ans[[nm]])
+                cn <- colnames(dm)
+                rn <- rownames(dm)
+                message("Rotating BLUPs")
+                dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
+                # rotate one more time if a UDU rotation was used in the response
+                if(length(object@udu) > 0){ # rotation was used
+                  if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
+                    dm <- object@udu$U[[nm]][rn,rn] %*% dm
+                  }
+                }
+                colnames(dm) <- cn
+                rownames(dm) <- rn
+                for(kCol in 1:ncol(ans[[nm]])){ # put in a nice shape
+                  ans[[nm]][[kCol]] <- as.numeric(dm[,kCol])# data.frame(dm[[kCol]], check.names = FALSE)
+                }
+                # replace postVar if condVar=TRUE
+                if (condVar){
+                  X <- getME(object, "X") 
+                  Ci <- getCi(object)
+                  tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
+                  for(j in 1:length(tn)){ # for each intercept # j=1
+                    message(paste("Rotating condVar for intercept-level",j,"in", nm))
+                    ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+                    rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
+                    # rotate by the relfac
+                    CiSub <- Ci[rowsi,rowsi] 
+                    rownames(CiSub) <- colnames(CiSub) <-  CiSub@Dimnames[[1]]
+                    CiSub <- t(rf[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% rf[[nm]][rn,rn]
+                    colnames(CiSub) <- rownames(CiSub) <- Ci@Dimnames[[1]][rowsi]
+                    if(length(object@udu) > 0){ # eigen rotation was used
+                      if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
+                        CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
+                      }
+                    }
+                    if(is.list(attr(ans[[nm]], which="postVar"))){ # unstructured model
+                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
+                    }else{ # simple model
+                      attr(ans[[nm]], which="postVar")[,,] <- diag(CiSub)
+                    }
+                  }
+                  
+                }
+              }
+            }
+            return(ans)
+          })
+

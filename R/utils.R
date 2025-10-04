@@ -1521,3 +1521,59 @@ tps <- function (columncoordinates, rowcoordinates, nsegments=NULL,
   res
 }
 
+
+getCi <- function(object){
+  CiBlue <- vcov(object )
+  CiBlup <- lme4:::condVar(object) 
+  Ci <- Matrix::bdiag( CiBlue, CiBlup )
+  namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
+                          variable="(Intercept)", group= colnames(CiBlue) )
+  namesBlup <- mkReIndex(object)
+  namesBlup$index <- namesBlup$index + nrow(namesBlue)
+  namesCi <- rbind(namesBlue, namesBlup)
+  Ci@Dimnames[[1]] <- namesCi$level
+  Ci@Dimnames[[2]] <- namesCi$variable
+  return(Ci)
+}
+
+mkReIndex <- function(object) {
+  # get information about the
+  # dimensions of the random
+  # effects
+  rp <- rePos$new(object)
+  # list with the levels for
+  # each grouping factor (one
+  # character-valued list
+  # element per factor)
+  levs <- lapply(rp$flist, levels)
+  # names of the variables
+  # associated with each random
+  # effect
+  variableNames <- groupl <- list(); counter=1
+  for(i in 1:length(rp$cnms)){
+    variableNames[[counter]] <- rep(rp$cnms[[i]], rp$nlevs[ attr(rp$flist, "assign")[i] ] )
+    groupl[[counter]] <- rep( names(rp$cnms)[i], rp$nlevs[ attr(rp$flist, "assign")[i] ] )
+    counter=counter+1
+  }
+  variableNames <- unlist(variableNames, use.names = FALSE)
+  groupl <- unlist(groupl, use.names = FALSE)
+  level <- unlist(levs[attr(rp$flist, "assign")], use.names = FALSE)
+  res <- data.frame(index=1:length(level), level, variable=variableNames, group=groupl)
+  # variableNames <- 
+  #   mapply(rep, rp$cnms,
+  #          times = rp$nlevs[attr(rp$flist, "assign")],
+  #          SIMPLIFY = FALSE) %>%
+  #   unlist(use.names = FALSE)
+  # construct the output data
+  # frame
+  # rep %>%
+  #   mapply(levs[attr(rp$flist, "assign")], # levels associated with each RE term
+  #          each = rp$ncols,                # num vars associated with each RE term
+  #          SIMPLIFY = FALSE) %>%
+  #   melt() %>% 
+  #   setNames(c("level", "group")) %>%
+  #   mutate(variable = variableNames) %>%  
+  #   mutate(index = row_number()) %>%
+  #   select(index, level, variable, group)
+  return(res)
+}
