@@ -302,57 +302,6 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   
 }
 
-# setMethod("ranef", signature(object = "lmebreed"),
-#           function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), ...)
-#           {
-#             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
-#             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
-#             ans <- ans[whichel]
-#             if (relmat) { # transform back when relfac was used
-#               rf <- object@relfac
-#               for (nm in names(rf)) { # nm <- names(rf)[1]
-#                 dm <- data.matrix(ans[[nm]])
-#                 cn <- colnames(dm)
-#                 rn <- rownames(dm)
-#                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
-#                 # rotate one more time if a UDU rotation was used in the response
-#                 if(length(object@udu) > 0){ # rotation was used
-#                   if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
-#                     dm <- object@udu$U[[nm]][rn,rn] %*% dm
-#                   }
-#                 }
-#                 colnames(dm) <- cn
-#                 rownames(dm) <- rn
-#                 for(kCol in 1:ncol(ans[[nm]])){ # put in a nice shape
-#                   ans[[nm]][[kCol]] <- as.numeric(dm[,kCol])# data.frame(dm[[kCol]], check.names = FALSE)
-#                 }
-#                 # replace postVar if condVar=TRUE
-#                 if (condVar){
-#                   X <- getME(object, "X") 
-#                   Ci <- getMME(object)$Ci
-#                   tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-#                   for(j in 1:length(tn)){ # j=1
-#                     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-#                     rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
-#                     CiSub <- Ci[rowsi,rowsi]
-#                     if(length(object@udu) > 0){ # rotation was used
-#                       if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
-#                         CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
-#                       }
-#                     }
-#                     if(is.list(attr(ans[[nm]], which="postVar"))){ # unstructured model
-#                       attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
-#                     }else{ # simple model
-#                       attr(ans[[nm]], which="postVar")[,,] <- diag(CiSub)
-#                     }
-#                   }
-#                   
-#                 }
-#               }
-#             }
-#             return(ans)
-#           })
-
 setMethod("ranef", signature(object = "lmebreed"),
           function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), ...)  {
             # print("new")
@@ -365,7 +314,7 @@ setMethod("ranef", signature(object = "lmebreed"),
                 dm <- data.matrix(ans[[nm]])
                 cn <- colnames(dm)
                 rn <- rownames(dm)
-                message(magenta(paste("Rotating back BLUPs (u=L'u*) by transpose of Cholesky (L') for:", nm)))
+                message(magenta(paste("Rotating back BLUPs by transpose of Cholesky (u=L'u*) for:", nm)))
                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
                 # rotate one more time if a UDU rotation was used in the response
                 if(length(object@udu) > 0){ # rotation was used
@@ -390,7 +339,7 @@ setMethod("ranef", signature(object = "lmebreed"),
                     tn <- rep(tn, length(intercepts))
                   }
                   for(j in 1:length(intercepts)){ # for each intercept # j=1
-                    message(magenta(paste("Rotating condVar for intercept-level",intercepts[j],"in", nm)))
+                    message(magenta(paste("Rotating conditional variance for level",intercepts[j],"in", nm)))
                     ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
                     rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
                     # rotate by the relfac
