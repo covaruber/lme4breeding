@@ -1533,6 +1533,44 @@ getCi <- function(object){
   namesCi <- rbind(namesBlue, namesBlup)
   Ci@Dimnames[[1]] <- namesCi$level
   Ci@Dimnames[[2]] <- namesCi$variable
+  # rotate back cholesky (triangular dense matrix)
+  relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE) # control to know if we should rotate
+  if(relmat){
+    message(magenta(paste("Rotating back conditional variance using Cholesky factors")))
+    groups <- unique(namesCi[,c("variable","group")])
+    L <- Matrix::Matrix(0, nrow=nrow(Ci), ncol = ncol(Ci))
+    for(iGroup in 1:nrow(groups)){ # iGroup = 2
+      v <- which( ( namesCi[,"variable"] == groups[iGroup,"variable"] ) & ( namesCi[,"group"] == groups[iGroup,"group"] ) )
+      if(groups[iGroup,"group"] %in% names( object@relfac )){ # extract relfac
+        L[v,v] <- as(as(as( object@relfac[[ groups[iGroup,"group"] ]][ namesCi[v,"level"], namesCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+      }else{ # build a digonal
+        L[v,v] <- Matrix::Diagonal(n=length(v))
+      }
+    }
+    Ci <- t(L) %*% Ci %*% L
+    L <- NULL
+    Ci@Dimnames[[1]] <- namesCi$level
+    Ci@Dimnames[[2]] <- namesCi$variable
+  }
+  # rotate back eigen (dense eigen vectors)
+  eigmat <- ifelse(length(object@udu) > 0, TRUE, FALSE) # control to know if we should rotate
+  if(eigmat){
+    message(magenta(paste("Rotating back conditional variance using Eigen factors")))
+    groups <- unique(namesCi[,c("variable","group")])
+    U <- Matrix::Matrix(0, nrow=nrow(Ci), ncol = ncol(Ci))
+    for(iGroup in 1:nrow(groups)){ # iGroup = 2
+      v <- which( ( namesCi[,"variable"] == groups[iGroup,"variable"] ) & ( namesCi[,"group"] == groups[iGroup,"group"] ) )
+      if(groups[iGroup,"group"] %in% names( object@udu$U ) ){ # extract relfac
+        U[v,v] <- as(as(as( object@udu$U[[ groups[iGroup,"group"] ]][ namesCi[v,"level"], namesCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+      }else{ # build a digonal
+        U[v,v] <- Matrix::Diagonal(n=length(v))
+      }
+    }
+    Ci <- U %*% Ci %*% t(U)
+    U <- NULL
+    Ci@Dimnames[[1]] <- namesCi$level
+    Ci@Dimnames[[2]] <- namesCi$variable
+  }
   return(Ci)
 }
 

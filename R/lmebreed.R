@@ -310,6 +310,14 @@ setMethod("ranef", signature(object = "lmebreed"),
             ans <- ans[whichel]
             if (relmat) { # transform back when relfac was used
               rf <- object@relfac
+              # names
+              CiBlue <- vcov(object )
+              namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
+                                      variable="(Intercept)", group= colnames(CiBlue) )
+              namesBlup <- mkReIndex(object)
+              namesBlup$index <- namesBlup$index + nrow(namesBlue)
+              namesCi <- rbind(namesBlue, namesBlup)
+              
               for (nm in names(rf)) { # for each random effect # nm <- names(rf)[1]
                 dm <- data.matrix(ans[[nm]])
                 cn <- colnames(dm)
@@ -329,37 +337,50 @@ setMethod("ranef", signature(object = "lmebreed"),
                 }
                 # replace postVar if condVar=TRUE
                 if (condVar){
-                  X <- getME(object, "X") 
+                  # X <- getME(object, "X")
                   Ci <- getCi(object)
-                  tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  if(length(tn) > 1){ # diagonal model
-                    intercepts <- unlist(object@cnms, use.names = FALSE)[tn] # intercepts
-                  }else{ # unstructured
-                    intercepts <- object@cnms[[tn]] # intercepts
-                    tn <- rep(tn, length(intercepts))
-                  }
-                  for(j in 1:length(intercepts)){ # for each intercept # j=1
-                    message(magenta(paste("Rotating conditional variance for level",intercepts[j],"in", nm)))
-                    ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-                    rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
-                    # rotate by the relfac
-                    CiSub <- Ci[rowsi,rowsi]  # subset to a given slope
-                    jIntercept <- which(CiSub@Dimnames[[2]] == intercepts[j])
-                    CiSub <- CiSub[jIntercept,jIntercept]
-                    rownames(CiSub) <- colnames(CiSub) <-  CiSub@Dimnames[[1]]
-                    CiSub <- t(rf[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% rf[[nm]][rn,rn]
-                    colnames(CiSub) <- rownames(CiSub) <- CiSub@Dimnames[[1]]#[rowsi]
-                    if(length(object@udu) > 0){ # eigen rotation was used
-                      if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
-                        CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
-                      }
-                    }
+                  
+                  namesCiNm <- namesCi[which(namesCi$group == nm),]
+                  intercepts <- unique(namesCiNm$variable)
+                  for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
+                    iInter <- intercepts[j]
+                    v <- namesCiNm[which(namesCiNm$variable == iInter), "index"]
                     if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
-                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
+                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci)[v]
                     }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
-                      attr(ans[[nm]], which="postVar")[j,j,] <- diag(CiSub)
+                      attr(ans[[nm]], which="postVar")[j,j,] <- diag(Ci)[v]
                     }
                   }
+                  
+                  # tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
+                  # if(length(tn) > 1){ # diagonal model
+                  #   intercepts <- unlist(object@cnms, use.names = FALSE)[tn] # intercepts
+                  # }else{ # unstructured
+                  #   intercepts <- object@cnms[[tn]] # intercepts
+                  #   tn <- rep(tn, length(intercepts))
+                  # }
+                  # for(j in 1:length(intercepts)){ # for each intercept # j=1
+                  #   # message(magenta(paste("Rotating conditional variance for level",intercepts[j],"in", nm)))
+                  #   ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
+                  #   rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
+                  #   # rotate by the relfac
+                  #   CiSub <- Ci[rowsi,rowsi]  # subset to a given slope
+                  #   jIntercept <- which(CiSub@Dimnames[[2]] == intercepts[j])
+                  #   CiSub <- CiSub[jIntercept,jIntercept]
+                  #   # rownames(CiSub) <- colnames(CiSub) <-  CiSub@Dimnames[[1]]
+                  #   # CiSub <- t(rf[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% rf[[nm]][rn,rn]
+                  #   # colnames(CiSub) <- rownames(CiSub) <- CiSub@Dimnames[[1]]#[rowsi]
+                  #   # if(length(object@udu) > 0){ # eigen rotation was used
+                  #   #   if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
+                  #   #     CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
+                  #   #   }
+                  #   # }
+                  #   if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
+                  #     attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
+                  #   }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
+                  #     attr(ans[[nm]], which="postVar")[j,j,] <- diag(CiSub)
+                  #   }
+                  # }
                   
                 }
               }
@@ -383,7 +404,12 @@ setMethod("predict", signature(object = "lmebreed"),
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
-            ans <- ans[whichel]
+            
+            b=fixef(object)
+            u=ranef(object, condVar=FALSE)
+            lapply()
+            Ci <- getCi(object)
+            
             if (relmat) { # transform back when relfac was used
               rf <- object@relfac
               for (nm in names(rf)) { # for each random effect nm <- names(rf)[1]
