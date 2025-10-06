@@ -1616,3 +1616,20 @@ mkReIndex <- function(object) {
   #   select(index, level, variable, group)
   return(res)
 }
+
+Dtable <- function(object){
+  
+  CiBlue <- vcov(object )
+  namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
+                          variable="(Intercept)", group= colnames(CiBlue) )
+  namesBlup <- mkReIndex(object)
+  namesBlup$index <- namesBlup$index + nrow(namesBlue)
+  namesCi <- rbind(namesBlue, namesBlup)
+  
+  tab <- unique(namesCi[,c("variable","group")])
+  tab[,"type"] <- c(rep("fixed",nrow(namesBlue)), rep("random", nrow(tab)-nrow(namesBlue)))
+  tab[,"include"]=0
+  tab[,"average"]=0
+  return(tab)
+  
+}

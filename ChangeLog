@@ -33,12 +33,15 @@
 2025-12-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
 
       * [r_1.0.90] now we use get the standard error of BLUPs using the lme4:::condVar function and then we apply the rotations and subset. That makes everything faster
-      * [r_1.0.90] 
+      * [r_1.0.90] now we have added the function getCi to retrieve the inverse of the coefficient matrix
+      * [r_1.0.90] now we have added the function Dtable to retrieve the a template for the hyper-table in predict
+      * [r_1.0.90] now we have added the first version of the predict function
+      
 
 ** TO DO
 
 + do not store Utn
 + check why the rotation is not working properly when we have more than one random effect
-+ make predict function
++ add documentation for functions predict, Dtable and getCi
 
 

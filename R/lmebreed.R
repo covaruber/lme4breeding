@@ -158,6 +158,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       if(ncol(udu$Utn) != nrow(lmod$X)){stop("Rotation approach requires your dataset to be balanced and imputed.")}
       lmod$X <- (udu$Utn %*% lmod$X) * lmod$X
       if(trace){message(magenta("* Rotation applied to the X matrix."))}
+      udu$Utn <- NULL # avoid storing a big matrix after the multiplication
     }
   }
   ##############################
@@ -303,13 +304,12 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
 }
 
 setMethod("ranef", signature(object = "lmebreed"),
-          function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), ...)  {
+          function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), includePEV=TRUE, ...)  {
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
             ans <- ans[whichel]
-            if (relmat) { # transform back when relfac was used
-              rf <- object@relfac
+            if(condVar){
               # names
               CiBlue <- vcov(object )
               namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
@@ -317,7 +317,10 @@ setMethod("ranef", signature(object = "lmebreed"),
               namesBlup <- mkReIndex(object)
               namesBlup$index <- namesBlup$index + nrow(namesBlue)
               namesCi <- rbind(namesBlue, namesBlup)
-              
+              Ci <- getCi(object)
+            }
+            if (relmat) { # transform back when relfac was used
+              rf <- object@relfac
               for (nm in names(rf)) { # for each random effect # nm <- names(rf)[1]
                 dm <- data.matrix(ans[[nm]])
                 cn <- colnames(dm)
@@ -337,9 +340,6 @@ setMethod("ranef", signature(object = "lmebreed"),
                 }
                 # replace postVar if condVar=TRUE
                 if (condVar){
-                  # X <- getME(object, "X")
-                  Ci <- getCi(object)
-                  
                   namesCiNm <- namesCi[which(namesCi$group == nm),]
                   intercepts <- unique(namesCiNm$variable)
                   for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
@@ -384,6 +384,12 @@ setMethod("ranef", signature(object = "lmebreed"),
                   
                 }
               }
+              
+            }
+            # before returning store the Ci and its names
+            if(all(c(includePEV, condVar))){ # if both are TRUE add the PEV
+              attr(ans, which="PEV") = Ci
+              attr(ans, which="namesCi") = namesCi
             }
             return(ans)
           })
@@ -400,64 +406,74 @@ setMethod("residuals", signature(object = "lmebreed"),
           })
 
 setMethod("predict", signature(object = "lmebreed"),
-          function(object, Dtable=NULL, D, ...)  {
-            # print("new")
-            relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
-            ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
+          function(object, hyperTable=NULL, classify=NULL, ...)  {
             
-            b=fixef(object)
-            u=ranef(object, condVar=FALSE)
-            lapply()
-            Ci <- getCi(object)
+            if(is.null(classify)){
+              stop("Please provide the D argument to indicate the classify argument.", call. = FALSE )
+            }
+            '%!in%' <- function(x,y)!('%in%'(x,y))
+            if(is.null(hyperTable)){
+              hyperTable <- Dtable(object)
+              hyperTable$include[which(hyperTable$group %in% classify)]=1
+              hyperTable$include[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
+              hyperTable$average[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
+            }
+            # get all information from the model
+            BLUP <- ranef(object, condVar=TRUE)
+            # get D table information
+            namesCi <- attr(BLUP, which="namesCi")
+            # get inverse of coefficient matrix
+            Ci <- attr(BLUP, which="PEV")
+            # get coefficients
+            b <- c( 
+              as.vector( fixef(object) ),
+              unlist( lapply(BLUP, function(x){
+                unlist(lapply(x, function(y){as.vector(y)}), use.names = FALSE )
+              }), use.names = FALSE )
+            )
+            # create the D matrix of linear combination
             
-            if (relmat) { # transform back when relfac was used
-              rf <- object@relfac
-              for (nm in names(rf)) { # for each random effect nm <- names(rf)[1]
-                dm <- data.matrix(ans[[nm]])
-                cn <- colnames(dm)
-                rn <- rownames(dm)
-                message(magenta("Rotating BLUPs"))
-                dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
-                # rotate one more time if a UDU rotation was used in the response
-                if(length(object@udu) > 0){ # rotation was used
-                  if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
-                    dm <- object@udu$U[[nm]][rn,rn] %*% dm
-                  }
-                }
-                colnames(dm) <- cn
-                rownames(dm) <- rn
-                for(kCol in 1:ncol(ans[[nm]])){ # put in a nice shape
-                  ans[[nm]][[kCol]] <- as.numeric(dm[,kCol])# data.frame(dm[[kCol]], check.names = FALSE)
-                }
-                # replace postVar if condVar=TRUE
-                if (condVar){
-                  X <- getME(object, "X") 
-                  Ci <- getCi(object)
-                  tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  for(j in 1:length(tn)){ # for each intercept # j=1
-                    message(magenta(paste("Rotating condVar for intercept-level",j,"in", nm)))
-                    ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-                    rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
-                    # rotate by the relfac
-                    CiSub <- Ci[rowsi,rowsi] 
-                    rownames(CiSub) <- colnames(CiSub) <-  CiSub@Dimnames[[1]]
-                    CiSub <- t(rf[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% rf[[nm]][rn,rn]
-                    colnames(CiSub) <- rownames(CiSub) <- Ci@Dimnames[[1]][rowsi]
-                    if(length(object@udu) > 0){ # eigen rotation was used
-                      if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
-                        CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
-                      }
-                    }
-                    if(is.list(attr(ans[[nm]], which="postVar"))){ # unstructured model
-                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
-                    }else{ # simple model
-                      attr(ans[[nm]], which="postVar")[,,] <- diag(CiSub)
+            classifys <- all.vars(as.formula(paste("~",classify,"-1")))
+            Zd <- Matrix::sparse.model.matrix(as.formula(paste("~",classify,"-1")), data=object@frame ) 
+            colnames(Zd) <- gsub(classify,"",colnames(Zd))
+            levs <- colnames(Zd)
+            D <- Matrix::Matrix(0, ncol=length(b), nrow=length(levs))
+            rownames(D) <- levs
+            # now add the rules specified in the hyperTable
+            for(iRow in 1:nrow(hyperTable)){ # iRow=1
+              iVar <- hyperTable[iRow,"variable"]
+              iGroup <- hyperTable[iRow,"group"]
+              if(hyperTable[iRow,"include"]>0){
+                if(hyperTable[iRow,"group"] %in% classifys){ # if this is a classify
+                  for (jRow in 1:nrow(D)) { # jRow=1
+                    v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
+                    w <- which(namesCi[,"level"]==rownames(D)[jRow]  )
+                    myMatch <- intersect(v,w)
+                    if (length(myMatch) > 0) {
+                      D[jRow, myMatch] = 1
                     }
                   }
-                  
+                }else{
+                  v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
+                  D[,v]=1
                 }
               }
+              if(hyperTable[iRow,"average"]>0){
+                D[,v]= D[,v]/length(v)
+              }
+              
             }
+            # compute the predicted values and std errors
+            predicted.value <- D %*% b
+            vcov <- D %*% Ci %*% t(D)
+            std.error <- sqrt(diag(vcov))
+            pvals <- data.frame(id = rownames(D),
+                                predicted.value = predicted.value[,1], 
+                                std.error = std.error)
+            # compile results
+            ans <- list(pvals=pvals, b=b, Ci=Ci, D=D, hyperTable=hyperTable, classify=classify )
             return(ans)
           })
+
+
 
