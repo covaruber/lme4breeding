@@ -234,39 +234,6 @@ getMME <- function(object, vc=NULL, recordsToUse=NULL){
   
 }
 
-
-fillData <- function(data, toBalanceSplit=NULL, toBalanceFill=NULL){
-  if(is.null(toBalanceSplit)){stop("toBalanceSplit argument can not be NULL.",call. = FALSE)}
-  if(is.null(toBalanceFill)){stop("toBalanceFill argument can not be NULL.",call. = FALSE)}
-  levs <- levels(unique(as.factor(data[,toBalanceFill])))
-  subdata <- split(data, data[,toBalanceSplit])
-  subdata <- lapply(subdata, function(x){
-    missing <- setdiff(levs,unique(as.character(x[,toBalanceFill])))
-    tab <- table(x[,toBalanceFill])
-    tab <- tab[which(tab > 0)]
-    nRecords <- sort(tab, decreasing = TRUE)[1]
-    tab <- abs(tab - nRecords)
-    tab <- tab[which(tab > 0)]
-    tab <- data.frame(y=tab,z=names(tab))
-    toAdd <- unlist(apply(tab, 1, function(x){rep(x[2],x[1])}))
-    newX <- data.frame(c(rep(missing, nRecords), toAdd))
-    colnames(newX) <- toBalanceFill
-    addedCols <- setdiff(colnames(x), colnames(newX))
-    typesCols <- unlist(lapply(x, class))
-    for(iCol in addedCols){ # iCol = addedCols[1]
-      if(typesCols[iCol] %in% c("integer","numeric") ){
-        newX[,iCol] <- median(x[,iCol])
-      }
-      if(typesCols[iCol] %in% c("character","factor") ){
-        newX[,iCol] <- names(sort(table(x[,iCol]), decreasing = TRUE)[1])
-      }
-    }
-    return(rbind(x,newX))
-  })
-  final <- do.call(rbind, subdata)
-  return(final)
-}
-
 add.diallel.vars <- function(df, par1="Par1", par2="Par2",sep.cross="-"){
   # Dummy variables for selfs, crosses, combinations
   df[,"is.cross"] <- ifelse(df[,par1] == df[,par2], 0, 1)
@@ -1524,13 +1491,9 @@ tps <- function (columncoordinates, rowcoordinates, nsegments=NULL,
 
 getCi <- function(object){
   CiBlue <- vcov(object )
-  CiBlup <- lme4:::condVar(object) 
+  CiBlup <- lme4:::condVar(object)
   Ci <- Matrix::bdiag( CiBlue, CiBlup )
-  namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
-                          variable="(Intercept)", group= colnames(CiBlue) )
-  namesBlup <- mkReIndex(object)
-  namesBlup$index <- namesBlup$index + nrow(namesBlue)
-  namesCi <- rbind(namesBlue, namesBlup)
+  namesCi <- mkMmeIndex(object)# rbind(namesBlue, namesBlup)
   Ci@Dimnames[[1]] <- namesCi$level
   Ci@Dimnames[[2]] <- namesCi$variable
   # rotate back cholesky (triangular dense matrix)
@@ -1574,7 +1537,7 @@ getCi <- function(object){
   return(Ci)
 }
 
-mkReIndex <- function(object) {
+mkMmeIndex <- function(object) {
   # get information about the
   # dimensions of the random
   # effects
@@ -1597,7 +1560,15 @@ mkReIndex <- function(object) {
   variableNames <- unlist(variableNames, use.names = FALSE)
   groupl <- unlist(groupl, use.names = FALSE)
   level <- unlist(levsl, use.names = FALSE) # unlist(levs[attr(rp$flist, "assign")], use.names = FALSE)
-  res <- data.frame(index=1:length(level), level, variable=variableNames, group=groupl)
+  namesBlup <- data.frame(index=1:length(level), level, variable=variableNames, group=groupl, type="random")
+  
+  CiBlue <- vcov(object )
+  namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
+                          variable="(Intercept)", group= colnames(CiBlue), type="fixed" )
+  
+  namesBlup$index <- namesBlup$index + nrow(namesBlue)
+  res <- rbind(namesBlue, namesBlup)
+  
   # variableNames <-
   #   mapply(rep, rp$cnms,
   #          times = rp$nlevs[attr(rp$flist, "assign")],
@@ -1619,15 +1590,9 @@ mkReIndex <- function(object) {
 
 Dtable <- function(object){
   
-  CiBlue <- vcov(object )
-  namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
-                          variable="(Intercept)", group= colnames(CiBlue) )
-  namesBlup <- mkReIndex(object)
-  namesBlup$index <- namesBlup$index + nrow(namesBlue)
-  namesCi <- rbind(namesBlue, namesBlup)
+  namesCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
   
-  tab <- unique(namesCi[,c("variable","group")])
-  tab[,"type"] <- c(rep("fixed",nrow(namesBlue)), rep("random", nrow(tab)-nrow(namesBlue)))
+  tab <- unique(namesCi[,c("variable","group","type")])
   tab[,"include"]=0
   tab[,"average"]=0
   return(tab)

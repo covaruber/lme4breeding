@@ -125,8 +125,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   Additional useful functions are; \code{\link{tps}} for spatial kernels, \code{\link{rrm}} 
   for reduced rank matrices, \code{\link{atcg1234}} for conversion of genetic markers, 
   \code{\link{overlay}} for overlay matrices, \code{\link{reshape}} for moving wide 
-  format multi-trait datasets into long format, \code{\link{fillData}} for balancing 
-  datasets for two variables.
+  format multi-trait datasets into long format.
   
   When using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep 
   in mind that the number of iterations is called differently depending on the optimizer. 
@@ -168,6 +167,19 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   This is important to notice because if the user decides to specify its own controls
   then the user should also consider some of these arguments that are the defaults in lmebreed.
   
+  \strong{Methods}
+  
+  Some important methods to keep in mind are:
+  
+  \code{\link[lme4]{fixef}}: allows you to extract fixed coefficients (BLUEs) 
+  
+  \code{\link[lme4]{vcov}}: allows you to extract the standard errors of fixed effects
+  
+  \code{\link[lme4]{ranef}}: allows you to extract random coefficients (BLUPs) and their standard errors
+  
+  \code{\link{getCi}}: allows you to extract the predicted error variance (PEV) matrix from a model
+  
+  \code{\link{mkMmeIndex}}: alllows you to extract the indices of the different fixed and random coefficients
   
   \strong{Example Datasets}
 

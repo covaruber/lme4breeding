@@ -72,7 +72,15 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     lmerc$trace <- NULL # remove relmat from the match call
     lmerc$dateWarning=NULL; lmerc$rotation=NULL; lmerc$rotationK=NULL
     lmerc$coefOutRotation=NULL; lmerc$returnParams=NULL; lmerc$returnMod=NULL
-    return(eval.parent(lmerc))
+    mm <- eval.parent(lmerc)
+    cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
+    # put it in a lmebreed object
+    ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), #goodRecords=goodRecords,
+                             frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
+                             theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
+                             devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
+    ans@call <- evalq(mc)
+    return(ans)
   }            # call [g]lmer instead
   
   ## DO TRANSFORMATION BEFORE EVALUATING THE CALL
@@ -304,19 +312,13 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
 }
 
 setMethod("ranef", signature(object = "lmebreed"),
-          function(object, condVar = FALSE, drop = FALSE, whichel = names(ans), includePEV=TRUE, ...)  {
+          function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includePEV=TRUE, ...)  {
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
             ans <- ans[whichel]
             if(condVar){
-              # names
-              CiBlue <- vcov(object )
-              namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
-                                      variable="(Intercept)", group= colnames(CiBlue) )
-              namesBlup <- mkReIndex(object)
-              namesBlup$index <- namesBlup$index + nrow(namesBlue)
-              namesCi <- rbind(namesBlue, namesBlup)
+              namesCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
               Ci <- getCi(object)
             }
             if (relmat) { # transform back when relfac was used
@@ -351,36 +353,6 @@ setMethod("ranef", signature(object = "lmebreed"),
                       attr(ans[[nm]], which="postVar")[j,j,] <- diag(Ci)[v]
                     }
                   }
-                  
-                  # tn <- which(match(nm, names(object@flist)) == attr(object@flist, "assign") )
-                  # if(length(tn) > 1){ # diagonal model
-                  #   intercepts <- unlist(object@cnms, use.names = FALSE)[tn] # intercepts
-                  # }else{ # unstructured
-                  #   intercepts <- object@cnms[[tn]] # intercepts
-                  #   tn <- rep(tn, length(intercepts))
-                  # }
-                  # for(j in 1:length(intercepts)){ # for each intercept # j=1
-                  #   # message(magenta(paste("Rotating conditional variance for level",intercepts[j],"in", nm)))
-                  #   ind <- (object@Gp)[tn[j]:(tn[j]+1L)]
-                  #   rowsi <- ( (ind[1]+1L):ind[2] ) + ncol(X)
-                  #   # rotate by the relfac
-                  #   CiSub <- Ci[rowsi,rowsi]  # subset to a given slope
-                  #   jIntercept <- which(CiSub@Dimnames[[2]] == intercepts[j])
-                  #   CiSub <- CiSub[jIntercept,jIntercept]
-                  #   # rownames(CiSub) <- colnames(CiSub) <-  CiSub@Dimnames[[1]]
-                  #   # CiSub <- t(rf[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% rf[[nm]][rn,rn]
-                  #   # colnames(CiSub) <- rownames(CiSub) <- CiSub@Dimnames[[1]]#[rowsi]
-                  #   # if(length(object@udu) > 0){ # eigen rotation was used
-                  #   #   if( nm %in% names(object@udu$U) ){ # this only happens if there was a single relmat
-                  #   #     CiSub <- (object@udu$U[[nm]][rn,rn]) %*% CiSub[rn,rn] %*% t(object@udu$U[[nm]][rn,rn])
-                  #   #   }
-                  #   # }
-                  #   if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
-                  #     attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(CiSub)
-                  #   }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
-                  #     attr(ans[[nm]], which="postVar")[j,j,] <- diag(CiSub)
-                  #   }
-                  # }
                   
                 }
               }

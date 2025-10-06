@@ -1,0 +1,95 @@
+---
+title: "Extracting the parameters and predictions from the lme4breeding package"
+author: "Giovanny Covarrubias-Pazaran"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Extracting parameters from the lme4breeding package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+lme4breeding is nice wrapper of the lme4 package that enables the use of especialized plant and animal breeding models that include relationship matrices among individuals (e.g., genomic relationship matrices) and complex covariance structures between factors (e.g., factor analytic structures). It uses all the lme4 machinery for linear and non-linear models, for different response distributions opening a world of possibilities. 
+
+This vignette aim to help users to understand how to retrieve important parameters of relevance: 
+
+
+1) Extracting fixed effect coefficients and their standard errors
+2) Extracting variance-covariance components
+3) Extracting random effect coefficients and their standard errors
+4) Computing predictions or linear combinations
+
+### 1) Extracting fixed effect coefficients and their standard errors
+
+Of the basic output of a linear model is the fixed coefficients that many times are used for hypothesis testing. Here we show the use of the `fixef()` and `vcov()` functions.
+
+```{r setup, include=FALSE} 
+# knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(lme4breeding)
+```
+
+```{r}
+data(DT_example)
+DT <- DT_example
+A <- A_example
+
+ans1 <- lmebreed(Yield~ (1|Name) + (1|Env) + 
+                   (1|Env:Name) + (1|Env:Block),
+             verbose = FALSE, data=DT)
+```
+
+### 2) Extracting variance-covariance components
+
+To extract the variance-covariance components from a model we can use the `VarCorr` function. To extract the residual variance we need to access the attributes of a `VarCorr` object.
+
+```{r}
+vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
+ve <- attr(VarCorr(ans1), "sc")^2
+```
+
+### 3) Extracting random effect coefficients and their standard errors
+
+```{r}
+BLUP <- ranef(ans1, condVar=TRUE)$Name
+SEs <- attr(BLUP, which="postVar")[,,]
+```
+
+Alternatively, you can extract the predicted error variance matrix (inverse of the coefficient matrix) and extract the standard error from coefficients taking the square root from the diagonal elements of the matrix.
+
+```{r}
+Ci <- getCi(ans1)
+```
+
+This matrix is also included in the attributes of the object returned by the `ranef()` function.
+
+### 4) Computing predictions or linear combinations
+
+One of the most searched functions in genetic evaluation is the `predict()` function which aims to compute linear combinations for fixed and random effects.
+
+## Literature
+
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+
+Bates Douglas, Maechler Martin, Bolker Ben, Walker Steve. 2015. Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
+
+Bernardo Rex. 2010. Breeding for quantitative traits in plants. Second edition. Stemma Press. 390 pp.
+
+Gilmour et al. 1995. Average Information REML: An efficient algorithm for variance parameter estimation in linear mixed models. Biometrics 51(4):1440-1450.
+
+Henderson C.R. 1975. Best Linear Unbiased Estimation and Prediction under a Selection Model. Biometrics vol. 31(2):423-447.
+
+Kang et al. 2008. Efficient control of population structure in model organism association mapping. Genetics 178:1709-1723.
+
+Lee, D.-J., Durban, M., and Eilers, P.H.C. (2013). Efficient two-dimensional smoothing with P-spline ANOVA mixed models and nested bases. Computational Statistics and Data Analysis, 61, 22 - 37.
+
+Lee et al. 2015. MTG2: An efficient algorithm for multivariate linear mixed model analysis based on genomic information. Cold Spring Harbor. doi: http://dx.doi.org/10.1101/027201.
+
+Maier et al. 2015. Joint analysis of psychiatric disorders increases accuracy of risk prediction for schizophrenia, bipolar disorder, and major depressive disorder. Am J Hum Genet; 96(2):283-294.
+
+Rodriguez-Alvarez, Maria Xose, et al. Correcting for spatial heterogeneity in plant breeding experiments with P-splines. Spatial Statistics 23 (2018): 52-71.
+
+Searle. 1993. Applying the EM algorithm to calculating ML and REML estimates of variance components. Paper invited for the 1993 American Statistical Association Meeting, San Francisco.
+
+Yu et al. 2006. A unified mixed-model method for association mapping that accounts for multiple levels of relatedness. Genetics 38:203-208.
+
+Tunnicliffe W. 1989. On the use of marginal likelihood in time series model estimation. JRSS 51(1):15-27.
