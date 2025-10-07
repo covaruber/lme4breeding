@@ -181,6 +181,8 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   
   \code{\link{mkMmeIndex}}: alllows you to extract the indices of the different fixed and random coefficients
   
+  \code{\link{predict}}: allows you to extract fixed coefficients (BLUEs)
+  
   \strong{Example Datasets}
 
 The package has been equiped with several datasets to learn how to use the lme4breeding package:
@@ -222,7 +224,7 @@ The package has been equiped with several datasets to learn how to use the lme4b
 }
 \references{
 
-Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted to Bioinformatics.
+Giovanny Covarrubias-Pazaran (2024).  lme4breeding: enabling genetic evaluation in the age of genomic data. To be submitted.
 
 Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear Mixed-Effects Models Using lme4. Journal of Statistical Software, 67(1), 1-48.
 
