@@ -385,6 +385,7 @@ setMethod("predict", signature(object = "lmebreed"),
             }
             '%!in%' <- function(x,y)!('%in%'(x,y))
             if(is.null(hyperTable)){
+              message(magenta("hyperTable argument not provided. Building a hyper table based on the classify argument. Please check the output to ensure the different effects have been grouped and average as you expected."))
               hyperTable <- Dtable(object)
               hyperTable$include[which(hyperTable$group %in% classify)]=1
               hyperTable$include[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
