@@ -47,6 +47,16 @@ Class \code{"\link[lme4:merMod-class]{merMod}"}, directly.
      \code{hyperTable}: a data frame with columns; variable, group, type, include,
      average. See the \code{\link{Dtable}} function to understand the format.
      
+     A pure "include" term means that the model matrices for that fixed or random effect is filled with 1's for the positions where column names and row names match.
+
+     An "include and average" term means that the model matrices for that fixed or random effect is filled with 1/#1's in that row.
+
+     An "average" term alone means that all rows for such fixed or random effect will be filled with 1/#levels in the effect.
+
+     If a term is not considered "include" or "average" is then totally ignored in the BLUP and SE calculation.
+
+     The default behavior when the user doesn't provide the hyperTable is to include and average any fixed effect that is not part of classify. Include any term making a perfect match with the classify argument and include and average any imperfect match with classify argument (e.g., interactions).
+     
      \code{classify}: is a character value indicating which term we are computing
      the predictions for.
 
