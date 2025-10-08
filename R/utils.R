@@ -1493,46 +1493,46 @@ getCi <- function(object){
   CiBlue <- vcov(object )
   CiBlup <- lme4:::condVar(object)
   Ci <- Matrix::bdiag( CiBlue, CiBlup )
-  namesCi <- mkMmeIndex(object)# rbind(namesBlue, namesBlup)
-  Ci@Dimnames[[1]] <- namesCi$level
-  Ci@Dimnames[[2]] <- namesCi$variable
+  mapCi <- mkMmeIndex(object)# rbind(namesBlue, namesBlup)
+  Ci@Dimnames[[1]] <- mapCi$level
+  Ci@Dimnames[[2]] <- mapCi$variable
   # rotate back cholesky (triangular dense matrix)
   relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE) # control to know if we should rotate
   if(relmat){
     message(magenta(paste("Rotating back conditional variance using Cholesky factors")))
-    groups <- unique(namesCi[,c("variable","group")])
+    groups <- unique(mapCi[,c("variable","group")])
     L <- Matrix::Matrix(0, nrow=nrow(Ci), ncol = ncol(Ci))
     for(iGroup in 1:nrow(groups)){ # iGroup = 2
-      v <- which( ( namesCi[,"variable"] == groups[iGroup,"variable"] ) & ( namesCi[,"group"] == groups[iGroup,"group"] ) )
+      v <- which( ( mapCi[,"variable"] == groups[iGroup,"variable"] ) & ( mapCi[,"group"] == groups[iGroup,"group"] ) )
       if(groups[iGroup,"group"] %in% names( object@relfac )){ # extract relfac
-        L[v,v] <- as(as(as( object@relfac[[ groups[iGroup,"group"] ]][ namesCi[v,"level"], namesCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+        L[v,v] <- as(as(as( object@relfac[[ groups[iGroup,"group"] ]][ mapCi[v,"level"], mapCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
       }else{ # build a digonal
         L[v,v] <- Matrix::Diagonal(n=length(v))
       }
     }
     Ci <- t(L) %*% Ci %*% L
     L <- NULL
-    Ci@Dimnames[[1]] <- namesCi$level
-    Ci@Dimnames[[2]] <- namesCi$variable
+    Ci@Dimnames[[1]] <- mapCi$level
+    Ci@Dimnames[[2]] <- mapCi$variable
   }
   # rotate back eigen (dense eigen vectors)
   eigmat <- ifelse(length(object@udu) > 0, TRUE, FALSE) # control to know if we should rotate
   if(eigmat){
     message(magenta(paste("Rotating back conditional variance using Eigen factors")))
-    groups <- unique(namesCi[,c("variable","group")])
+    groups <- unique(mapCi[,c("variable","group")])
     U <- Matrix::Matrix(0, nrow=nrow(Ci), ncol = ncol(Ci))
     for(iGroup in 1:nrow(groups)){ # iGroup = 2
-      v <- which( ( namesCi[,"variable"] == groups[iGroup,"variable"] ) & ( namesCi[,"group"] == groups[iGroup,"group"] ) )
+      v <- which( ( mapCi[,"variable"] == groups[iGroup,"variable"] ) & ( mapCi[,"group"] == groups[iGroup,"group"] ) )
       if(groups[iGroup,"group"] %in% names( object@udu$U ) ){ # extract relfac
-        U[v,v] <- as(as(as( object@udu$U[[ groups[iGroup,"group"] ]][ namesCi[v,"level"], namesCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+        U[v,v] <- as(as(as( object@udu$U[[ groups[iGroup,"group"] ]][ mapCi[v,"level"], mapCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
       }else{ # build a digonal
         U[v,v] <- Matrix::Diagonal(n=length(v))
       }
     }
     Ci <- U %*% Ci %*% t(U)
     U <- NULL
-    Ci@Dimnames[[1]] <- namesCi$level
-    Ci@Dimnames[[2]] <- namesCi$variable
+    Ci@Dimnames[[1]] <- mapCi$level
+    Ci@Dimnames[[2]] <- mapCi$variable
   }
   return(Ci)
 }
@@ -1596,9 +1596,9 @@ mkMmeIndex <- function(object) {
 
 Dtable <- function(object){
   
-  namesCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
+  mapCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
   
-  tab <- unique(namesCi[,c("variable","group","type")])
+  tab <- unique(mapCi[,c("variable","group","type")])
   tab[,"include"]=0
   tab[,"average"]=0
   return(tab)

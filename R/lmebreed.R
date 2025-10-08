@@ -318,7 +318,7 @@ setMethod("ranef", signature(object = "lmebreed"),
             ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
             ans <- ans[whichel]
             if(condVar){
-              namesCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
+              mapCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
               Ci <- getCi(object)
             }
             if (relmat) { # transform back when relfac was used
@@ -342,11 +342,11 @@ setMethod("ranef", signature(object = "lmebreed"),
                 }
                 # replace postVar if condVar=TRUE
                 if (condVar){
-                  namesCiNm <- namesCi[which(namesCi$group == nm),]
-                  intercepts <- unique(namesCiNm$variable)
+                  mapCiNm <- mapCi[which(mapCi$group == nm),]
+                  intercepts <- unique(mapCiNm$variable)
                   for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
                     iInter <- intercepts[j]
-                    v <- namesCiNm[which(namesCiNm$variable == iInter), "index"]
+                    v <- mapCiNm[which(mapCiNm$variable == iInter), "index"]
                     if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
                       attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci)[v]
                     }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
@@ -361,7 +361,7 @@ setMethod("ranef", signature(object = "lmebreed"),
             # before returning store the Ci and its names
             if(all(c(includePEV, condVar))){ # if both are TRUE add the PEV
               attr(ans, which="PEV") = Ci
-              attr(ans, which="namesCi") = namesCi
+              attr(ans, which="mapCi") = mapCi
             }
             return(ans)
           })
@@ -385,7 +385,7 @@ setMethod("predict", signature(object = "lmebreed"),
             }
             '%!in%' <- function(x,y)!('%in%'(x,y))
             if(is.null(hyperTable)){ # default rules for the hypertable
-              message(magenta("hyperTable argument not provided. Building a hyper table based on the classify argument. Please check the output slot 'hyperTable' to ensure that the different effects have been grouped and average as you expected."))
+              message(magenta("hyperTable argument not provided. Building a hyper table based on the classify argument. Please check the output slot 'hyperTable' to ensure that the different effects have been included and average as you expected."))
               hyperTable <- Dtable(object)
               # if the user wants a simple averaging  (no include) we add 1s to all rows and 'average'
               hyperTable$average[which(hyperTable$type == "fixed")]=1
@@ -411,7 +411,7 @@ setMethod("predict", signature(object = "lmebreed"),
             # get all information from the model
             BLUP <- ranef(object, condVar=TRUE)
             # get D table information
-            namesCi <- attr(BLUP, which="namesCi")
+            mapCi <- attr(BLUP, which="mapCi")
             # get inverse of coefficient matrix
             Ci <- attr(BLUP, which="PEV")
             # get coefficients
@@ -438,12 +438,12 @@ setMethod("predict", signature(object = "lmebreed"),
               iGroup <- hyperTable[iRow,"group"]
               # if we want to 'include' (nested we decide if we average or not)
               if(hyperTable[iRow,"include"]>0){
-                v <- which(namesCi[,"variable"]==iVar ) # match the intercept
-                m <- which( unlist(lapply(as.list(namesCi[,"group"]), function(x){length(which( c( strsplit(x, split = ":")[[1]], x )== iGroup ))} )) > 0 ) # match the slope
+                v <- which(mapCi[,"variable"]==iVar ) # match the intercept
+                m <- which( unlist(lapply(as.list(mapCi[,"group"]), function(x){length(which( c( strsplit(x, split = ":")[[1]], x )== iGroup ))} )) > 0 ) # match the slope
                 v <- intersect(v,m) # columns involving in one way or another the slope within this intecept: hyperTable[iRow,"group"]
                 for (jRow in 1:nrow(D)) { # jRow=3
                   ## direct match (same variable/intercept and group/slope)
-                  w <- which( unlist( lapply(as.list(namesCi[,"level"]), function(x){
+                  w <- which( unlist( lapply(as.list(mapCi[,"level"]), function(x){
                     length( which(strsplit(x, split = ":")[[1]] %in%
                                     c(
                                       rownames(D)[jRow], 
@@ -455,15 +455,6 @@ setMethod("predict", signature(object = "lmebreed"),
                     ) )
                   } ) ) > 0 )
                   
-                  # w <- which(namesCi[,"level"] %in%
-                  #              c(
-                  #                rownames(D)[jRow], 
-                  #                levsOr[jRow],
-                  #                strsplit(rownames(D)[jRow], split = ":")[[1]],
-                  #                strsplit(levsOr[jRow], split = ":")[[1]],
-                  #                "(Intercept)"
-                  #              )
-                  # )
                   myMatch <- intersect(v,w)
                   if (length(myMatch) > 0) {
                     D[jRow, myMatch] = 1
@@ -480,12 +471,12 @@ setMethod("predict", signature(object = "lmebreed"),
               # if simple averaging we just add 1s to all rows first, 
               # then we divide over the number of replicates for that effect
               if(hyperTable[iRow,"average"]>0 & hyperTable[iRow,"include"]==0){
-                v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
+                v <- which(mapCi[,"variable"]==iVar & mapCi[,"group"]==iGroup )
                 D[, v] = 1
                 nReps <- max(apply(D[,v,drop=FALSE],1,function(x){length(which(x>0))}))
                 if(hyperTable[iRow,"type"] == "fixed"){
                   # if averaging effect we need to check if intercept exist and add it
-                  nReps <- nReps + length(which(namesCi[,"level"] %in% "(Intercept)"))
+                  nReps <- nReps + length(which(mapCi[,"level"] %in% "(Intercept)"))
                 }
                 D[, v, drop=FALSE] =  D[, v, drop=FALSE]/nReps
               }
@@ -499,7 +490,7 @@ setMethod("predict", signature(object = "lmebreed"),
                                 predicted.value = predicted.value[,1], 
                                 std.error = std.error)
             # compile results
-            ans <- list(pvals=pvals, b=b, Ci=Ci, D=D, hyperTable=hyperTable, classify=classify )
+            ans <- list(pvals=pvals, b=b, Ci=Ci, D=D, mapCi=mapCi, hyperTable=hyperTable, classify=classify )
             return(ans)
           })
 
