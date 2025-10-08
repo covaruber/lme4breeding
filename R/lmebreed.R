@@ -385,11 +385,12 @@ setMethod("predict", signature(object = "lmebreed"),
             }
             '%!in%' <- function(x,y)!('%in%'(x,y))
             if(is.null(hyperTable)){
-              message(magenta("hyperTable argument not provided. Building a hyper table based on the classify argument. Please check the output to ensure the different effects have been grouped and average as you expected."))
+              message(magenta("hyperTable argument not provided. Building a hyper table based on the classify argument. Please check the output slot 'hyperTable' to ensure that the different effects have been grouped and average as you expected."))
               hyperTable <- Dtable(object)
               hyperTable$include[which(hyperTable$group %in% classify)]=1
-              hyperTable$include[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
-              hyperTable$average[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
+              hyperTable$include[which(hyperTable$group %in% "(Intercept)")]=1
+              # hyperTable$include[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
+              # hyperTable$average[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
             }
             # get all information from the model
             BLUP <- ranef(object, condVar=TRUE)
@@ -416,7 +417,7 @@ setMethod("predict", signature(object = "lmebreed"),
             D <- Matrix::Matrix(0, ncol=length(b), nrow=length(levs))
             rownames(D) <- levs
             # now add the rules specified in the hyperTable
-            for(iRow in 1:nrow(hyperTable)){ # iRow=1
+            for(iRow in 1:nrow(hyperTable)){ # iRow=2
               iVar <- hyperTable[iRow,"variable"]
               iGroup <- hyperTable[iRow,"group"]
               if(hyperTable[iRow,"include"]>0){

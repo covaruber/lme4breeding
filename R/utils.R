@@ -1565,6 +1565,12 @@ mkMmeIndex <- function(object) {
   CiBlue <- vcov(object )
   namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
                           variable="(Intercept)", group= colnames(CiBlue), type="fixed" )
+  fixedTerms <- terms(object)
+  fixedTerms <- attr(fixedTerms,"term.labels")
+  for(iF in fixedTerms){ # iF = fixedTerms[1]
+    Xi <- sparse.model.matrix(as.formula(paste("~",iF,"-1")), data=object@frame)
+    namesBlue$group[which(namesBlue$level %in% colnames(Xi))] <- iF
+  }
   
   namesBlup$index <- namesBlup$index + nrow(namesBlue)
   res <- rbind(namesBlue, namesBlup)
