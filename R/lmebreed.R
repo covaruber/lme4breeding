@@ -405,9 +405,12 @@ setMethod("predict", signature(object = "lmebreed"),
             )
             # create the D matrix of linear combination
             
-            classifys <- all.vars(as.formula(paste("~",classify,"-1")))
+            classifys <- unique(c( all.vars(as.formula(paste("~",classify,"-1"))), classify))
             Zd <- Matrix::sparse.model.matrix(as.formula(paste("~",classify,"-1")), data=object@frame ) 
-            colnames(Zd) <- gsub(classify,"",colnames(Zd))
+            levsOr <- colnames(Zd)
+            for(iClassify in classifys){
+              colnames(Zd) <- gsub(iClassify,"",colnames(Zd))
+            }
             levs <- colnames(Zd)
             D <- Matrix::Matrix(0, ncol=length(b), nrow=length(levs))
             rownames(D) <- levs
@@ -416,19 +419,28 @@ setMethod("predict", signature(object = "lmebreed"),
               iVar <- hyperTable[iRow,"variable"]
               iGroup <- hyperTable[iRow,"group"]
               if(hyperTable[iRow,"include"]>0){
-                if(hyperTable[iRow,"group"] %in% classifys){ # if this is a classify
-                  for (jRow in 1:nrow(D)) { # jRow=1
+                # if(hyperTable[iRow,"group"] %in% classifys){ # if this is a classify
+                  for (jRow in 1:nrow(D)) { # jRow=3
                     v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
-                    w <- which(namesCi[,"level"]==rownames(D)[jRow]  )
+                    w <- which(namesCi[,"level"] %in%
+                                 c(
+                                   rownames(D)[jRow], 
+                                   levsOr[jRow],
+                                   strsplit(rownames(D)[jRow], split = ":")[[1]],
+                                   strsplit(levsOr[jRow], split = ":")[[1]],
+                                   "(Intercept)"
+                                 )
+                    )
                     myMatch <- intersect(v,w)
+                    # print(myMatch)
                     if (length(myMatch) > 0) {
                       D[jRow, myMatch] = 1
                     }
                   }
-                }else{
-                  v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
-                  D[,v]=1
-                }
+                # }else{ # this group is not part of classify
+                #   v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
+                #   D[,v]=1
+                # }
               }
               if(hyperTable[iRow,"average"]>0){
                 D[,v]= D[,v]/length(v)
