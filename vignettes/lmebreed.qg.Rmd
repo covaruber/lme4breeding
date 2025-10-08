@@ -488,6 +488,7 @@ Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix 
 #                    relmat=list(id=G),
 #                    verbose = FALSE,
 #                    data=DTn)
+# vc <- VarCorr(modeln); print(vc,comp=c("Variance"))
 # 
 # ## compare regular and transformed blups
 # red <- ranef(modeld)$id
@@ -500,7 +501,7 @@ Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix 
 
 ```
 
-As can be seen, the two models are equivalent. The lme4breeding library uses this trick directly by setting the argument rotation=TRUE.
+As can be seen, the two models are equivalent. The lme4breeding library uses this trick directly by setting the argument rotation=TRUE. Remember this trick only works for balanced datasets.
 
 ### 3) Mating designs
 
@@ -655,13 +656,14 @@ Instead of fitting the RRBLUP/SNP-BLUP model we can fit a GBLUP model which is l
 #                      verbose = FALSE,
 #                      data=DT)
 # vc <- VarCorr(mix.part); print(vc,comp=c("Variance"))
-# mme <- getMME(object=mix.part)
-# #convert BLUPs to marker effects me=M'(M'M)- u
-# re <- ranef(mix.part)$id
-# a.from.g<-MTMMTinv[,rownames(re)]%*%matrix(re[,1],ncol=1)
-# var.g <- kronecker(MMT[rownames(re),rownames(re)],vc$id) - 
-#   mme$Ci[rownames(re),rownames(re) ]
-# var.a.from.g <- t(M)%*%MMTinv[,rownames(re)]%*% (var.g) %*% t(MMTinv[,rownames(re)])%*%M
+# # convert BLUPs to marker effects me=M'(M'M)- u
+# re <- ranef(mix.part)
+# u <- re$id
+# Ci <- attr(re, "PEV")
+# a.from.g<-MTMMTinv[,rownames(u)]%*%matrix(u[,1],ncol=1)
+# mu <- match(rownames(u),Ci@Dimnames[[1]])
+# var.g <- kronecker(MMT[rownames(u),rownames(u)],vc$id) - Ci[mu,mu]
+# var.a.from.g <- t(M)%*%MMTinv[,rownames(u)]%*% (var.g) %*% t(MMTinv[,rownames(u)])%*%M
 # se.a.from.g <- sqrt(diag(var.a.from.g))
 # t.stat.from.g <- a.from.g/se.a.from.g # t-statistic
 # pvalGBLUP <- dt(t.stat.from.g,df=n-k-1) # -log10(pval)
