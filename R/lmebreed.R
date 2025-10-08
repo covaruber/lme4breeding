@@ -384,13 +384,29 @@ setMethod("predict", signature(object = "lmebreed"),
               stop("Please provide the classify argument to build the D matrix.", call. = FALSE )
             }
             '%!in%' <- function(x,y)!('%in%'(x,y))
-            if(is.null(hyperTable)){
+            if(is.null(hyperTable)){ # default rules for the hypertable
               message(magenta("hyperTable argument not provided. Building a hyper table based on the classify argument. Please check the output slot 'hyperTable' to ensure that the different effects have been grouped and average as you expected."))
               hyperTable <- Dtable(object)
-              hyperTable$include[which(hyperTable$group %in% classify)]=1
+              # if the user wants a simple averaging  (no include) we add 1s to all rows and 'average'
+              hyperTable$average[which(hyperTable$type == "fixed")]=1
+              # if the group hypertable matches perfectly the classify we do 'include'
+              perfect <- which(hyperTable$group %in% classify)
+              hyperTable$include[perfect]=1
+              hyperTable$average[perfect]=0
+              # if the group hypertable includes an intercept we do 'include'
               hyperTable$include[which(hyperTable$group %in% "(Intercept)")]=1
-              # hyperTable$include[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
-              # hyperTable$average[which(hyperTable$group %!in% classify & hyperTable$type == "fixed")]=1
+              # if the group hypertable matches imperfectly the classify we do 'include' and 'average'
+              imperfect <- which( unlist( lapply(as.list(hyperTable$group ), function(x){
+                xx <- strsplit(x,split=":")[[1]]
+                myMatch <- length(which( xx %in% classify ))
+                return(myMatch)
+                })
+              ) > 0)
+              imperfect <- setdiff(imperfect, perfect)
+              if(length(imperfect) > 0){
+                hyperTable$include[imperfect]=1
+                hyperTable$average[imperfect]=1
+              }
             }
             # get all information from the model
             BLUP <- ranef(object, condVar=TRUE)
@@ -417,54 +433,63 @@ setMethod("predict", signature(object = "lmebreed"),
             D <- Matrix::Matrix(0, ncol=length(b), nrow=length(levs))
             rownames(D) <- levs
             # now add the rules specified in the hyperTable
-            for(iRow in 1:nrow(hyperTable)){ # iRow=3
+            for(iRow in 1:nrow(hyperTable)){ # iRow=2
               iVar <- hyperTable[iRow,"variable"]
               iGroup <- hyperTable[iRow,"group"]
+              # if we want to 'include' (nested we decide if we average or not)
               if(hyperTable[iRow,"include"]>0){
-                # if(hyperTable[iRow,"group"] %in% classifys){ # if this is a classify
-                  for (jRow in 1:nrow(D)) { # jRow=3
-                    ## direct match (same variable/intercept and group/slope)
-                    v <- which(namesCi[,"variable"]==iVar ) # & namesCi[,"group"]==iGroup )
-                    m <- which( unlist(lapply(as.list(namesCi[,"group"]), function(x){length(which( c( strsplit(x, split = ":")[[1]], x )== iGroup ))} )) > 0 )
-                    v <- intersect(v,m) # columns involving in one way or another hyperTable[iRow,"group"]
-                    
-                    w <- which( unlist( lapply(as.list(namesCi[,"level"]), function(x){
-                      length( which(strsplit(x, split = ":")[[1]] %in%
-                              c(
-                                rownames(D)[jRow], 
-                                levsOr[jRow],
-                                strsplit(rownames(D)[jRow], split = ":")[[1]],
-                                strsplit(levsOr[jRow], split = ":")[[1]],
-                                "(Intercept)"
-                              )
-                      ) )
-                      } ) ) > 0 )
-                    
-                    # w <- which(namesCi[,"level"] %in%
-                    #              c(
-                    #                rownames(D)[jRow], 
-                    #                levsOr[jRow],
-                    #                strsplit(rownames(D)[jRow], split = ":")[[1]],
-                    #                strsplit(levsOr[jRow], split = ":")[[1]],
-                    #                "(Intercept)"
-                    #              )
-                    # )
-                    myMatch <- intersect(v,w)
-                    if (length(myMatch) > 0) {
-                      D[jRow, myMatch] = 1
-                    }
-                    if(hyperTable[iRow,"average"]>0){
-                      D[jRow, myMatch] = D[jRow, myMatch]/length(myMatch)
-                    }
-                    ## indirect match
+                v <- which(namesCi[,"variable"]==iVar ) # match the intercept
+                m <- which( unlist(lapply(as.list(namesCi[,"group"]), function(x){length(which( c( strsplit(x, split = ":")[[1]], x )== iGroup ))} )) > 0 ) # match the slope
+                v <- intersect(v,m) # columns involving in one way or another the slope within this intecept: hyperTable[iRow,"group"]
+                for (jRow in 1:nrow(D)) { # jRow=3
+                  ## direct match (same variable/intercept and group/slope)
+                  w <- which( unlist( lapply(as.list(namesCi[,"level"]), function(x){
+                    length( which(strsplit(x, split = ":")[[1]] %in%
+                                    c(
+                                      rownames(D)[jRow], 
+                                      levsOr[jRow],
+                                      strsplit(rownames(D)[jRow], split = ":")[[1]],
+                                      strsplit(levsOr[jRow], split = ":")[[1]],
+                                      "(Intercept)"
+                                    )
+                    ) )
+                  } ) ) > 0 )
+                  
+                  # w <- which(namesCi[,"level"] %in%
+                  #              c(
+                  #                rownames(D)[jRow], 
+                  #                levsOr[jRow],
+                  #                strsplit(rownames(D)[jRow], split = ":")[[1]],
+                  #                strsplit(levsOr[jRow], split = ":")[[1]],
+                  #                "(Intercept)"
+                  #              )
+                  # )
+                  myMatch <- intersect(v,w)
+                  if (length(myMatch) > 0) {
+                    D[jRow, myMatch] = 1
                   }
-                # }else{ # this group is not part of classify
-                #   v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
-                #   D[,v]=1
-                # }
+                  
+                  ## indirect match
+                }
+                # in addition to include we ask to average
+                if(hyperTable[iRow,"average"]>0){
+                  nReps <- max(apply(D[,v,drop=FALSE],1,function(x){length(which(x>0))}))
+                  D[, v] = D[, v]/nReps
+                }
               }
-              
-              
+              # if simple averaging we just add 1s to all rows first, 
+              # then we divide over the number of replicates for that effect
+              if(hyperTable[iRow,"average"]>0 & hyperTable[iRow,"include"]==0){
+                v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
+                D[, v] = 1
+                nReps <- max(apply(D[,v,drop=FALSE],1,function(x){length(which(x>0))}))
+                if(hyperTable[iRow,"type"] == "fixed"){
+                  # if averaging effect we need to check if intercept exist and add it
+                  nReps <- nReps + length(which(namesCi[,"level"] %in% "(Intercept)"))
+                }
+                D[, v, drop=FALSE] =  D[, v, drop=FALSE]/nReps
+              }
+              ## end of rules
             }
             # compute the predicted values and std errors
             predicted.value <- D %*% b
