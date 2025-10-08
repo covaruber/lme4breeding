@@ -417,36 +417,53 @@ setMethod("predict", signature(object = "lmebreed"),
             D <- Matrix::Matrix(0, ncol=length(b), nrow=length(levs))
             rownames(D) <- levs
             # now add the rules specified in the hyperTable
-            for(iRow in 1:nrow(hyperTable)){ # iRow=2
+            for(iRow in 1:nrow(hyperTable)){ # iRow=3
               iVar <- hyperTable[iRow,"variable"]
               iGroup <- hyperTable[iRow,"group"]
               if(hyperTable[iRow,"include"]>0){
                 # if(hyperTable[iRow,"group"] %in% classifys){ # if this is a classify
                   for (jRow in 1:nrow(D)) { # jRow=3
-                    v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
-                    w <- which(namesCi[,"level"] %in%
-                                 c(
-                                   rownames(D)[jRow], 
-                                   levsOr[jRow],
-                                   strsplit(rownames(D)[jRow], split = ":")[[1]],
-                                   strsplit(levsOr[jRow], split = ":")[[1]],
-                                   "(Intercept)"
-                                 )
-                    )
+                    ## direct match (same variable/intercept and group/slope)
+                    v <- which(namesCi[,"variable"]==iVar ) # & namesCi[,"group"]==iGroup )
+                    m <- which( unlist(lapply(as.list(namesCi[,"group"]), function(x){length(which( c( strsplit(x, split = ":")[[1]], x )== iGroup ))} )) > 0 )
+                    v <- intersect(v,m) # columns involving in one way or another hyperTable[iRow,"group"]
+                    
+                    w <- which( unlist( lapply(as.list(namesCi[,"level"]), function(x){
+                      length( which(strsplit(x, split = ":")[[1]] %in%
+                              c(
+                                rownames(D)[jRow], 
+                                levsOr[jRow],
+                                strsplit(rownames(D)[jRow], split = ":")[[1]],
+                                strsplit(levsOr[jRow], split = ":")[[1]],
+                                "(Intercept)"
+                              )
+                      ) )
+                      } ) ) > 0 )
+                    
+                    # w <- which(namesCi[,"level"] %in%
+                    #              c(
+                    #                rownames(D)[jRow], 
+                    #                levsOr[jRow],
+                    #                strsplit(rownames(D)[jRow], split = ":")[[1]],
+                    #                strsplit(levsOr[jRow], split = ":")[[1]],
+                    #                "(Intercept)"
+                    #              )
+                    # )
                     myMatch <- intersect(v,w)
-                    # print(myMatch)
                     if (length(myMatch) > 0) {
                       D[jRow, myMatch] = 1
                     }
+                    if(hyperTable[iRow,"average"]>0){
+                      D[jRow, myMatch] = D[jRow, myMatch]/length(myMatch)
+                    }
+                    ## indirect match
                   }
                 # }else{ # this group is not part of classify
                 #   v <- which(namesCi[,"variable"]==iVar & namesCi[,"group"]==iGroup )
                 #   D[,v]=1
                 # }
               }
-              if(hyperTable[iRow,"average"]>0){
-                D[,v]= D[,v]/length(v)
-              }
+              
               
             }
             # compute the predicted values and std errors
