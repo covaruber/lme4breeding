@@ -381,7 +381,7 @@ setMethod("predict", signature(object = "lmebreed"),
           function(object, hyperTable=NULL, classify=NULL, ...)  {
             
             if(is.null(classify)){
-              stop("Please provide the D argument to indicate the classify argument.", call. = FALSE )
+              stop("Please provide the classify argument to build the D matrix.", call. = FALSE )
             }
             '%!in%' <- function(x,y)!('%in%'(x,y))
             if(is.null(hyperTable)){
