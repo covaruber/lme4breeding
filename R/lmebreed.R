@@ -77,7 +77,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     lmerc$trace <- NULL # remove relmat from the match call
     lmerc$dateWarning=NULL; lmerc$rotation=NULL; lmerc$rotationK=NULL
     lmerc$coefOutRotation=NULL; lmerc$returnParams=NULL; lmerc$returnMod=NULL
-    mm <- eval.parent(lmerc)
+    suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
     cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
     # put it in a lmebreed object
     ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), #goodRecords=goodRecords,
