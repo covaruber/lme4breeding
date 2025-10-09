@@ -48,10 +48,6 @@ csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), 
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 ansCSDG <- lmebreed(as.formula(csdiagFormula),
                     relmat = list(Name = A ),
-                   # how to control n iterations
-                   # control = lmerControl( 
-                   #  optCtrl = list(maxfun = 100, maxeval = 100)
-                   #   ),
                     data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 
@@ -66,10 +62,6 @@ csdiagFormula <- paste0( "Yield ~ Env",
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 ansCSDG <- lmebreed(as.formula(csdiagFormula),
                     relmat = list(Name = A ),
-                    # how to control n iterations
-                    # control = lmerControl( 
-                    #  optCtrl = list(maxfun = 100, maxeval = 100)
-                    #   ),
                     data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 sigma(ansCSDG)^2 # error variance

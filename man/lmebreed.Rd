@@ -10,7 +10,7 @@
 \usage{
 lmebreed(formula, data, REML = TRUE, control = list(), start = NULL, 
          verbose = 1L, subset, weights, na.action, offset, contrasts = NULL, 
-         calc.derivs = FALSE,
+         calc.derivs = FALSE, nIters=100,
          # lmebreed special params
          family = NULL, relmat = list(), addmat = list(), trace=1L,
          dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=8, 
@@ -45,6 +45,11 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   to speed up computation. This means that in lme4breeding if you pass calc.derivs
   inside the lmerControl object it won't have any effect. You need to set it using the 
   argument in the lmebreed function.}
+  
+  \item{nIters}{the number of iterations used by the \code{\link[lme4]{optimizeGlmer}} 
+  and \code{\link[lme4]{optimizeLmer}} functions. Internally, it replaces the values of
+  the \code{maxfun} and \code{maxeval} arguments in the \code{\link[lme4]{lmerControl}} 
+  optCtrl passed. }
   
   \item{family}{as in \code{\link[lme4]{glmer}}}
   
@@ -127,7 +132,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   \code{\link{overlay}} for overlay matrices, \code{\link{reshape}} for moving wide 
   format multi-trait datasets into long format.
   
-  When using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep 
+  Normally, using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep 
   in mind that the number of iterations is called differently depending on the optimizer. 
   For \code{\link[lme4]{Nelder_Mead}}, bobyqa and \code{\link[lme4]{nlminbwrap}} is
   called "maxfun" whereas for \code{\link[lme4]{nloptwrap}} is called "maxeval". 
@@ -140,7 +145,8 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
          ), ...
         )}
         
-  To predict values for unobserved levels you will need to impute the data and update
+  But here, we have created the \code{nIters} argument to control the number of iterations
+  in the optimizer. To predict values for unobserved levels you will need to impute the data and update
   your model with the new dataset and the initial starting values:
   
   \code{

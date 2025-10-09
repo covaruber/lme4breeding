@@ -1,7 +1,7 @@
 #### "relmat" class methods
 lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL, 
                       verbose = 1L, subset, weights, na.action, offset, contrasts = NULL,
-                      calc.derivs=FALSE,
+                      calc.derivs=FALSE, nIters=100,
                       # new params
                       family = NULL, relmat = list(),  addmat=list(), trace=1L,
                       dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
@@ -40,7 +40,8 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         restart_edge = FALSE,
         check.nobs.vs.nlev = "ignore",
         check.nobs.vs.rankZ = "ignore",
-        check.nobs.vs.nRE="ignore"
+        check.nobs.vs.nRE="ignore",
+        optCtrl = list(maxfun = nIters, maxeval = nIters)
       )
     }else{
       control <- glmerControl(
@@ -48,7 +49,8 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         restart_edge = FALSE,
         check.nobs.vs.nlev = "ignore",
         check.nobs.vs.rankZ = "ignore",
-        check.nobs.vs.nRE="ignore"
+        check.nobs.vs.nRE="ignore",
+        optCtrl = list(maxfun = nIters, maxeval = nIters)
       )
     }
   }else{ # if user provides a control force this 3 controls
@@ -56,6 +58,8 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     control$checkControl$check.nobs.vs.rankZ = "ignore"
     control$checkControl$check.nobs.vs.nRE="ignore"
     control$calc.derivs = calc.derivs
+    control$optCtrl$maxfun=nIters
+    control$optCtrl$maxeval=nIters
   }
   # lmerc$formula <- formula; lmerc$data <- data; 
   # lmerc$control <- control # only if we are using it 
@@ -67,6 +71,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   if (!gaus) {lmerc$REML <- NULL}
   ## if there are no relmats or additional matrices just return th regular lmer model
   if (!length(relmat) & !length(addmat))  {
+    lmerc$nIters <- NULL # remove relmat
     lmerc$relmat <- NULL # remove relmat from the match call to avoid errors when evaluating the call
     lmerc$addmat <- NULL # remove relmat from the match call
     lmerc$trace <- NULL # remove relmat from the match call
@@ -140,6 +145,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   
   # >>>>>>>>> use the match call to parse the data and formula
   lmerc[[1]] <- if (gaus){as.name("lFormula")}else{as.name("glFormula")} # change from model to lFormula
+  lmerc$nIters <- NULL # remove nIters
   lmerc$relmat <- NULL # remove relmat from the match call
   lmerc$addmat <- NULL # remove relmat from the match call
   lmerc$dateWarning <- NULL # remove relmat from the match call

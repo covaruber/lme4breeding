@@ -51,10 +51,6 @@ residualFormula <- paste0( "(0+", paste(colnames(Z), collapse = "+"), "|| units)
 form <- paste(csdiagFormula , blockFormula, residualFormula, sep="+")
 
 ans1b <- lmebreed(as.formula(form),
-                  # how to control n iterations
-                  # control = lmerControl( 
-                  #  optCtrl = list(maxfun = 100, maxeval = 100)
-                  #   ),
                   verbose = 1L,
                   data=DT)
 vc <- VarCorr(ans1b); print(vc,comp=c("Variance"))

@@ -32,11 +32,7 @@ data(DT_sleepstudy)
 DT <- DT_sleepstudy
 head(DT)
 ##################################
-fm1 <- lmebreed(Reaction ~ Days + (1 | Subject), 
-                 # how to control n iterations
-                 # control = lmerControl( 
-                 #  optCtrl = list(maxfun = 100, maxeval = 100)
-                 #   ),
+fm1 <- lmebreed(Reaction ~ Days + (1 | Subject),
                 data=DT)
 vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
 sigma(fm1)^2 # error variance
