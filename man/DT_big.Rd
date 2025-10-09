@@ -50,7 +50,7 @@ mixm2 <- lmebreed(formula=as.formula(csdiagFormula), data = DT,
                   relmat = list(id = MMT), 
                   control = lmerControl( 
                    restart_edge = FALSE
-                  ),
+                  ), nIters=1000,
                   verbose=1L, rotation=TRUE
 )
 
