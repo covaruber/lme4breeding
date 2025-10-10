@@ -8,13 +8,13 @@
     stop("This package requires R 3.5.0 or later")
   if(interactive()) {
     packageStartupMessage(blue(paste("[]==================================================================[]")),appendLF=TRUE)
-    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.8 (2025-12) []",sep="")),appendLF=TRUE)
-    packageStartupMessage(paste0(blue("[] Author: Giovanny Covarrubias-Pazaran",paste0(bgGreen(white(" ")), bgWhite(magenta("*")), bgRed(white(" "))),"                        []")),appendLF=TRUE)
-    packageStartupMessage(blue("[] With the support of the lme4 dev team (Bolker, Bates, et al.)    []"),appendLF=TRUE)
+    packageStartupMessage(blue(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.0.9 (2025-12) []",sep="")),appendLF=TRUE)
+    packageStartupMessage(paste0(blue("[] Author: Giovanny Covarrubias-Pazaran",paste0(bgGreen(white(" ")), bgWhite(magenta("*")), bgRed(white(" ")),"  ", bgRed(bold(yellow(" (") )),bgRed(bold(white("W"))), bgRed(bold(yellow(") "))) ) ,"                 []")),appendLF=TRUE)
+    packageStartupMessage(blue("[] Special thanks to the lme4 dev team (Bolker, Bates, et al.)      []"),appendLF=TRUE)
     packageStartupMessage(blue("[] Type 'vignette('lmebreed.gxe')' for a short tutorial             []"),appendLF=TRUE)
     packageStartupMessage(blue("[] Type 'citation('lme4breeding')' to know how to cite it           []"),appendLF=TRUE)
     packageStartupMessage(blue(paste("[]==================================================================[]")),appendLF=TRUE)
-    packageStartupMessage(blue("lme4breeding is updated on CRAN every 4-months due to CRAN policies"),appendLF=TRUE)
+    packageStartupMessage(blue("lme4breeding is updated on CRAN every 3-months due to CRAN policies"),appendLF=TRUE)
     packageStartupMessage(blue("Source code is available at https://github.com/covaruber/lme4breeding"),appendLF=TRUE)
   }
   invisible()
