@@ -5,7 +5,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
                       # new params
                       family = NULL, relmat = list(),  addmat=list(), trace=1L,
                       dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
-                      returnParams=FALSE, returnMod=FALSE, ...)
+                      returnFormula=FALSE, suppressOpt=FALSE, ...)
 {
   my.date <- "2026-01-01" # expiry date
   your.date <- Sys.Date()
@@ -76,7 +76,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     lmerc$addmat <- NULL # remove relmat from the match call
     lmerc$trace <- NULL # remove relmat from the match call
     lmerc$dateWarning=NULL; lmerc$rotation=NULL; lmerc$rotationK=NULL
-    lmerc$coefOutRotation=NULL; lmerc$returnParams=NULL; lmerc$returnMod=NULL
+    lmerc$coefOutRotation=NULL; lmerc$returnFormula=NULL; lmerc$suppressOpt=NULL
     suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
     cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
     # put it in a lmebreed object
@@ -152,8 +152,8 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   lmerc$rotation <- NULL # remove relmat from the match call
   lmerc$rotationK <- NULL # remove relmat from the match call
   lmerc$coefOutRotation <- NULL # remove relmat from the match call
-  lmerc$returnParams <- NULL # remove relmat from the match call
-  lmerc$returnMod <- NULL # remove relmat from the match call
+  lmerc$returnFormula <- NULL # remove relmat from the match call
+  lmerc$suppressOpt <- NULL # remove relmat from the match call
   
   suppressWarnings( lmod <- eval.parent(lmerc) , classes = "warning") # necesary objects from lFormula
   
@@ -270,14 +270,14 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       lmod$control <- control
     }
   }
-  if(returnParams){ # if user only wants the incidence matrices
+  if(returnFormula){ # if user only wants the incidence matrices
     return(lmod)
   }else{
     if(trace){message(magenta("* Optimizing ..."))}
     if (gaus) { # gaussian distribution
       lmod$REML = REML # TRUE# resp$REML > 0L
       suppressWarnings( devfun <- do.call(mkLmerDevfun, lmod ), classes = "warning") # creates a deviance function
-      if(returnMod){ # user wants to force variance components without fitting a model
+      if(suppressOpt){ # user wants to force variance components without fitting a model
         opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
       }else{ # # user wants to optimize the varcomp optimizer
         suppressWarnings( opt <- optimizeLmer(devfun, optimizer = lmod$control$optimizer, 
@@ -291,7 +291,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     } else { # exponential family of distributions
       lmod$family <- family
       suppressWarnings( devfun <- do.call(mkGlmerDevfun,lmod) , classes = "warning") # creates a deviance function
-      if(returnMod){ # user wants to force variance components without optimizing
+      if(suppressOpt){ # user wants to force variance components without optimizing
         opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
       }else{ # user wants to optimize the varcomp optimizer
         suppressWarnings( opt <- optimizeGlmer(devfun, optimizer = lmod$control$optimizer, 

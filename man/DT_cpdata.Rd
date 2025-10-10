@@ -51,7 +51,7 @@ sigma(mix1)^2 # error variance
 # to make sure you get predictions for every level
 DT2 <- DT
 DT2$Yield <- imputev(DT2$Yield)
-mix2 <- update(mix1, returnMod = TRUE,
+mix2 <- update(mix1, suppressOpt = TRUE,
                start=getME(mix1, "theta"), 
                data=DT2)
 predsMix2 <- ranef(mix2)

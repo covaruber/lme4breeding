@@ -14,7 +14,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
          # lmebreed special params
          family = NULL, relmat = list(), addmat = list(), trace=1L,
          dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=8, 
-         returnParams=FALSE, returnMod=FALSE, ...)
+         returnFormula=FALSE, suppressOpt=FALSE, ...)
 }
 \arguments{
 
@@ -84,12 +84,13 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   be used in the rotation of the response when using the eigen decomposition to avoid 
   overshooting.}
   
-  \item{returnParams}{a logical value indicating if you want to only get the results from
+  \item{returnFormula}{a logical value indicating if you want to only get the results from
   the \code{\link[lme4]{lFormula}} after the relmat and addmat arguments have been applied.
   This is normally just used for debugging.}
   
-  \item{returnMod}{a logical value indicating if you want to force the model to use 
-    your customized variance components without estimating them. The variance components
+  \item{suppressOpt}{a logical value indicating if you want to force the model to use 
+    your customized variance components without estimating them. It skips the 
+    optimize(g)Lmer step to force the customized variance components. The variance components
     should be provided in the \code{start} argument. If you want to provide the variance
     components from a previous model you can get the initial values by running:
     
@@ -150,7 +151,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   your model with the new dataset and the initial starting values:
   
   \code{
-    newModel <- update(oldModel, returnMod = TRUE,
+    newModel <- update(oldModel, suppressOpt = TRUE,
                        start=getME(oldModel, 'sigma'), 
                        data=imputedData)
   }
