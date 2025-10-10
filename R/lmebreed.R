@@ -374,13 +374,17 @@ setMethod("ranef", signature(object = "lmebreed"),
 
 setMethod("fitted", signature(object = "lmebreed"),
           function(object, ...) {
-            stop("fitted() not applicable to lmebreed objects")
+            W <- do.call(cbind, getME(object = object, c("X","Z")) )
+            b <- rbind( fixef(object),
+                        getME(object = object, c("b")) )
+            y.hat <- W%*%b
+            return(y.hat)
           })
 
 
 setMethod("residuals", signature(object = "lmebreed"),
           function(object, ...) {
-            stop("residuals() not applicable to lmebreed objects")
+            getME(object, "y") - fitted(object)
           })
 
 setMethod("predict", signature(object = "lmebreed"),
