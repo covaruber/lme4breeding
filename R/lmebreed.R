@@ -330,11 +330,11 @@ setMethod("ranef", signature(object = "lmebreed"),
           function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includePEV=TRUE, ...)  {
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
-            ans <- lme4::ranef(object, condVar, drop = FALSE) # as(object, "merMod")
+            ans <- lme4::ranef(object, condVar=FALSE, drop = FALSE) # extracts condVar 1st time
             ans <- ans[whichel]
             if(condVar){
               mapCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
-              Ci <- getCi(object)
+              Ci <- getCi(object) # internally we're extracting condVar 2nd time
             }
             if (relmat) { # transform back when relfac was used
               rf <- object@relfac
@@ -359,16 +359,18 @@ setMethod("ranef", signature(object = "lmebreed"),
                 if (condVar){
                   mapCiNm <- mapCi[which(mapCi$group == nm),]
                   intercepts <- unique(mapCiNm$variable)
+                  postVarNm <- matrix(NA, ncol=length(intercepts), nrow=nrow(mapCiNm)/length(intercepts) )
                   for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
                     iInter <- intercepts[j]
                     v <- mapCiNm[which(mapCiNm$variable == iInter), "index"]
-                    if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
-                      attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci)[v]
-                    }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
-                      attr(ans[[nm]], which="postVar")[j,j,] <- diag(Ci)[v]
-                    }
+                    postVarNm[,j]<-diag(Ci)[v]
+                    # if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
+                    #   attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci)[v]
+                    # }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
+                    #   attr(ans[[nm]], which="postVar")[j,j,] <- diag(Ci)[v]
+                    # }
                   }
-                  
+                  attr(ans[[nm]], which="postVar") <- postVarNm
                 }
               }
               
