@@ -31,6 +31,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     gaus <- family$family == "gaussian" && family$link == "identity"
   }
   mc <- match.call()
+  
   lmerc <- mc                         # create a call to lmer 
   ## >>>>>>>>>>>> create control if user didn't specify it for the 3 things we want to force
   if(length(control)==0){
@@ -53,7 +54,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         optCtrl = list(maxfun = nIters, maxeval = nIters)
       )
     }
-  }else{ # if user provides a control force this 3 controls
+  }else{ # if user provides a control force these controls
     control$checkControl$check.nobs.vs.nlev = "ignore"
     control$checkControl$check.nobs.vs.rankZ = "ignore"
     control$checkControl$check.nobs.vs.nRE="ignore"
@@ -68,6 +69,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   lmerc$family <- family
   lmerc$control <- control
   lmerc$start <- start
+  lmerc$verbose <- verbose # remove relmat from the match call
   if (!gaus) {lmerc$REML <- NULL}
   ## if there are no relmats or additional matrices just return th regular lmer model
   if (!length(relmat) & !length(addmat))  {
@@ -77,67 +79,22 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     lmerc$trace <- NULL # remove relmat from the match call
     lmerc$dateWarning=NULL; lmerc$rotation=NULL; lmerc$rotationK=NULL
     lmerc$coefOutRotation=NULL; lmerc$returnFormula=NULL; lmerc$suppressOpt=NULL
-    suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
-    cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
-    # put it in a lmebreed object
-    ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), #goodRecords=goodRecords,
-                             frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
-                             theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
-                             devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
-    ans@call <- evalq(mc)
-    return(ans)
+    if(returnFormula){
+      lmerc[[1]] <- if (gaus){as.name("lFormula")}else{as.name("glFormula")} 
+      suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
+      return(mm)
+    }else{
+      suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
+      cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
+      # put it in a lmebreed object
+      ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), #goodRecords=goodRecords,
+                               frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
+                               theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
+                               devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
+      ans@call <- evalq(mc)
+      return(ans)
+    }
   }            # call [g]lmer instead
-  
-  ## DO TRANSFORMATION BEFORE EVALUATING THE CALL
-  '%!in%' <- function(x,y)!('%in%'(x,y)) 
-  response <- all.vars(formula)[1]
-  # control to ignore relmats if there's no match with formula vars
-  if(length(relmat) > 0){
-    if( length(intersect(names(relmat), all.vars(formula) )) == 0){
-      relmat <- list()
-    }
-  }
-  # control to ignore addmats if there's no match with formula vars
-  if(length(addmat) > 0){
-    if( length(intersect(names(addmat), all.vars(formula) )) == 0){
-      addmat <- list()
-    }
-  }
-  if( response %!in% colnames(data) ){stop("Response selected in your formula is not part of the dataset provided.", call. = FALSE)}
-  goodRecords <- which(!is.na(data[,response]))
-  udu <- list()
-  # >>>>>>>>> get cholesky factor (and new response if rotation)
-  if(length(relmat) > 0){ 
-    if(rotation){ # if UDU decomposition + Cholesky is requested
-      if(length(relmat) > 1){warning("Rotation is only reported to be accurate with one relationship matrix. Make sure you are using the same relationship matrix for the different random effects for the rotation approach.", call. = FALSE)}
-      for(iRel in 1:length(relmat)){
-        idsOrdered <- as.character(unique(data[,names(relmat)[iRel]])) # when we rotate we need to have relmat already ordered before creating the matrices
-        relmat[[iRel]] = relmat[[iRel]][ idsOrdered , idsOrdered ]
-      }
-      # only the first relmat will be used so if more, the rotation will only work if it is the same relmat in the next random effects
-      udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, 
-                  data=data, addmat = addmat, k=rotationK)
-      # if rotation we impute the response
-      data[,response] <- imputev(x=data[,response],method="median")#, by=data[udu$effect])
-      newValues <- udu$Utn %*% Matrix::Matrix(data[,response])
-      newValues <- newValues[,1]
-      outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
-      if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
-      data[,response] <- newValues
-      if(trace){message(magenta("* Rotation of response finished."))}
-      for(iD in names(udu$D)){
-        relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
-      }
-      udu$newValues <- newValues
-      lmerc$data <- data
-      if(trace){message(magenta("* Cholesky decomposition finished."))}
-    }else{ # classical approach, just cholesky
-      for (i in seq_along(relmat)) {
-        relmat[[i]] <- Matrix::chol(relmat[[i]])
-      }
-      if(trace){message(magenta("* Cholesky decomposition finished."))}
-    }
-  }
   
   stopifnot(is.list(relmat),        # check the relmat argument
             length(names(relmat)) == length(relmat),
@@ -156,6 +113,58 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   lmerc$suppressOpt <- NULL # remove relmat from the match call
   
   suppressWarnings( lmod <- eval.parent(lmerc) , classes = "warning") # necesary objects from lFormula
+  # return(lmod)
+  
+  ## DO ROTATION OF RESPONSE AND RELMATS IF REQUIRED (lmod$fr[,response])
+  '%!in%' <- function(x,y)!('%in%'(x,y)) 
+  response <- all.vars(formula)[1]
+  # control to ignore relmats if there's no match with formula vars
+  if(length(relmat) > 0){
+    if( length(intersect(names(relmat), all.vars(formula) )) == 0){
+      relmat <- list()
+    }
+  }
+  # control to ignore addmats if there's no match with formula vars
+  if(length(addmat) > 0){
+    if( length(intersect(names(addmat), all.vars(formula) )) == 0){
+      addmat <- list()
+    }
+  }
+  if( response %!in% colnames(lmod$fr) ){stop("Response selected in your formula is not part of the dataset provided.", call. = FALSE)}
+  goodRecords <- which(!is.na(lmod$fr[,response]))
+  udu <- list()
+  # >>>>>>>>> get cholesky factor (and new response if rotation)
+  if(length(relmat) > 0){ 
+    if(rotation){ # if UDU decomposition + Cholesky is requested
+      if(length(relmat) > 1){warning("Rotation is only reported to be accurate with one relationship matrix. Make sure you are using the same relationship matrix for the different random effects for the rotation approach.", call. = FALSE)}
+      for(iRel in 1:length(relmat)){
+        idsOrdered <- as.character(unique(lmod$fr[,names(relmat)[iRel]])) # when we rotate we need to have relmat already ordered before creating the matrices
+        relmat[[iRel]] = relmat[[iRel]][ idsOrdered , idsOrdered ]
+      }
+      # only the first relmat will be used so if more, the rotation will only work if it is the same relmat in the next random effects
+      udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, 
+                  data=lmod$fr, addmat = addmat, k=rotationK)
+      # if rotation we impute the response
+      lmod$fr[,response] <- imputev(x=lmod$fr[,response],method="median")#, by=data[udu$effect])
+      newValues <- udu$Utn %*% Matrix::Matrix(lmod$fr[,response])
+      newValues <- newValues[,1]
+      outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
+      if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
+      lmod$fr[,response] <- newValues
+      if(trace){message(magenta("* Rotation of response finished."))}
+      for(iD in names(udu$D)){
+        relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
+      }
+      udu$newValues <- newValues
+      # lmerc$data <- data
+      if(trace){message(magenta("* Cholesky decomposition finished."))}
+    }else{ # classical approach, just cholesky
+      for (i in seq_along(relmat)) {
+        relmat[[i]] <- Matrix::chol(relmat[[i]])
+      }
+      if(trace){message(magenta("* Cholesky decomposition finished."))}
+    }
+  }
   
   # >>>>>>>>> extract relevant matrices from the lFormula object
   relfac <- relmat          # copy te relmat list for relfactor
@@ -294,7 +303,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       if(suppressOpt){ # user wants to force variance components without optimizing
         opt <- list(par = start, fval = devfun(start), feval = 1, conv = 0)
       }else{ # user wants to optimize the varcomp optimizer
-        suppressWarnings( opt <- optimizeGlmer(devfun, optimizer = lmod$control$optimizer, 
+        suppressWarnings( opt <- optimizeGlmer(devfun, optimizer = lmod$control$optimizer[1], # only first optimizer used 
                                                control = lmod$control$optCtrl, 
                                                verbose=lmod$verbose, 
                                                calc.derivs=lmod$control$calc.derivs,
@@ -410,7 +419,7 @@ setMethod("predict", signature(object = "lmebreed"),
                 xx <- strsplit(x,split=":")[[1]]
                 myMatch <- length(which( xx %in% classify ))
                 return(myMatch)
-                })
+              })
               ) > 0)
               imperfect <- setdiff(imperfect, perfect)
               if(length(imperfect) > 0){

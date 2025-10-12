@@ -49,7 +49,9 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   \item{nIters}{the number of iterations used by the \code{\link[lme4]{optimizeGlmer}} 
   and \code{\link[lme4]{optimizeLmer}} functions. Internally, it replaces the values of
   the \code{maxfun} and \code{maxeval} arguments in the \code{\link[lme4]{lmerControl}} 
-  optCtrl passed. }
+  optCtrl passed.This means that in lme4breeding if you pass calc.derivs
+  inside the lmerControl object it won't have any effect. You need to set it using the 
+  argument in the lmebreed function. }
   
   \item{family}{as in \code{\link[lme4]{glmer}}}
   
