@@ -1543,7 +1543,7 @@ getCi <- function(object){
     U <- do.call(bdiag, Ul)
     U <- U[unlist(vl), unlist(vl)]
     # Ci <- U %*% Ci %*% t(U)
-    Ci <- tcrossprod(U, Ci %*% U)
+    Ci <- tcrossprod(U%*%Ci,U)
     U <- NULL
     Ci@Dimnames[[1]] <- mapCi$level
     Ci@Dimnames[[2]] <- mapCi$variable
