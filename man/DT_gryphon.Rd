@@ -53,7 +53,7 @@ mix1 <- lmebreed(BWT~ (1|ANIMAL),
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 sigma(mix1)^2 # error variance
 BLUP <- ranef(mix1, condVar=TRUE)
-SEs <- attr(BLUP$ANIMAL, which="postVar")[,,]
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
 
 
 ### multi-trait model

@@ -33,7 +33,7 @@ mix <- lmebreed(stems~1 + (1|female)+(1|male),
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 sigma(mix)^2 # error variance
 BLUP <- ranef(mix, condVar=TRUE)
-SEs <- attr(BLUP$female, which="postVar")[,,]
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
 
 }
 \keyword{datasets}

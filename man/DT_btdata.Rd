@@ -34,7 +34,7 @@ mix4 <- lmebreed(tarsus ~ sex + (1|dam) + (1|fosternest),
 vc <- VarCorr(mix4); print(vc,comp=c("Variance"))
 sigma(mix4)^2 # error variance
 BLUP <- ranef(mix4, condVar=TRUE)
-SEs <- attr(BLUP$dam, which="postVar")[,,]
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
 
 ### multi-trait model
 traits <- c("tarsus" ,"back", "hatchdate")

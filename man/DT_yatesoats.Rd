@@ -38,11 +38,14 @@
 data(DT_yatesoats)
 DT <- DT_yatesoats
 head(DT)
-m3 <- lmebreed(Y ~ V + N + V:N +
+mix <- lmebreed(Y ~ V + N + V:N +
              (1|B) + (1|B:MP),
            data = DT)
-vc <- VarCorr(m3); print(vc,comp=c("Variance"))
-sigma(m3)^2 # error variance
+vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+sigma(mix)^2 # error variance
+
+BLUP <- ranef(mix, condVar=TRUE)
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
 
 }
 

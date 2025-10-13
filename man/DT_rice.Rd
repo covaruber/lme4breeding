@@ -73,6 +73,9 @@ vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 vc$geno
 sigma(mix)^2 # error variance
 
+BLUP <- ranef(mix, condVar=TRUE)
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
+
 }
 
 

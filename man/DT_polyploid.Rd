@@ -61,6 +61,9 @@ ans <- lmebreed(tuber_shape~ (1|Name),
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 sigma(ans)^2 # error variance
 
+BLUP <- ranef(ans, condVar=TRUE)
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
+
 }
 
 }

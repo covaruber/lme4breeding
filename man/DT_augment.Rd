@@ -31,12 +31,12 @@ DT <- DT_augment
 head(DT)
 
 ## fit the mixed model and check summary
-mix1 <- lmebreed(TSW ~ Check.Gen + (1|Block) + (1|Genotype:Check),
+mix <- lmebreed(TSW ~ Check.Gen + (1|Block) + (1|Genotype:Check),
              data=DT)
-vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
-sigma(mix1)^2 # error variance
-BLUP <- ranef(mix1, condVar=TRUE)
-SEs <- attr(BLUP$`Genotype:Check`, which="postVar")[,,]
+vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+sigma(mix)^2 # error variance
+BLUP <- ranef(mix, condVar=TRUE)
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
 
 }
 \keyword{datasets}

@@ -48,6 +48,9 @@ mod1h <- lmebreed(Ftime ~ 1 + (1|Block) +
                   data=DT2 )
 vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
 
+BLUP <- ranef(mod1h, condVar=TRUE)
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
+
 ##                                    VarComp VarCompSE   Zratio
 ## Block.Ftime-Ftime                  0.00000   9.32181 0.000000
 ## overlay(Par1, Par2).Ftime-Ftime 1276.73089 750.17269 1.701916

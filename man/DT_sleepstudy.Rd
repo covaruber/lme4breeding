@@ -51,6 +51,8 @@ vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
 fm1 <- lmebreed(Reaction ~ Days + (0 + Days | Subject), data=DT)
 vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
 
+BLUP <- ranef(fm1, condVar=TRUE)
+SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
 
 }
 

@@ -115,8 +115,8 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   response <- all.vars(formula)[1]
   if(rotation){ # if user want rotation we need to impute in advance
     if(!missing(data)){
-      data[,response] <- imputev(data[,response])
       lmerc$data <- data
+      lmerc$data[,response] <- imputev(data[,response])
     }
   }
   suppressWarnings( lmod <- eval.parent(lmerc) , classes = "warning") # necesary objects from lFormula
@@ -137,7 +137,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     }
   }
   if( response %!in% colnames(lmod$fr) ){stop("Response selected in your formula is not part of the dataset provided.", call. = FALSE)}
-  goodRecords <- which(!is.na(lmod$fr[,response]))
+  # goodRecords <- which(!is.na(lmod$fr[,response]))
   udu <- list()
   # >>>>>>>>> get cholesky factor (and new response if rotation)
   if(length(relmat) > 0){ 
@@ -194,6 +194,12 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   
   # >>>>>>>>>> apply addmat (additional matrices)
   for (i in seq_along(addmat)) {
+    if(!missing(data)){
+      goodRecords <- which(!is.na(data[,response]))
+    }else{
+      provResponse <- get(response)
+      goodRecords <- which(!is.na(provResponse))
+    } # this second option may still not work
     tn0 <- which(match(pnms2[i], names(fl)) == asgn)
     for(j in 1:length(tn0)){ # diagonal and unstructured models require to multiple all matrices by the same relfactor
       ind <- (lmod$reTrms$Gp)[tn0[j]:(tn0[j]+1L)]
@@ -336,18 +342,19 @@ setMethod("ranef", signature(object = "lmebreed"),
           function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includePEV=TRUE, ...)  {
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
+            if(relmat){rf <- object@relfac}
             ans <- lme4::ranef(object, condVar=FALSE, drop = FALSE) # extracts condVar 1st time
             ans <- ans[whichel]
             if(condVar){
               mapCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
               Ci <- getCi(object) # internally we're extracting condVar 2nd time
             }
-            if (relmat) { # transform back when relfac was used
-              rf <- object@relfac
-              for (nm in names(rf)) { # for each random effect # nm <- names(rf)[1]
-                dm <- data.matrix(ans[[nm]])
-                cn <- colnames(dm)
-                rn <- rownames(dm)
+            for (nm in names(object@flist)) { # for each random effect # nm <- names(rf)[1]
+              dm <- data.matrix(ans[[nm]])
+              cn <- colnames(dm)
+              rn <- rownames(dm)
+              
+              if (nm %in% names(object@relfac) ) { # transform back when relfac was used for this random effect
                 message(magenta(paste("Rotating back BLUPs by transpose of Cholesky (u=L'u*) for:", nm)))
                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
                 # rotate one more time if a UDU rotation was used in the response
@@ -361,23 +368,19 @@ setMethod("ranef", signature(object = "lmebreed"),
                 for(kCol in 1:ncol(ans[[nm]])){ # put in a nice shape
                   ans[[nm]][[kCol]] <- as.numeric(dm[,kCol])# data.frame(dm[[kCol]], check.names = FALSE)
                 }
-                # replace postVar if condVar=TRUE
-                if (condVar){
-                  mapCiNm <- mapCi[which(mapCi$group == nm),]
-                  intercepts <- unique(mapCiNm$variable)
-                  postVarNm <- matrix(NA, ncol=length(intercepts), nrow=nrow(mapCiNm)/length(intercepts) )
-                  for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
-                    iInter <- intercepts[j]
-                    v <- mapCiNm[which(mapCiNm$variable == iInter), "index"]
-                    postVarNm[,j]<-diag(Ci)[v]
-                    # if(is.list(attr(ans[[nm]], which="postVar"))){ # diagonal model
-                    #   attr(ans[[nm]], which="postVar")[[j]][,,] <- diag(Ci)[v]
-                    # }else{ # unstructured model # fill the diagonal element corresponding to the intercept level
-                    #   attr(ans[[nm]], which="postVar")[j,j,] <- diag(Ci)[v]
-                    # }
-                  }
-                  attr(ans[[nm]], which="postVar") <- postVarNm
+              }
+              if (condVar){ # if conditional variance was requested put it in our desired shape
+                mapCiNm <- mapCi[which(mapCi$group == nm),]
+                intercepts <- unique(mapCiNm$variable)
+                postVarNm <- matrix(NA, ncol=length(intercepts), nrow=nrow(mapCiNm)/length(intercepts) )
+                for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
+                  iInter <- intercepts[j]
+                  v <- mapCiNm[which(mapCiNm$variable == iInter), "index"]
+                  postVarNm[,j]<-diag(Ci)[v]
                 }
+                rownames(postVarNm) <- rownames(dm)
+                colnames(postVarNm) <- colnames(dm)
+                attr(ans[[nm]], which="postVar") <- postVarNm
               }
               
             }
