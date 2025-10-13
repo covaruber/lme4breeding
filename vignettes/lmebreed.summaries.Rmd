@@ -50,10 +50,10 @@ ve <- attr(VarCorr(ans1), "sc")^2; ve
 ### 3) Extracting random effect coefficients and their standard errors
 
 ```{r}
-BLUP <- ranef(ans1, condVar=TRUE)$Name
-SEs <- attr(BLUP, which="postVar")[,,]
-head(BLUP)
-head(SEs)
+BLUP <- ranef(ans1, condVar=TRUE)
+PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+head(BLUP$Name)
+head(SEs$Name)
 ```
 
 Alternatively, you can extract the predicted error variance matrix (inverse of the coefficient matrix) and extract the standard error from coefficients taking the square root from the diagonal elements of the matrix.
