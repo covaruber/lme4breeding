@@ -55,7 +55,7 @@ mixm2 <- lmebreed(formula=as.formula(csdiagFormula), data = DT,
 )
 
 vc <- VarCorr(mixm2); print(vc,comp=c("Variance"))
-ran2 = ranef(mixm2)
+ran2 = ranef(mixm2, condVar=FALSE)
 H0 <- ran2$id
 
 }

@@ -45,7 +45,7 @@ ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
                  data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 BLUP <- ranef(ans2, condVar=TRUE)
-SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
+PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 \donttest{
 

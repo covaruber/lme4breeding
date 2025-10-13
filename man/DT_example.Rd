@@ -37,7 +37,7 @@ ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
 
 BLUP <- ranef(ans1, condVar=TRUE)$Name
-SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
+PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 \donttest{
 

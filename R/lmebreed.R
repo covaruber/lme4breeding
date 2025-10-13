@@ -376,7 +376,7 @@ setMethod("ranef", signature(object = "lmebreed"),
                 for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
                   iInter <- intercepts[j]
                   v <- mapCiNm[which(mapCiNm$variable == iInter), "index"]
-                  postVarNm[,j]<-diag(Ci)[v]
+                  postVarNm[,j] <- diag(Ci)[v]
                 }
                 rownames(postVarNm) <- rownames(dm)
                 colnames(postVarNm) <- colnames(dm)

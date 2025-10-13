@@ -55,7 +55,7 @@ mix2 <- update(mix1, suppressOpt = TRUE,
                start=getME(mix1, "theta"), 
                data=DT2)
 predsMix2 <- ranef(mix2)
-SEs <- lapply(predsMix2, function(x){attr(x, which="postVar")})
+PEV <- lapply(predsMix2, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 # if you don't want the imputed vector to have an effect in
 # the predictions you can use the getMME function to use

@@ -74,7 +74,7 @@ vc$geno
 sigma(mix)^2 # error variance
 
 BLUP <- ranef(mix, condVar=TRUE)
-SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
+PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 }
 

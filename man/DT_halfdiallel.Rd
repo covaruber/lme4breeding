@@ -55,7 +55,7 @@ vc <- VarCorr(modh); print(vc,comp=c("Variance"))
 sigma(modh)^2 # error variance
 
 BLUP <- ranef(modh, condVar=TRUE)
-SEs <- lapply(BLUP, function(x){attr(x, which="postVar")})
+PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 }
 
