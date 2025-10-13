@@ -87,7 +87,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
       cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
       # put it in a lmebreed object
-      ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), #goodRecords=goodRecords,
+      ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), 
                                frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
                                theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
                                devcomp=mm@devcomp, pp=mm@pp,resp=mm@resp,optinfo=mm@optinfo))
@@ -112,12 +112,18 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   lmerc$returnFormula <- NULL # remove relmat from the match call
   lmerc$suppressOpt <- NULL # remove relmat from the match call
   
+  response <- all.vars(formula)[1]
+  if(rotation){ # if user want rotation we need to impute in advance
+    if(!missing(data)){
+      data[,response] <- imputev(data[,response])
+      lmerc$data <- data
+    }
+  }
   suppressWarnings( lmod <- eval.parent(lmerc) , classes = "warning") # necesary objects from lFormula
   # return(lmod)
   
   ## DO ROTATION OF RESPONSE AND RELMATS IF REQUIRED (lmod$fr[,response])
   '%!in%' <- function(x,y)!('%in%'(x,y)) 
-  response <- all.vars(formula)[1]
   # control to ignore relmats if there's no match with formula vars
   if(length(relmat) > 0){
     if( length(intersect(names(relmat), all.vars(formula) )) == 0){
