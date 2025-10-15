@@ -33,13 +33,11 @@ head(DT)
 
 library(orthopolynom)
 Z <- with(DT, smm(leg(X,1)) )
-## diagonal random regression
-form <- paste0( "Y ~ Xf + (0+", paste(colnames(Z), collapse = "+"), "|| SUBJECT)")
-## unstructured random regression
-form <- paste0( "Y ~ Xf + (0+", paste(colnames(Z), collapse = "+"), "| SUBJECT)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-mRR2b<-lmebreed(as.formula(form),
-           , data=DT)
+## diagonal random regression Y ~ Xf + (0+leg0+leg1|| SUBJECT)
+## unstructured random regression Y ~ Xf + (0+leg0+leg1| SUBJECT)
+mRR2b<-lmebreed(Y ~ Xf + (0+leg0+leg1| SUBJECT),
+                , data=DT)
 vc <- VarCorr(mRR2b); print(vc,comp=c("Variance"))
 sigma(mRR2b)^2 # error variance
 

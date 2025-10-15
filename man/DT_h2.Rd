@@ -31,26 +31,12 @@ head(DT)
 
 \donttest{
 
+# model with:
+# Main+Diagonal for Name
+# Diagonal for Block
+# Diagonal for residuals
 DT=DT[with(DT, order(Env)), ]
-
-# add dummy variables
-Z <- with(DT, smm(Env))
-for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-# add genotype formula
-csdiagFormula <- paste0( "y ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
-# add block formula
-blockFormula <- paste0( "(0+", paste(colnames(Z), collapse = "+"), "|| Block)")
-# add residuals for heterogeneous residuals
-DT$units <- NA
-for(i in unique(DT$Env)){
-  sam <- which(DT$Env == i)
-  DT$units[sam] <- 1:length(sam)
-}
-residualFormula <- paste0( "(0+", paste(colnames(Z), collapse = "+"), "|| units)")
-# final formula
-form <- paste(csdiagFormula , blockFormula, residualFormula, sep="+")
-
-ans1b <- lmebreed(as.formula(form),
+ans1b <- lmebreed(y ~ Env + (Env||Name) + (0+Env||Block) + (0+Env||unitsR),
                   verbose = 1L,
                   data=DT)
 vc <- VarCorr(ans1b); print(vc,comp=c("Variance"))

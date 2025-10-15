@@ -9,6 +9,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
 {
   my.date <- "2026-01-01" # expiry date
   your.date <- Sys.Date()
+  
   ## if your month is greater than my month you are outdated
   if(dateWarning){
     if (your.date > my.date) {
@@ -31,8 +32,82 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     gaus <- family$family == "gaussian" && family$link == "identity"
   }
   mc <- match.call()
+  lmerc <- mc  # create a call to lmer (we need it twice)
   
-  lmerc <- mc                         # create a call to lmer 
+  ## >>>>>>>>>>>> 
+  ## >>>>>>>>>>>> create a new formula (lme4 cannot interpret properly || )
+  if(!missing(data)){
+    classDT <- unlist(lapply(data, class))
+    data$unitsR <- 1:nrow(data)
+  }else{
+    vars <- all.vars(formula)
+    unitsR <- 1:length(get(vars[1]))
+    classDT <- unlist(lapply(as.list(vars), function(x){class(get(x))})); 
+    names(classDT) <- vars
+  }
+  j <- paste(deparse(formula), collapse="")
+  randomTerms <- regmatches(j, gregexpr("(?<=\\().*?(?=\\))", j, perl=T))[[1]]
+  randomTerms0 <- randomTerms
+  for(i in 1:length(randomTerms)){ # i=1 # for each random term
+    ithRandomTerm <- strsplit(randomTerms[i], split="[|]")[[1]]
+    intercept <- ithRandomTerm[1]
+    intercept <- strsplit(intercept,"[+]")[[1]]
+    intercept <- gsub(" ","",intercept)
+    slope <- ithRandomTerm[-c(1)]
+    slope <- gsub(" ","",slope)
+    for(k in 1:length(intercept)){ # k=1 # for each intercept int1+int2+int3 | slope
+      interceptK <- intercept[k]
+      if(!missing(data)){
+        checkExistInterK <- length(which(interceptK %in% names(classDT))) > 0
+      }else{
+        checkExistInterK <- exists(interceptK)
+      }
+      if(checkExistInterK){ # if the kth intercept is part of the model.frame or is in the environment
+        if( classDT[interceptK] %in% c("factor","character") ){ # if is a character of factor get levels and add
+          
+          if(!missing(data)){ # we can add the dummy variable to the data
+            variableForInterK <- data[,interceptK]
+            Z <- smm(variableForInterK) # add new dummy columns
+            for(l in 1:ncol(Z)){data[,colnames(Z)[l]] <- Z[,l]}
+          }else{ # we have to create the variables and put them in the environment
+            variableForInterK <- get(interceptK)
+            Z <- smm(variableForInterK)
+            for(l in 1:ncol(Z)){assign(colnames(Z)[l], Z[,l] )}
+          }
+          levsIntercept <- sort(as.character(unique(variableForInterK)))
+          if("unitsR" %in% slope){ # if this is a random effect for unitsR
+            unitsR <- NA
+            for(m in levsIntercept){ # m = levsIntercept[1]
+              sam <- which(variableForInterK == m)
+              unitsR[sam] <- 1:length(sam)
+            }; unitsR <- as.factor(unitsR)
+            if(!missing(data)){data$unitsR <- unitsR}
+          }
+        }else{
+          levsIntercept <- interceptK
+          if("unitsR" %in% slope){
+            unitsR <- as.factor(1:length(variableForInterK))
+            if(!missing(data)){data$unitsR <- unitsR}
+          }
+        } # if kth intercept is a numeric covariate already
+      }else{ # if is not part of the model frame (e.g., 0 or 1)
+        levsIntercept <- interceptK
+        if("unitsR" %in% slope){
+          unitsR <- as.factor(1:length(variableForInterK))
+          if(!missing(data)){data$unitsR <- unitsR}
+        }
+      }
+      randomTerms[i] <- gsub( interceptK, paste(levsIntercept,collapse = " + ") , randomTerms[i] )
+    }
+  }
+  newJ <- j # copy the formula
+  for(h in 1:length(randomTerms)){ # replace with new terms
+    newJ <- gsub(randomTerms0[h],randomTerms[h],newJ, fixed = TRUE)
+  }
+  lmerc$formula <- as.formula(newJ) # save the new formula in the call
+  if(!missing(data)){lmerc$data <- data} # save the new dataset in the call
+  
+  ## >>>>>>>>>>>>
   ## >>>>>>>>>>>> create control if user didn't specify it for the 3 things we want to force
   if(length(control)==0){
     if(gaus){
@@ -261,6 +336,9 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         Zt <- do.call(rbind, ZtL)
       }else{ # complex model (multiple random intercepts)
         mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[pnms[i]]]) )
+        # print(mm)
+        # print(rowsi)
+        # print(str(provRelFac))
         if(length(rowsi) != ncol(provRelFac)*ncol(mm) ){stop(paste("Relationship matrix dimensions of ",pnms[i],"do not conform with the random effect, please review."), call. = FALSE)}
         provRelFac <- as(as(as( provRelFac,  "dMatrix"), "generalMatrix"), "CsparseMatrix")
         ZtL <- list()

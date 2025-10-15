@@ -41,15 +41,13 @@ MMT <- MMT + diag(1e-05, ncol(MMT), ncol(MMT))
 
 # let's fit the GxE model (diagonal first)
 DT[,"envf_repf"] = paste(DT[,"envf"],DT[,"repf"],sep="_")
-Z <- with(DT, smm(envf_repf))
-for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-csdiagFormula <- paste0( "value ~ (1|envf) + (0+", paste(colnames(Z), collapse = "+"), "|| id)")
 
 # fit the models
-mixm2 <- lmebreed(formula=as.formula(csdiagFormula), data = DT, 
+mixm2 <- lmebreed(value ~ (1|envf_repf) + (0+envf_repf||id), 
+                  data = DT, 
                   relmat = list(id = MMT), 
                   control = lmerControl( 
-                   restart_edge = FALSE
+                    restart_edge = FALSE
                   ), nIters=1000,
                   verbose=1L, rotation=TRUE
 )
