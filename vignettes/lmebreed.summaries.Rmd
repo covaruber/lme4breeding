@@ -53,7 +53,7 @@ ve <- attr(VarCorr(ans1), "sc")^2; ve
 BLUP <- ranef(ans1, condVar=TRUE)
 PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 head(BLUP$Name)
-head(SEs$Name)
+head(PEV$Name)
 ```
 
 Alternatively, you can extract the predicted error variance matrix (inverse of the coefficient matrix) and extract the standard error from coefficients taking the square root from the diagonal elements of the matrix.

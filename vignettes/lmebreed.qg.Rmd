@@ -103,11 +103,8 @@ data(DT_example)
 DT <- DT_example
 A <- A_example
 head(DT)
-## Compound simmetry (CS) + Diagonal (DIAG) model
-Z <- with(DT, smm(Env))
-csdiagFormula <- paste0( "Yield ~ Env + (", paste(colnames(Z), collapse = "+"), "|| Name)")
-for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
-ansCSDG <- lmebreed(as.formula(csdiagFormula),
+## Main (M) + Diagonal (DIAG) model
+ansCSDG <- lmebreed(Yield ~ Env + (Env || Name),
                     relmat = list(Name = A ),
                      verbose = 0L, trace=0L, data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
@@ -439,7 +436,7 @@ The partitioned model was popularized by () to show that marker effects can be o
 #                      data=DT)
 # 
 # #convert BLUPs to marker effects me=M'(M'M)- u
-# re <- ranef(mix.part)$id
+# re <- ranef(mix.part, condVar=FALSE)$id
 # me.part<-MTMMTinv[,rownames(re)]%*%matrix(re[,1],ncol=1)
 # plot(me.part)
 
@@ -657,7 +654,7 @@ Instead of fitting the RRBLUP/SNP-BLUP model we can fit a GBLUP model which is l
 #                      data=DT)
 # vc <- VarCorr(mix.part); print(vc,comp=c("Variance"))
 # # convert BLUPs to marker effects me=M'(M'M)- u
-# re <- ranef(mix.part)
+# re <- ranef(mix.part, condVar=TRUE)
 # u <- re$id
 # Ci <- attr(re, "PEV")
 # a.from.g<-MTMMTinv[,rownames(u)]%*%matrix(u[,1],ncol=1)
