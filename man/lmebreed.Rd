@@ -182,7 +182,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   
   \code{\link[lme4]{fixef}}: allows you to extract fixed coefficients (BLUEs) 
   
-  \code{\link[lme4]{vcov}}: allows you to extract the standard errors of fixed effects
+  \code{\link[stats]{vcov}}: allows you to extract the standard errors of fixed effects
   
   \code{\link[lme4]{ranef}}: allows you to extract random coefficients (BLUPs) and their standard errors
   
@@ -255,8 +255,9 @@ ansMain <- lmebreed(Yield ~ Env + (1|Name),
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
 sigma(ansMain)^2 # error variance
 
-BLUP <- ranef(ansMain, condVar=TRUE)$Name
-SEs <- attr(BLUP, which="postVar")[,,]
+BLUP <- ranef(ansMain, condVar=TRUE)
+PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+
 
 }
 \keyword{models}

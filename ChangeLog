@@ -36,12 +36,9 @@
       * [r_1.0.90] now we have added the function getCi to retrieve the inverse of the coefficient matrix
       * [r_1.0.90] now we have added the function Dtable to retrieve the a template for the hyper-table in predict
       * [r_1.0.90] now we have added the first version of the predict function
-      
+      * [r_1.0.90] now the user can specify the random intercepts using the name of the regular variable and internally we will create the neccesary variables
 
 ** TO DO
-
-+ do not store Utn
 + check why the rotation is not working properly when we have more than one random effect
-+ add documentation for functions predict, Dtable and getCi
 
 

@@ -71,13 +71,13 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         if( classDT[interceptK] %in% c("factor","character") ){ # if is a character of factor get levels and add
           
           if(!missing(data)){ # we can add the dummy variable to the data
-            variableForInterK <- gsub("[^[:alnum:]]", "", data[,interceptK])
+            variableForInterK <- gsub("[^[:alnum:]]", "", data[,interceptK]) # we remove special characters from intercept variable
             # variableForInterK <- gsub("[+-]","",data[,interceptK])
             Z <- smm(variableForInterK) # add new dummy columns
             for(l in 1:ncol(Z)){data[,colnames(Z)[l]] <- Z[,l]}
           }else{ # we have to create the variables and put them in the environment
             # variableForInterK <- get(interceptK)
-            variableForInterK <- gsub("[^[:alnum:]]", "", get(interceptK))
+            variableForInterK <- gsub("[^[:alnum:]]", "", get(interceptK)) # we remove special characters from intercept variable
             Z <- smm(variableForInterK)
             for(l in 1:ncol(Z)){assign(colnames(Z)[l], Z[,l] )}
           }

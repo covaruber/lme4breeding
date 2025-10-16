@@ -1491,7 +1491,7 @@ tps <- function (columncoordinates, rowcoordinates, nsegments=NULL,
 
 getCi <- function(object){
   CiBlue <- vcov(object )
-  CiBlup <- lme4:::condVar(object)
+  CiBlup <- condVar(object)
   Ci <- Matrix::bdiag( CiBlue, CiBlup )
   mapCi <- mkMmeIndex(object)# rbind(namesBlue, namesBlup)
   Ci@Dimnames[[1]] <- mapCi$level
@@ -1617,4 +1617,15 @@ Dtable <- function(object){
   tab[,"average"]=0
   return(tab)
   
+}
+
+condVar <- function (object, scaled = TRUE) 
+{
+  Lamt <- getME(object, "Lambdat")
+  L <- getME(object, "L")
+  LL <- solve(L, Lamt, system = "A")
+  cc <- crossprod(Lamt, LL)
+  if (scaled) 
+    cc <- sigma(object)^2 * cc
+  cc
 }
