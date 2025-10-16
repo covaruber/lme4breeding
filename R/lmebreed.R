@@ -46,7 +46,11 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     names(classDT) <- vars
   }
   j <- paste(deparse(formula), collapse="")
-  randomTerms <- regmatches(j, gregexpr("(?<=\\().*?(?=\\))", j, perl=T))[[1]]
+  
+  match0 <- gregexpr("\\(([^()]|\\([^()]*\\))*\\)",j,perl=TRUE)
+  extracted <- regmatches(j,match0)[[1]]
+  randomTerms <- gsub("^\\(|\\)$","", extracted)
+  for(h in 1:3){randomTerms <- gsub("\\)","", sub(".*?\\(","",randomTerms) )}
   randomTerms0 <- randomTerms
   for(i in 1:length(randomTerms)){ # i=1 # for each random term
     ithRandomTerm <- strsplit(randomTerms[i], split="[|]")[[1]]
