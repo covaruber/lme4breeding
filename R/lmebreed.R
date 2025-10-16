@@ -36,6 +36,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   
   ## >>>>>>>>>>>> 
   ## >>>>>>>>>>>> create a new formula (lme4 cannot interpret properly || )
+  '%!in%' <- function(x,y)!('%in%'(x,y))
   if(!missing(data)){
     classDT <- unlist(lapply(data, class))
     data$unitsR <- 1:nrow(data)
@@ -59,7 +60,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     intercept <- gsub(" ","",intercept)
     slope <- ithRandomTerm[-c(1)]
     slope <- gsub(" ","",slope)
-    for(k in 1:length(intercept)){ # k=1 # for each intercept int1+int2+int3 | slope
+    for(k in 1:length(intercept)){ # k=2 # for each intercept int1+int2+int3 | slope
       interceptK <- intercept[k]
       if(!missing(data)){
         checkExistInterK <- length(which(interceptK %in% names(classDT))) > 0
@@ -70,11 +71,13 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         if( classDT[interceptK] %in% c("factor","character") ){ # if is a character of factor get levels and add
           
           if(!missing(data)){ # we can add the dummy variable to the data
-            variableForInterK <- data[,interceptK]
+            variableForInterK <- gsub("[^[:alnum:]]", "", data[,interceptK])
+            # variableForInterK <- gsub("[+-]","",data[,interceptK])
             Z <- smm(variableForInterK) # add new dummy columns
             for(l in 1:ncol(Z)){data[,colnames(Z)[l]] <- Z[,l]}
           }else{ # we have to create the variables and put them in the environment
-            variableForInterK <- get(interceptK)
+            # variableForInterK <- get(interceptK)
+            variableForInterK <- gsub("[^[:alnum:]]", "", get(interceptK))
             Z <- smm(variableForInterK)
             for(l in 1:ncol(Z)){assign(colnames(Z)[l], Z[,l] )}
           }
@@ -86,7 +89,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
               unitsR[sam] <- 1:length(sam)
             }; unitsR <- as.factor(unitsR)
             if(!missing(data)){data$unitsR <- unitsR}
-          }
+          } # "IHYB23Rattray"
         }else{
           levsIntercept <- interceptK
           if("unitsR" %in% slope){
@@ -96,7 +99,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         } # if kth intercept is a numeric covariate already
       }else{ # if is not part of the model frame (e.g., 0 or 1)
         levsIntercept <- interceptK
-        if("unitsR" %in% slope){
+        if(("unitsR" %in% slope) & (levsIntercept %!in% c("0","1"))){
           unitsR <- as.factor(1:length(variableForInterK))
           if(!missing(data)){data$unitsR <- unitsR}
         }
