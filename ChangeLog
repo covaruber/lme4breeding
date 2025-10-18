@@ -30,7 +30,7 @@
       * [r_1.0.80] added balanceData function
       * [r_1.0.80] added a new dataset DT_big to show how to fit big genomic models
       
-2025-12-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+2025-10-17 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
 
       * [r_1.0.90] now we use get the standard error of BLUPs using the lme4:::condVar function and then we apply the rotations and subset. That makes everything faster
       * [r_1.0.90] now we have added the function getCi to retrieve the inverse of the coefficient matrix
@@ -38,7 +38,12 @@
       * [r_1.0.90] now we have added the first version of the predict function
       * [r_1.0.90] now the user can specify the random intercepts using the name of the regular variable and internally we will create the neccesary variables
 
+2025-12-27 Giovanny Covarrubias Pazaran <cova_ruber@live.com.mx>
+
+      * [r_1.1.10] I have finally found the bug for the rotation when multiple random effects are present. Now it works as proposed by Lee and Vander Werf 2006
+
+
 ** TO DO
-+ check why the rotation is not working properly when we have more than one random effect
+
 
 
