@@ -267,7 +267,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   if(length(relmat) > 0){
     if(rotation){
       if(ncol(udu$Utn) != nrow(lmod$X)){stop("Rotation approach requires your dataset to be balanced and imputed.")}
-      lmod$X <- (udu$Utn %*% lmod$X) * lmod$X
+      lmod$X <- udu$Utn %*% lmod$X #* lmod$X
       if(trace){message(magenta("* Rotation applied to the X matrix."))}
     }
   }
