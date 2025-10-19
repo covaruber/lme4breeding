@@ -282,6 +282,7 @@ DT = DT_big
 M = apply(M_big,2,as.numeric) # change from bits to numeric
 rownames(M) <- rownames(M_big)
 DT[,"envf_repf"] = paste(DT[,"envf"],DT[,"repf"],sep="_")
+DT <- DT[with(DT, order(envf_repf, id)), ]
 
 # we will make up missing data
 indsNa <- sample(unique(DT$id), 200)
