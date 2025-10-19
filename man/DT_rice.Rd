@@ -60,7 +60,7 @@ for(iTrait in traits){DT[,iTrait] <- scale(DT[,iTrait])}
 DTL <- reshape(DT[,c("geno", traits)], idvar = "geno", varying = traits,
         v.names = "value", direction = "long",
         timevar = "trait", times = traits )
-DTL <- DTL[with(DTL, order(trait)), ]
+DTL <- DTL[with(DTL, order(trait, geno)), ]
 head(DTL)
 
 system.time(

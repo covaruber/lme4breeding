@@ -81,14 +81,11 @@ BLUP <- ranef(mix0, condVar=TRUE)
 PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 #### unstructured model
+DT <- DT[with(DT, order(envf_repf, id)), ] # sort for rotation
 system.time(
   mix1 <- lmebreed(pheno ~ (0 + env | id),
                    relmat = list(id=K),
                    rotation = TRUE,
-                   # how to control n iterations
-                   # control = lmerControl( 
-                   #  optCtrl = list(maxfun = 100, maxeval = 100)
-                   #   ),
                    data=DT)
 )
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))

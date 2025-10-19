@@ -198,6 +198,10 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   if(rotation){ # if user want rotation we need to impute in advance
     if(!missing(data)){
       lmerc$data <- data
+      missed <- which(is.na(data[,response]))
+      if(length(missed)>0){
+        if(trace){message(magenta("* Response imputed for rotation."))}
+      }
       lmerc$data[,response] <- imputev(data[,response])
     }
   }
@@ -229,6 +233,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         idsOrdered <- as.character(unique(lmod$fr[,names(relmat)[iRel]])) # when we rotate we need to have relmat already ordered before creating the matrices
         relmat[[iRel]] = relmat[[iRel]][ idsOrdered , idsOrdered ]
       }
+      if(trace){message(magenta("* Rotation of response step."))}
       # only the first relmat will be used so if more, the rotation will only work if it is the same relmat in the next random effects
       udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, 
                   data=lmod$fr, addmat = addmat, k=rotationK)
@@ -239,18 +244,17 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
       if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
       lmod$fr[,response] <- newValues
-      if(trace){message(magenta("* Rotation of response finished."))}
+      if(trace){message(magenta("* Cholesky of relmats step."))}
       for(iD in names(udu$D)){
         relmat[[iD]] <- Matrix::chol(udu$D[[iD]])
       }
       udu$newValues <- newValues
       # lmerc$data <- data
-      if(trace){message(magenta("* Cholesky decomposition finished."))}
     }else{ # classical approach, just cholesky
+      if(trace){message(magenta("* Cholesky of relmats step."))}
       for (i in seq_along(relmat)) {
         relmat[[i]] <- Matrix::chol(relmat[[i]])
       }
-      if(trace){message(magenta("* Cholesky decomposition finished."))}
     }
   }
   
@@ -272,7 +276,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     }
   }
   ##############################
-  
+  if(trace){message(magenta("* Merging additional matrices."))}
   # >>>>>>>>>> apply addmat (additional matrices)
   for (i in seq_along(addmat)) {
     if(!missing(data)){
@@ -301,10 +305,10 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         Zt[rowsi,] <- provZt[rownames(Zt[rowsi,]),]
       }
     }
-    if(trace){message(magenta("* Additional matrices (addmat) added."))}
   }
   
   # >>>>>>>>> time to apply the relmat
+  if(trace){message(magenta("* Postmultiplying LZ' step."))}
   namR <- unique(names(lmod$reTrms$cnms))
   for (i in seq_along(namR)) { # for each random effect readjust # Zt i=2
     tn <- which(match(namR[i], names(fl)) == asgn) # match relmat names with random effects names
@@ -356,6 +360,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
             if(min(rowsi) > 1){ZtL[[1]] <- Zt[1:(min(rowsi)-1),]}
             # central part
             ZtL[[2]] <- Zt[rowsi,] %*% t(udu$Utn)
+            if(trace){message(magenta("* Rotation applied to other Z matrices."))}
             # right part
             if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
             Zt <- do.call(rbind, ZtL) # bind all
@@ -382,6 +387,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
             if(min(rowsi) > 1){ZtL[[1]] <- Zt[1:(min(rowsi)-1),]}
             # central part
             ZtL[[2]] <- Zt[rowsi,] %*% t(udu$Utn)
+            if(trace){message(magenta("* Rotation applied to the Z matrices."))}
             # right part
             if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
             Zt <- do.call(rbind, ZtL) # bind all
@@ -396,7 +402,6 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   if(rotation){
     udu$Utn <- NULL # avoid storing a big matrix after the multiplication
   }
-  if(trace){message(magenta("* Relfactors (relmat) applied to Z"))}
   
   reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                  lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
@@ -417,7 +422,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   if(returnFormula){ # if user only wants the incidence matrices
     return(lmod)
   }else{
-    if(trace){message(magenta("* Optimizing ..."))}
+    if(trace){message(magenta("* Optimization step ..."))}
     if (gaus) { # gaussian distribution
       lmod$REML = REML # TRUE# resp$REML > 0L
       suppressWarnings( devfun <- do.call(mkLmerDevfun, lmod ), classes = "warning") # creates a deviance function
