@@ -313,7 +313,7 @@ xxl <- reshape(xx, idvar = "id", varying = list(1:(ncol(xx)-1)),
                v.names = "gebv", direction = "long", timevar = "envf_repf",
                times = unique(DT$envf_repf) )
 DTc <- merge(DT, xxl, by=c("id","envf_repf"), all.x = TRUE)
-with(DTc[which(DTc$nas ==1),], plot(gebv,gv))
+# with(DTc[which(DTc$nas ==1),], plot(gebv,gv))
 with(DTc[which(DTc$nas ==1),], cor(gebv,gv)) # accuracy is 0.39 
 
 
