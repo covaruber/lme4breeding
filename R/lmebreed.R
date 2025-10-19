@@ -337,7 +337,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         }
       }
       # multiply by the provRelFac or by the Utn matrix
-      if( length(lmod$reTrms$cnms[[namR[i]]]) == 1 ){ # regular model (single random intercept)
+      if( length(lmod$reTrms$cnms[[j]]) == 1 ){ # regular model (single random intercept)
         
         ZtL <- list() # we have to do this because filling by rows a Column-oriented matrix is extremely slow so it is faster to cut and paste
         
@@ -363,7 +363,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
         }
         
       }else{ # complex model (multiple random intercepts)
-        mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[namR[i]]]) )
+        mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[j]]) )
         ZtL <- list()
         if(namR[i] %in% names(relmat) ){ # if random effect has a relmat
           # left part
