@@ -1,11 +1,12 @@
-\name{getCi}
-\alias{getCi}
+\name{condVarRotation}
+\alias{condVarRotation}
 \title{Get the inverse coefficient matrix}
 \description{
-Retrieve the inverse of the coefficient matrix from the mixed model equations.
+Retrieve the conditional variance matrix from the random effects rotated by the 
+Cholesky factors and Eigen factors if applicable.
 }
 \usage{
-getCi(object)
+condVarRotation(object)
 }
 \arguments{
  \item{object}{model object of class \code{\link{lmebreed}} }
@@ -26,8 +27,8 @@ ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
                  data=DT)
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
 
-PEV <- getCi(ans1)
-# image(PEV)
+condVarMat <- condVarRotation(ans1)
+# image(condVarMat)
 
 }
 \seealso{\code{\link{image}}, \code{\link{lmebreed}}}

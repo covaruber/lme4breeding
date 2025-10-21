@@ -471,15 +471,15 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
 }
 
 setMethod("ranef", signature(object = "lmebreed"),
-          function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includePEV=TRUE, ...)  {
+          function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includeCVM=TRUE, ...)  {
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
             if(relmat){rf <- object@relfac}
             ans <- lme4::ranef(object, condVar=FALSE, drop = FALSE) # extracts condVar 1st time
             ans <- ans[whichel]
             if(condVar){
-              mapCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
-              Ci <- getCi(object) # internally we're extracting condVar 2nd time
+              mapCondVar <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
+              condVarMat <- condVarRotation(object) # internally we're extracting condVar 2nd time
             }
             for (nm in names(object@flist)) { # for each random effect # nm <- names(rf)[1]
               dm <- data.matrix(ans[[nm]])
@@ -502,13 +502,13 @@ setMethod("ranef", signature(object = "lmebreed"),
                 }
               }
               if (condVar){ # if conditional variance was requested put it in our desired shape
-                mapCiNm <- mapCi[which(mapCi$group == nm),]
-                intercepts <- unique(mapCiNm$variable)
-                postVarNm <- matrix(NA, ncol=length(intercepts), nrow=nrow(mapCiNm)/length(intercepts) )
+                mapCondVarNm <- mapCondVar[which(mapCondVar$group == nm),]
+                intercepts <- unique(mapCondVarNm$variable)
+                postVarNm <- matrix(NA, ncol=length(intercepts), nrow=nrow(mapCondVarNm)/length(intercepts) )
                 for(j in 1:length(intercepts)){ # iInter = 1 # intercepts[1]
                   iInter <- intercepts[j]
-                  v <- mapCiNm[which(mapCiNm$variable == iInter), "index"]
-                  postVarNm[,j] <- diag(Ci)[v]
+                  v <- mapCondVarNm[which(mapCondVarNm$variable == iInter), "index"]
+                  postVarNm[,j] <- diag(condVarMat)[v]
                 }
                 rownames(postVarNm) <- rownames(dm)
                 colnames(postVarNm) <- colnames(dm)
@@ -516,10 +516,10 @@ setMethod("ranef", signature(object = "lmebreed"),
               }
               
             }
-            # before returning store the Ci and its names
-            if(all(c(includePEV, condVar))){ # if both are TRUE add the PEV
-              attr(ans, which="PEV") = Ci
-              attr(ans, which="mapCi") = mapCi
+            # before returning store the condVarMat and its names
+            if(all(c(includeCVM, condVar))){ # if both are TRUE add the PEV
+              attr(ans, which="condVarMat") = condVarMat
+              attr(ans, which="mapCondVar") = mapCondVar
             }
             return(ans)
           })
@@ -571,11 +571,11 @@ setMethod("predict", signature(object = "lmebreed"),
               }
             }
             # get all information from the model
-            BLUP <- ranef(object, condVar=TRUE)
+            BLUP <- ranef(object, condVar=TRUE, includeCVM=TRUE)
             # get D table information
-            mapCi <- attr(BLUP, which="mapCi")
+            mapCondVar <- attr(BLUP, which="mapCondVar")
             # get inverse of coefficient matrix
-            Ci <- attr(BLUP, which="PEV")
+            condVarMat <- attr(BLUP, which="condVarMat")
             # get coefficients
             b <- c( 
               as.vector( fixef(object) ),
@@ -600,12 +600,12 @@ setMethod("predict", signature(object = "lmebreed"),
               iGroup <- hyperTable[iRow,"group"]
               # if we want to 'include' (nested we decide if we average or not)
               if(hyperTable[iRow,"include"]>0){
-                v <- which(mapCi[,"variable"]==iVar ) # match the intercept
-                m <- which( unlist(lapply(as.list(mapCi[,"group"]), function(x){length(which( c( strsplit(x, split = ":")[[1]], x )== iGroup ))} )) > 0 ) # match the slope
+                v <- which(mapCondVar[,"variable"]==iVar ) # match the intercept
+                m <- which( unlist(lapply(as.list(mapCondVar[,"group"]), function(x){length(which( c( strsplit(x, split = ":")[[1]], x )== iGroup ))} )) > 0 ) # match the slope
                 v <- intersect(v,m) # columns involving in one way or another the slope within this intecept: hyperTable[iRow,"group"]
                 for (jRow in 1:nrow(D)) { # jRow=3
                   ## direct match (same variable/intercept and group/slope)
-                  w <- which( unlist( lapply(as.list(mapCi[,"level"]), function(x){
+                  w <- which( unlist( lapply(as.list(mapCondVar[,"level"]), function(x){
                     length( which(strsplit(x, split = ":")[[1]] %in%
                                     c(
                                       rownames(D)[jRow], 
@@ -633,12 +633,12 @@ setMethod("predict", signature(object = "lmebreed"),
               # if simple averaging we just add 1s to all rows first, 
               # then we divide over the number of replicates for that effect
               if(hyperTable[iRow,"average"]>0 & hyperTable[iRow,"include"]==0){
-                v <- which(mapCi[,"variable"]==iVar & mapCi[,"group"]==iGroup )
+                v <- which(mapCondVar[,"variable"]==iVar & mapCondVar[,"group"]==iGroup )
                 D[, v] = 1
                 nReps <- max(apply(D[,v,drop=FALSE],1,function(x){length(which(x>0))}))
                 if(hyperTable[iRow,"type"] == "fixed"){
                   # if averaging effect we need to check if intercept exist and add it
-                  nReps <- nReps + length(which(mapCi[,"level"] %in% "(Intercept)"))
+                  nReps <- nReps + length(which(mapCondVar[,"level"] %in% "(Intercept)"))
                 }
                 D[, v, drop=FALSE] =  D[, v, drop=FALSE]/nReps
               }
@@ -646,13 +646,13 @@ setMethod("predict", signature(object = "lmebreed"),
             }
             # compute the predicted values and std errors
             predicted.value <- D %*% b
-            vcov <- D %*% Ci %*% t(D)
+            vcov <- D %*% condVarMat %*% t(D)
             std.error <- sqrt(diag(vcov))
             pvals <- data.frame(id = rownames(D),
                                 predicted.value = predicted.value[,1], 
                                 std.error = std.error)
             # compile results
-            ans <- list(pvals=pvals, b=b, Ci=Ci, D=D, mapCi=mapCi, hyperTable=hyperTable, classify=classify )
+            ans <- list(pvals=pvals, b=b, condVarMat=condVarMat, D=D, mapCondVar=mapCondVar, hyperTable=hyperTable, classify=classify )
             return(ans)
           })
 

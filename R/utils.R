@@ -1570,27 +1570,35 @@ tps <- function (columncoordinates, rowcoordinates, nsegments=NULL,
   res
 }
 
+condVarFun <- function (object, scaled = TRUE) {
+  Lamt <- getME(object, "Lambdat")
+  L <- getME(object, "L")
+  LL <- solve(L, Lamt, system = "A")
+  cc <- crossprod(Lamt, LL)
+  if (scaled) 
+    cc <- sigma(object)^2 * cc
+  cc
+}
 
-getCi <- function(object){
-  CiBlue <- vcov(object )
-  CiBlup <- condVar(object)
-  Ci <- Matrix::bdiag( CiBlue, CiBlup )
-  mapCi <- mkMmeIndex(object)# rbind(namesBlue, namesBlup)
-  Ci@Dimnames[[1]] <- mapCi$level
-  Ci@Dimnames[[2]] <- mapCi$variable
+condVarRotation <- function(object){
+  vcovBlue <- vcov(object )
+  condVarBlup <- condVarFun(object)
+  condVarFull <- Matrix::bdiag( vcovBlue, condVarBlup )
+  mapCondVar <- mkMmeIndex(object)# rbind(namesBlue, namesBlup)
+  condVarFull@Dimnames[[1]] <- mapCondVar$level
+  condVarFull@Dimnames[[2]] <- mapCondVar$variable
   # rotate back cholesky (triangular dense matrix)
   relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE) # control to know if we should rotate
   if(relmat){
     message(magenta(paste("Rotating back conditional variance using Cholesky factors")))
-    groups <- unique(mapCi[,c("variable","group")])
-    # L <- Matrix::Matrix(0, nrow=nrow(Ci), ncol = ncol(Ci))
+    groups <- unique(mapCondVar[,c("variable","group")])
     Ll <- vl <- list()
     for(iGroup in 1:nrow(groups)){ # iGroup = 2
-      v <- which( ( mapCi[,"variable"] == groups[iGroup,"variable"] ) & ( mapCi[,"group"] == groups[iGroup,"group"] ) )
+      v <- which( ( mapCondVar[,"variable"] == groups[iGroup,"variable"] ) & ( mapCondVar[,"group"] == groups[iGroup,"group"] ) )
       vl[[iGroup]] <- v
       if(groups[iGroup,"group"] %in% names( object@relfac )){ # extract relfac
-        # L[v,v] <- as(as(as( object@relfac[[ groups[iGroup,"group"] ]][ mapCi[v,"level"], mapCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
-        Ll[[iGroup]] <- as(as(as( object@relfac[[ groups[iGroup,"group"] ]][ mapCi[v,"level"], mapCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+        # L[v,v] <- as(as(as( object@relfac[[ groups[iGroup,"group"] ]][ mapCondVar[v,"level"], mapCondVar[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+        Ll[[iGroup]] <- as(as(as( object@relfac[[ groups[iGroup,"group"] ]][ mapCondVar[v,"level"], mapCondVar[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
       }else{ # build a digonal
         # L[v,v] <- Matrix::Diagonal(n=length(v))
         Ll[[iGroup]] <- Matrix::Diagonal(n=length(v))
@@ -1598,25 +1606,23 @@ getCi <- function(object){
     }
     L <- do.call(bdiag, Ll)
     L <- L[unlist(vl), unlist(vl)]
-    # Ci <- t(L) %*% Ci %*% L
-    Ci <- crossprod(L, Ci %*% L)
+    condVarFull <- crossprod(L, condVarFull %*% L)
     L <- NULL
-    Ci@Dimnames[[1]] <- mapCi$level
-    Ci@Dimnames[[2]] <- mapCi$variable
+    condVarFull@Dimnames[[1]] <- mapCondVar$level
+    condVarFull@Dimnames[[2]] <- mapCondVar$variable
   }
   # rotate back eigen (dense eigen vectors)
   eigmat <- ifelse(length(object@udu) > 0, TRUE, FALSE) # control to know if we should rotate
   if(eigmat){
     message(magenta(paste("Rotating back conditional variance using Eigen factors")))
-    groups <- unique(mapCi[,c("variable","group")])
-    # U <- Matrix::Matrix(0, nrow=nrow(Ci), ncol = ncol(Ci))
+    groups <- unique(mapCondVar[,c("variable","group")])
     Ul <- vl <- list()
     for(iGroup in 1:nrow(groups)){ # iGroup = 2
-      v <- which( ( mapCi[,"variable"] == groups[iGroup,"variable"] ) & ( mapCi[,"group"] == groups[iGroup,"group"] ) )
+      v <- which( ( mapCondVar[,"variable"] == groups[iGroup,"variable"] ) & ( mapCondVar[,"group"] == groups[iGroup,"group"] ) )
       vl[[iGroup]] <- v
       if(groups[iGroup,"group"] %in% names( object@udu$U ) ){ # extract relfac
-        # U[v,v] <- as(as(as( object@udu$U[[ groups[iGroup,"group"] ]][ mapCi[v,"level"], mapCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
-        Ul[[iGroup]] <- as(as(as( object@udu$U[[ groups[iGroup,"group"] ]][ mapCi[v,"level"], mapCi[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+        # U[v,v] <- as(as(as( object@udu$U[[ groups[iGroup,"group"] ]][ mapCondVar[v,"level"], mapCondVar[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+        Ul[[iGroup]] <- as(as(as( object@udu$U[[ groups[iGroup,"group"] ]][ mapCondVar[v,"level"], mapCondVar[v,"level"] ] ,  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
       }else{ # build a digonal
         # U[v,v] <- Matrix::Diagonal(n=length(v))
         Ul[[iGroup]] <- Matrix::Diagonal(n=length(v))
@@ -1624,13 +1630,12 @@ getCi <- function(object){
     }
     U <- do.call(bdiag, Ul)
     U <- U[unlist(vl), unlist(vl)]
-    # Ci <- U %*% Ci %*% t(U)
-    Ci <- tcrossprod(U%*%Ci,U)
+    condVarFull <- tcrossprod(U%*%condVarFull,U)
     U <- NULL
-    Ci@Dimnames[[1]] <- mapCi$level
-    Ci@Dimnames[[2]] <- mapCi$variable
+    condVarFull@Dimnames[[1]] <- mapCondVar$level
+    condVarFull@Dimnames[[2]] <- mapCondVar$variable
   }
-  return(Ci)
+  return(condVarFull)
 }
 
 mkMmeIndex <- function(object) {
@@ -1658,9 +1663,9 @@ mkMmeIndex <- function(object) {
   level <- unlist(levsl, use.names = FALSE) # unlist(levs[attr(rp$flist, "assign")], use.names = FALSE)
   namesBlup <- data.frame(index=1:length(level), level, variable=variableNames, group=groupl, type="random")
   
-  CiBlue <- vcov(object )
-  namesBlue <- data.frame(index=1:ncol(CiBlue), level=colnames(CiBlue),
-                          variable="(Intercept)", group= colnames(CiBlue), type="fixed" )
+  vcovBlue <- vcov(object )
+  namesBlue <- data.frame(index=1:ncol(vcovBlue), level=colnames(vcovBlue),
+                          variable="(Intercept)", group= colnames(vcovBlue), type="fixed" )
   fixedTerms <- terms(object)
   fixedTerms <- attr(fixedTerms,"term.labels")
   for(iF in fixedTerms){ # iF = fixedTerms[1]
@@ -1692,22 +1697,11 @@ mkMmeIndex <- function(object) {
 
 Dtable <- function(object){
   
-  mapCi <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
+  mapCondVar <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
   
-  tab <- unique(mapCi[,c("variable","group","type")])
+  tab <- unique(mapCondVar[,c("variable","group","type")])
   tab[,"include"]=0
   tab[,"average"]=0
   return(tab)
   
-}
-
-condVar <- function (object, scaled = TRUE) 
-{
-  Lamt <- getME(object, "Lambdat")
-  L <- getME(object, "L")
-  LL <- solve(L, Lamt, system = "A")
-  cc <- crossprod(Lamt, LL)
-  if (scaled) 
-    cc <- sigma(object)^2 * cc
-  cc
 }
