@@ -167,7 +167,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       return(mm)
     }else{
       suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
-      cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
+      cls <- if (gaus){"lmerMod"}else{"glmerMod"} 
       # put it in a lmebreed object
       ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), 
                                frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
@@ -459,7 +459,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     if(trace){message(magenta("* Done!!"))}
     # make results in a mkMerMod object format
     suppressWarnings( mm <- mkMerMod(environment(devfun), opt, lmod$reTrms, lmod$fr, mc), classes = "warning" )
-    cls <- if (gaus){"lmerlmebreed"}else{"glmerlmebreed"} 
+    cls <- if (gaus){c("lmerMod")}else{c("glmerMod")} 
     ans <- do.call(new, list(Class=cls, relfac=relfac, udu=udu, #goodRecords=goodRecords,
                              frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
                              theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,

@@ -10,10 +10,10 @@
 #          contains = "lmebreed")
 
 setClass("lmebreed", slots = c(relfac = "list", udu = "list"),
-         contains = "merMod")
-setClass("glmerlmebreed", slots = c(resp="glmResp"),
+         contains = c("merMod"))
+setClass("glmerMod", slots = c(resp="glmResp"),
          contains = "lmebreed")
-setClass("lmerlmebreed", slots = c(resp="lmerResp"),
+setClass("lmerMod", slots = c(resp="lmerResp"),
          contains = "lmebreed")
 
 # setClass("lmebreed", representation = list(relfac = "list", udu="list"),
