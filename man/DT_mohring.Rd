@@ -49,7 +49,7 @@ mod1h <- lmebreed(Ftime ~ 1 + (1|Block) +
 vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
 
 BLUP <- ranef(mod1h, condVar=TRUE)
-PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 ##                                    VarComp VarCompSE   Zratio
 ## Block.Ftime-Ftime                  0.00000   9.32181 0.000000

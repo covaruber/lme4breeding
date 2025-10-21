@@ -52,7 +52,7 @@ fm1 <- lmebreed(Reaction ~ Days + (0 + Days | Subject), data=DT)
 vc <- VarCorr(fm1); print(vc,comp=c("Variance"))
 
 BLUP <- ranef(fm1, condVar=TRUE)
-PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 }
 

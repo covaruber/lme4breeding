@@ -45,7 +45,7 @@ vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 sigma(mix)^2 # error variance
 
 BLUP <- ranef(mix, condVar=TRUE)
-PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 
 }

@@ -51,7 +51,7 @@ ans <- lmebreed(Yield ~ Location + (1| GCA1) + (1|GCA2),
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
 sigma(ans)^2 # error variance
 BLUP <- ranef(ans, condVar=TRUE)
-PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 }
 

@@ -42,7 +42,7 @@ vc <- VarCorr(mRR2b); print(vc,comp=c("Variance"))
 sigma(mRR2b)^2 # error variance
 
 BLUP <- ranef(mRR2b, condVar=TRUE)
-PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 }
 

@@ -69,7 +69,7 @@ vc <- VarCorr(modIGE); print(vc,comp=c("Variance"))
 sigma(modIGE)^2 # error variance
 
 blups <- ranef(modIGE)
-PEV <- lapply(blups, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+condVAR <- lapply(blups, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 pairs(blups$both)
 cov2cor(vc$both)
 
