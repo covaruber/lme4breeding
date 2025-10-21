@@ -36,7 +36,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   Ul <- Dl <- Zu <- nLev <- list()
   nLev <- numeric()
   for(iProv in idProvided){ # only one is actually accepted for now according to theory
-    nLev[[iProv]] <- max(table(data[,idProvided]))
+    nTraits <- max(table(data[,idProvided]))
     levsInA = unique(data[,idProvided])
     if(iProv %in% colnames(data)){
       Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
@@ -66,7 +66,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     common <- intersect(colnames(U), colnames(Z))
     Ul[[iProv]]<- U[common,common]
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
-    Utn <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iProv]]),t(Ul[[iProv]]))
+    Utn <- Matrix::kronecker(Matrix::Diagonal(n=nTraits),t(U[common,common]))
   }
   # UnList <- list()
   # for(iel in 1:1){ # we only use the first relationship matrix for the rotation # length(Ul)
