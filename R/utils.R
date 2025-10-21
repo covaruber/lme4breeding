@@ -30,12 +30,12 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   if(!is.list(relmat)){stop("relmat argument should be a named list of relationship matrices", call. = FALSE)}
   
   idProvided <- all.vars(formula)
-  if(length(idProvided) > 1){message("Only one relationship matrix can be eigen decomposed.")}
+  if(length(idProvided) > 1){stop("Only one relationship matrix can be eigen decomposed.")}
   
   # build the U nxn matrix
   Ul <- Dl <- Zu <- nLev <- list()
   nLev <- numeric()
-  for(iProv in idProvided){
+  for(iProv in idProvided){ # only one is actually accepted for now according to theory
     nLev[[iProv]] <- max(table(data[,idProvided]))
     levsInA = unique(data[,idProvided])
     if(iProv %in% colnames(data)){
@@ -66,17 +66,99 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     common <- intersect(colnames(U), colnames(Z))
     Ul[[iProv]]<- U[common,common]
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
+    Utn <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iProv]]),t(Ul[[iProv]]))
   }
-  UnList <- list()
-  for(iel in 1:1){ # we only use the first relationship matrix for the rotation # length(Ul)
-    UnList[[iel]] <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iel]]),t(Ul[[iel]]))
-  }
-  Utn <- Reduce("+",UnList)
+  # UnList <- list()
+  # for(iel in 1:1){ # we only use the first relationship matrix for the rotation # length(Ul)
+  #   UnList[[iel]] <- Matrix::kronecker(Matrix::Diagonal(n=nLev[[iel]]),t(Ul[[iel]]))
+  # }
+  # Utn <- Reduce("+",UnList)
   
   if(nrow(Utn) != nrow(data)){
     stop("The eigen decomposition only works for balanced datasets.\n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
   }
   
+  return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
+              effect=idProvided, 
+              record=idProvided # data$recordF
+  ))
+}
+
+umat2 <- function(formulaU, relmat, data, addmat, k=NULL, trace=TRUE){
+  
+  if(missing(data)){stop("Please provide the dataset where we can extract find the factor in formulaU.")}
+  if(missing(relmat)){stop("Please provide the relationship matrix where we will apply the eigen decomposition.")}
+  if(missing(formulaU)){stop("Please provide the formulaU with the factor to do the decomposition on.")}
+  if(!inherits(formulaU, "formula")){stop("Please provide the formulaU as.formulaU().")}
+  if(!is.list(relmat)){stop("relmat argument should be a named list of relationship matrices", call. = FALSE)}
+  
+  idProvided <- all.vars(formulaU)
+  if(length(idProvided) > 1){message(magenta("*** More than one relationship matrix present. VCs will be biased."))}
+  
+  # build the U nxn matrix
+  Ul <- Dl <-  Utnl <- list()
+  counter = 1
+  for(iProv in idProvided){ # iProv = idProvided[1]
+    if(trace){message(magenta(paste("** Rotating", iProv,"effect")))}
+    # get number of replicates
+    if(iProv %in% colnames(data)){
+      Z <- sparse.model.matrix(as.formula(paste("~",iProv,"-1")), data=data)
+      colnames(Z) <- gsub(iProv,"", colnames(Z))
+    }else{
+      if(iProv %in% names(addmat)){
+        if(is.list(addmat[[iProv]])){ # indirect genetic effects
+          Z <- Reduce("+", addmat[[iProv]])
+        }else{ # single model
+          Z <- addmat[[iProv]]
+        }
+      }else{
+        stop(paste("Your term", iProv, "is neither in the dataset nor in addmat, please correct."), call. = FALSE)
+      }
+    }
+    n <- rep(1,nrow(Z))
+    Z2 <- apply(Z,2,cumsum)
+    tabIprov <- table(data[,idProvided])
+    if(var(tabIprov) > 0){message(magenta(paste("*** Levels in relmat for",iProv,"are unbalanced so VCs will be biased.")))}
+    for(j in 1: max(tabIprov)){ # j=2
+      where <- apply(Z2,2,function(x){
+        v <- which(x==j)
+        if(length(v)>0){return(min(v))}else{return(NA)}
+      })
+      start <- min(where, na.rm = TRUE)
+      end <- max(where, na.rm = TRUE)
+      n[start:end] <-  n[start:end]*j
+    }
+    # calculate U and D
+    if(is.null(k)){k<- nrow(relmat[[iProv]])}
+    suppressWarnings( UD <- RSpectra::eigs_sym(relmat[[iProv]], k=k, which = "LM"), classes = "warning")
+    difference <- ncol(relmat[[iProv]]) - k
+    if(difference > 0){
+      UD$values <- c(UD$values, rep(1e-6, difference))
+      UD$vectors <- cbind(UD$vectors, matrix(0, nrow=nrow(UD$vectors), ncol=difference))
+    }
+    U<-UD$vectors
+    D<-Matrix::Diagonal(x=UD$values)# This will be our new 'relationship-matrix'
+    rownames(D) <- colnames(D) <- rownames(relmat[[iProv]])
+    rownames(U) <- colnames(U) <- rownames(relmat[[iProv]])
+    common <- intersect(colnames(U), colnames(Z))
+    Ul[[iProv]]<- U[common,common]
+    Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
+    
+    Ut <- as(as(as(  t(U),  "dMatrix"), "generalMatrix"), "CsparseMatrix") 
+    Utl <- list()
+    for(j in 1: max(tabIprov)){ # j=1
+      v <- which(n == j)
+      w <- as.character(data[v,idProvided])
+      Utl[[j]] <- Ut[w,w]#/(j^2)
+    }
+    if(counter == 1){
+      Utn  <- do.call(Matrix::bdiag,Utl)
+    }else{
+      Utn  <- Utn + do.call(Matrix::bdiag,Utl)
+    }
+    counter <- counter + 1
+    # we still need addmat version
+  }
   return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
               effect=idProvided, 
               record=idProvided # data$recordF
