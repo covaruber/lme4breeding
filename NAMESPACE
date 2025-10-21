@@ -12,7 +12,7 @@ importFrom("stats", "as.formula", "cov", "vcov", "terms", "model.matrix", "na.om
 export( "lmebreed", "smm", "rrm", "redmm", "overlay", "add.diallel.vars",
         "build.HMM","bbasis","tps","A.mat", "I.mat","atcg1234","imputev", "getMME",
         "leg", "adjBeta", "umat", 
-        "simage","simage2", "balanceData", "Dtable", "getCi","mkMmeIndex"
+        "simage","simage2", "balanceData", "Dtable", "condVarRotated","mkMmeIndex"
         )
 
 exportMethods(

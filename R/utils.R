@@ -1580,7 +1580,7 @@ condVarFun <- function (object, scaled = TRUE) {
   cc
 }
 
-condVarRotation <- function(object){
+condVarRotated <- function(object){
   vcovBlue <- vcov(object )
   condVarBlup <- condVarFun(object)
   condVarFull <- Matrix::bdiag( vcovBlue, condVarBlup )

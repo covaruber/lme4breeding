@@ -479,7 +479,7 @@ setMethod("ranef", signature(object = "lmebreed"),
             ans <- ans[whichel]
             if(condVar){
               mapCondVar <- mkMmeIndex(object) # rbind(namesBlue, namesBlup)
-              condVarMat <- condVarRotation(object) # internally we're extracting condVar 2nd time
+              condVarMat <- condVarRotated(object) # internally we're extracting condVar 2nd time
             }
             for (nm in names(object@flist)) { # for each random effect # nm <- names(rf)[1]
               dm <- data.matrix(ans[[nm]])

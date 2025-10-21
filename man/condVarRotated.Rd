@@ -1,12 +1,12 @@
-\name{condVarRotation}
-\alias{condVarRotation}
+\name{condVarRotated}
+\alias{condVarRotated}
 \title{Get the inverse coefficient matrix}
 \description{
 Retrieve the conditional variance matrix from the random effects rotated by the 
 Cholesky factors and Eigen factors if applicable.
 }
 \usage{
-condVarRotation(object)
+condVarRotated(object)
 }
 \arguments{
  \item{object}{model object of class \code{\link{lmebreed}} }
@@ -27,7 +27,7 @@ ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
                  data=DT)
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
 
-condVarMat <- condVarRotation(ans1)
+condVarMat <- condVarRotated(ans1)
 # image(condVarMat)
 
 }

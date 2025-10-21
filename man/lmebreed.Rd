@@ -187,7 +187,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   
   \code{\link[lme4]{ranef}}: allows you to extract random coefficients (BLUPs) and their standard errors
   
-  \code{\link{getCi}}: allows you to extract the predicted error variance (PEV) matrix from a model
+  \code{\link{condVarRotated}}: allows you to extract the predicted error variance (PEV) matrix from a model
   
   \code{\link{mkMmeIndex}}: alllows you to extract the indices of the different fixed and random coefficients
   
