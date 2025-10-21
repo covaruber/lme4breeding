@@ -311,8 +311,10 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   # >>>>>>>>> time to apply the relmat
   
   namR <- unique(names(lmod$reTrms$cnms))
-  for (i in seq_along(namR)) { # for each random effect readjust # Zt i=2
+  if(any(namR %in% names(relmat) )){
     if(trace){message(magenta("* Postmultiplying LZ' step."))}
+  }
+  for (i in seq_along(namR)) { # for each random effect readjust # Zt i=2
     tn <- which(match(namR[i], names(fl)) == asgn) # match relmat names with random effects names
     for(j in 1:length(tn)){ # for each intercept matching this relationship matrix (diagonal and unstructured models require to multiple all incidence matrices by the same relfactor)
       ind <- (lmod$reTrms$Gp)[tn[j]:(tn[j]+1L)] # which columns match this random effect
