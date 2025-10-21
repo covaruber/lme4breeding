@@ -540,7 +540,7 @@ setMethod("residuals", signature(object = "lmebreed"),
           })
 
 setMethod("predict", signature(object = "lmebreed"),
-          function(object, hyperTable=NULL, classify=NULL, ...)  {
+          function(object, hyperTable=NULL, classify=NULL, usePEV=FALSE, ...)  {
             
             if(is.null(classify)){
               stop("Please provide the classify argument to build the D matrix.", call. = FALSE )
@@ -575,7 +575,11 @@ setMethod("predict", signature(object = "lmebreed"),
             # get D table information
             mapCondVar <- attr(BLUP, which="mapCondVar")
             # get inverse of coefficient matrix
-            condVarMat <- attr(BLUP, which="condVarMat")
+            if(usePEV){
+              condVarMat <- getMME(object=object, vc=VarCorr(object) )$Ci
+            }else{
+              condVarMat <- attr(BLUP, which="condVarMat")
+            }
             # get coefficients
             b <- c( 
               as.vector( fixef(object) ),

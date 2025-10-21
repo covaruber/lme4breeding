@@ -40,7 +40,7 @@ Class \code{"\link[lme4:merMod-class]{merMod}"}, directly.
      (2004). It has the following arguments:
      
      
-     \code{predict(object, hyperTable=NULL, classify=NULL, ... )}
+     \code{predict(object, hyperTable=NULL, classify=NULL, usePEV=FALSE, ... )}
      
      \code{object}: is the model fit with the \code{\link{lmebreed}} function.
      
@@ -59,6 +59,10 @@ Class \code{"\link[lme4:merMod-class]{merMod}"}, directly.
      
      \code{classify}: is a character value indicating which term we are computing
      the predictions for.
+     
+     \code{usePEV}: is a logical value indicating if the standard error for the linear combination
+     should use the PEV from the reconstructed mixed model equations or the conditional variance
+     of the random effects (default).
 
 
     }
