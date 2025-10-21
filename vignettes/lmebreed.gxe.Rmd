@@ -11,10 +11,11 @@ vignette: >
 
 The purpose of this vignette is to show how to fit different genotype by environment (GxE) models using the lme4breeding package:   
 
-1) Multienvironment model: Main effect model
-2) Multienvironment model: Diagonal model (DG)
+1) Multienvironment model: Main effect model (M)
+2.1) Multienvironment model: Diagonal model (DG)
+2.2) Heterogeneous residuals
 3) Multienvironment model: Compund symmetry model (CS)
-3.2) Multienvironment model: Compund symmetry model + Diagonal (CS+DG)
+3.2) Multienvironment model: Main + Diagonal model (M+DG)
 4) Multienvironment model: Unstructured model (US)
 5) Multienvironment model: Random regression model (RR)
 5.2) Multienvironment model: Finlay-Wilkinson regression
@@ -49,7 +50,7 @@ vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
 
 In this model, the only term to be estimated is the one for the germplasm (here called `Name`). For the sake of example we have added a relationship matrix among the levels of the random effect `Name`. This is just a diagonal matrix with as many rows and columns as levels present in the random effect `Name`, but any other non-diagonal relationship matrix could be used.
 
-## 2) MET: diagonal model (DG)
+## 2.1) MET: diagonal model (DG)
 
 A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The diagonal model assumes that GxE exists and that the genotype variation is expressed differently at each location, therefore fitting a variance component for the genotype effect at each location. The main drawback is that this model assumes no covariance among locations, as if genotypes were independent (despite the fact that is the same genotypes). The fixed effect for environment plus the location-specific BLUP is used to predict the genotype effect in each locations of interest.
 
@@ -61,6 +62,18 @@ ansDG <- lmebreed(Yield ~ Env + (0+Env || Name),
 vc <- VarCorr(ansDG); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
 
+```
+
+## 2,2) Heterogeneous residuals
+
+The lme4breeding has a reserved word named 'unitsR' to call for residuals. We will show how to fit heterogeneous residuals at the level of each environment with the previous diagonal model.
+
+```{r}
+ansCSDG <- lmebreed(Yield ~ Env + (0+Env || Name) + (0+Env || unitsR),
+                      relmat = list(Name = A ),
+                       verbose = 0L, trace=0L, data=DT)
+vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
+ve <- attr(vc, "sc")^2; ve
 ```
 
 ## 3) MET: compund symmetry model (CS)
@@ -260,6 +273,7 @@ vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 ve <- attr(vc, "sc")^2; ve
 
 ```
+
 
 ## 8) How to deal with massive GxE models or a massive number of individuals
 
