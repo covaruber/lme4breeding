@@ -160,5 +160,8 @@ ansMain <- lmebreed(Yield ~ Env + (1|Name),
                         relmat = list(Name = A ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
+BLUP <- ranef(ansMain, condVar=TRUE)
+condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+
 
 }
