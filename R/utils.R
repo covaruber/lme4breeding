@@ -75,7 +75,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   # Utn <- Reduce("+",UnList)
   
   if(nrow(Utn) != nrow(data)){
-    stop("The eigen decomposition only works for balanced datasets.\n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
+    stop("The eigen decomposition only works when the rotated effect is balanced (equal number of reps for each level). \n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
   }
   
   return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
