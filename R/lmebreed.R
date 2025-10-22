@@ -34,6 +34,31 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
   mc <- match.call()
   lmerc <- mc  # create a call to lmer (we need it twice)
   
+  ## >>>>>>>>>>>>
+  ## >>>>>>>>>>>> add addmat variables
+  if( any( names(addmat) %in% all.vars(formula) ) ){ # at least one addmat
+    for(iAddMat in names(addmat)){ # iAddMat = names(addmat)[1]
+      if(!missing(data)){
+        if(is.list(addmat[[iAddMat]])){ # indirect genetic effects so addmat is a list nested in another list
+          Zaddmat <- addmat[[iAddMat]][[1]]
+        }else{Zaddmat <- addmat[[iAddMat]]} # simple list of addmats
+        nTimes <- nrow(data)/ncol(Zaddmat) + 2
+        data[,iAddMat] <- (rep(colnames(Zaddmat), nTimes ))[1:nrow(data)]
+        Zaddmat <- NULL
+      }else{
+        checkExistIAddMat <- exists(iAddMat)
+        if(!checkExistIAddMat){ # if doesn't exist the variable in the environment create
+          if(is.list(addmat[[iAddMat]])){ # indirect genetic effects so addmat is a list nested in another list
+            Zaddmat <- addmat[[iAddMat]][[1]]
+          }else{Zaddmat <- addmat[[iAddMat]]} # simple list of addmats
+          respy <- get(all.vars(formula)[1]) # get response variable
+          nTimes <- length(respy)/ncol(Zaddmat) + 2 # how many times to repeate a vector
+          newVariable <- (rep(colnames(Zaddmat), nTimes ))[1:length(respy)]
+          assign(iAddMat, newVariable); Zaddmat <- NULL
+        }else{stop(paste("Your variable",iAddMat,"does not exist in the environment and you have not provided a data argument."), call. = FALSE)}
+      }
+    }
+  }
   ## >>>>>>>>>>>> 
   ## >>>>>>>>>>>> create a new formula (lme4 cannot interpret properly || )
   '%!in%' <- function(x,y)!('%in%'(x,y))
@@ -47,7 +72,6 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
     names(classDT) <- vars
   }
   j <- paste(deparse(formula), collapse="")
-  
   match0 <- gregexpr("\\(([^()]|\\([^()]*\\))*\\)",j,perl=TRUE)
   extracted <- regmatches(j,match0)[[1]]
   randomTerms <- gsub("^\\(|\\)$","", extracted)
@@ -291,7 +315,7 @@ lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL
       ind <- (lmod$reTrms$Gp)[tn0[j]:(tn0[j]+1L)]
       rowsi <- (ind[1]+1L):ind[2]
       covariate <- unlist(lmod$reTrms$cnms[tn0])[j]
-      if(covariate %in% names(data)){ # if is a random regression
+      if(covariate %in% colnames(lmod$fr)){ # if is a random regression
         covariateZ <- Matrix::sparse.model.matrix(as.formula(paste("~",covariate,"-1")), data=lmod$fr)
         if(is.list(addmat[[i]])){ # user has different matrices for the same effect (e.g., indirect genetic effects)
           provZ <- addmat[[i]][[j]][goodRecords,]

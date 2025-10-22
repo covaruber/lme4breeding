@@ -33,9 +33,6 @@ DT$malef <- as.factor(DT$male)
 DT$genof <- as.factor(DT$geno)
 # overlay matrix to be added to the addmat argument
 Z <- with(DT, overlay(femalef,malef) )
-## inital values for incidence matrix but irrelevant
-## since these will be replaced by admat argument
-fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 ## model using overlay without relationship matrix
 modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
                  addmat = list(fema=Z),

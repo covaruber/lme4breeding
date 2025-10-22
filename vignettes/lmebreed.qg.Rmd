@@ -160,9 +160,6 @@ DT$malef <- as.factor(DT$male)
 DT$genof <- as.factor(DT$geno)
 # overlay matrix to be added to the addmat argument
 Z <- with(DT, overlay(femalef,malef) )
-# create inital values for incidence matrix but irrelevant
-# since these will be replaced by admat argument
-fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 #### model using overlay without relationship matrix
 modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
                  addmat = list(fema=Z),
@@ -227,7 +224,6 @@ and takes advantage of the variance covariance matrix for the genotype effect kn
 # ## rrBLUP
 # M <- tcrossprod(GT)
 # xx <- with(y.trn, redmm(x=line, M=M, nPC=100, returnLam = TRUE))
-# custom <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 # ansRRBLUP <- lmebreed(X1 ~ (1|custom),  verbose = 0L, trace=0L,
 #                       addmat = list(custom=Z),
 #                       data=y.trn)
@@ -254,9 +250,6 @@ colnames(Zf) <- gsub("focal","", colnames(Zf))
 # Create the incidence matrix for the second random effect
 Zn <- Matrix::sparse.model.matrix( ~ neighbour-1, data=DT )
 colnames(Zn) <- gsub("neighbour","", colnames(Zn))
-# Make inital values for incidence matrix but irrelevant
-# since these will be replaced by the addmat argument
-both <- (rep(colnames(Zf), nrow(DT)))[1:nrow(DT)]
 # Fit the model
 modIGE <- lmebreed(trait ~ block + (0+fn+nn|both),
                    addmat = list(both=list(Zf,Zn)),
@@ -361,8 +354,6 @@ Zs <- with(DT, tps(Row, Col))$All
 rownames(Zs) <- DT$units
 # reduce the matrix to its PCs
 Z = with(DT, redmm(x=units, M=Zs, nPC=100))
-# create dummy variable
-spatial <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 # fit model
 mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
                  addmat =list(spatial=Z),

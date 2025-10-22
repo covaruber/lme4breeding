@@ -169,8 +169,6 @@ Zs <- with(DT, tps(Row, Col))$All
 rownames(Zs) <- DT$units
 # reduce the matrix to its PCs
 Z = with(DT, redmm(x=units, M=Zs, nPC=100))
-# create dummy variable
-spatial <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 
 \donttest{
 
