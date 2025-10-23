@@ -54,7 +54,7 @@ data(DT_example)
 DT <- DT_example
 A <- A_example
 
-ans1 <- lmebreed(Yield~ (1|Name) + (1|Env) + 
+ans1 <- lmeb(Yield~ (1|Name) + (1|Env) + 
                    (1|Env:Name) + (1|Env:Block),
               verbose = 0L, trace=0L, data=DT)
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
@@ -80,7 +80,7 @@ A <- A.mat(GT) # additive relationship matrix
 A <- A + diag(1e-4, ncol(A), ncol(A))
 #### look at the data and fit the model
 head(DT)
-mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+mix1 <- lmeb(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
                  verbose = 0L, trace=0L,
                  data=DT)
@@ -104,13 +104,13 @@ DT <- DT_example
 A <- A_example
 head(DT)
 ## Main (M) + Diagonal (DIAG) model
-ansCSDG <- lmebreed(Yield ~ Env + (Env || Name),
+ansCSDG <- lmeb(Yield ~ Env + (Env || Name),
                     relmat = list(Name = A ),
                      verbose = 0L, trace=0L, data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 ```
 
-In the previous example we showed how the left side of the formulae to specify the covariance structure and the effect on the right side `(covStructure | effect)` in the `lmebreed()` solver. By specifying `( CA.2011+CA.2012+CA.2013 || Name)` we declare a covariance structure for Name between environments. The `||` indicates that we do not want to fit covariance between these environments This is considered a CS + DIAG (compound symmetry + diagonal) model.
+In the previous example we showed how the left side of the formulae to specify the covariance structure and the effect on the right side `(covStructure | effect)` in the `lmeb()` solver. By specifying `( CA.2011+CA.2012+CA.2013 || Name)` we declare a covariance structure for Name between environments. The `||` indicates that we do not want to fit covariance between these environments This is considered a CS + DIAG (compound symmetry + diagonal) model.
 
 ### 3) Half and full diallel designs (use of the overlay)
 
@@ -132,7 +132,7 @@ DT <- DT_cornhybrids
 DTi <- DTi_cornhybrids
 GT <- GT_cornhybrids
 
-modFD <- lmebreed(Yield~Location + (1|GCA1)+(1|GCA2)+(1|SCA),
+modFD <- lmeb(Yield~Location + (1|GCA1)+(1|GCA2)+(1|SCA),
                verbose = 0L, trace=0L, data=DT)
 
 vc <- VarCorr(modFD); print(vc,comp=c("Variance"))
@@ -161,7 +161,7 @@ DT$genof <- as.factor(DT$geno)
 # overlay matrix to be added to the addmat argument
 Z <- with(DT, overlay(femalef,malef) )
 #### model using overlay without relationship matrix
-modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
+modh <- lmeb(sugar ~ (1|genof) + (1|fema),
                  addmat = list(fema=Z),
               verbose = 0L, trace=0L, data=DT)
 vc <- VarCorr(modh); print(vc,comp=c("Variance"))
@@ -200,7 +200,7 @@ and takes advantage of the variance covariance matrix for the genotype effect kn
 # head(y.trn)
 # ## GBLUP
 # K <- K + diag(1e-4, ncol(K), ncol(K) )
-# ans <- lmebreed(X1 ~ (1|line), 
+# ans <- lmeb(X1 ~ (1|line), 
 #                 relmat = list(line=K),
 #                  verbose = 0L, trace=0L,
 #                 data=y.trn)
@@ -224,7 +224,7 @@ and takes advantage of the variance covariance matrix for the genotype effect kn
 # ## rrBLUP
 # M <- tcrossprod(GT)
 # xx <- with(y.trn, redmm(x=line, M=M, nPC=100, returnLam = TRUE))
-# ansRRBLUP <- lmebreed(X1 ~ (1|custom),  verbose = 0L, trace=0L,
+# ansRRBLUP <- lmeb(X1 ~ (1|custom),  verbose = 0L, trace=0L,
 #                       addmat = list(custom=Z),
 #                       data=y.trn)
 # re <- ranef(ansRRBLUP)$custom
@@ -251,7 +251,7 @@ colnames(Zf) <- gsub("focal","", colnames(Zf))
 Zn <- Matrix::sparse.model.matrix( ~ neighbour-1, data=DT )
 colnames(Zn) <- gsub("neighbour","", colnames(Zn))
 # Fit the model
-modIGE <- lmebreed(trait ~ block + (0+fn+nn|both),
+modIGE <- lmeb(trait ~ block + (0+fn+nn|both),
                    addmat = list(both=list(Zf,Zn)),
                    relmat = list(both=A_ige),
                     verbose = 0L, trace=0L, data = DT)
@@ -300,7 +300,7 @@ And we can specify the K matrices. The main difference between this model and th
 # vv1 <- which(!is.na(DT$GY))
 # vv2 <- sample(DT[vv1,"hy"], 100)
 # y.trn[which(y.trn$hy %in% vv2),"GY"] <- NA
-# ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
+# ans2 <- lmeb(GY ~ (1|dent) + (1|flint),
 #                  relmat = list(dent=Ad,
 #                                flint=Af),
 #                   verbose = 0L, trace=0L, data=y.trn)
@@ -355,7 +355,7 @@ rownames(Zs) <- DT$units
 # reduce the matrix to its PCs
 Z = with(DT, redmm(x=units, M=Zs, nPC=100))
 # fit model
-mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
+mix1 <- lmeb(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
                  addmat =list(spatial=Z),
                   verbose = 0L, trace=0L,
                  data=DT)
@@ -389,7 +389,7 @@ Sometimes is important to estimate genetic variance-covariance among traits--mul
 # DTL <- DTL[with(DTL, order(trait)), ]
 # head(DTL)
 # 
-# mix1 <- lmebreed(value~ (0+trait|id),
+# mix1 <- lmeb(value~ (0+trait|id),
 #                  relmat=list(id=A),  verbose = 0L, trace=0L,
 #                  data=DTL)
 # vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
@@ -421,7 +421,7 @@ The partitioned model was popularized by () to show that marker effects can be o
 # MMTinv<-solve(MMT) ## inverse
 # MTMMTinv<-t(M)%*%MMTinv # M' %*% (M'M)-
 # 
-# mix.part <- lmebreed(color ~ (1|id),
+# mix.part <- lmeb(color ~ (1|id),
 #                      relmat = list(id=MMT),
 #                       verbose = 0L, trace=0L,
 #                      data=DT)
@@ -462,7 +462,7 @@ Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix 
 # DTd$id<-as.character(DTd$id)
 # head(DTd)
 # 
-# modeld <- lmebreed(X1~ UX + (1|id),
+# modeld <- lmeb(X1~ UX + (1|id),
 #                  relmat=list(id=D),
 #                   verbose = 0L, trace=0L,
 #                  data=DTd)
@@ -472,7 +472,7 @@ Lee and Van der Warf (2015) proposed a decomposition of the relationship matrix 
 # DTn<-data.frame(id = rownames(G) , DT_wheat)
 # DTn$id<-as.character(DTn$id)
 # 
-# modeln <- lmebreed(X1~ (1|id),
+# modeln <- lmeb(X1~ (1|id),
 #                    relmat=list(id=G),
 #                     verbose = 0L, trace=0L,
 #                    data=DTn)
@@ -528,7 +528,7 @@ Vg=c(Va,Vd); names(Vg) <- c("Va","Vd"); Vg
 ##############################
 ## REML method
 ##############################
-mix2 <- lmebreed(yield~ setf + setf:repf +
+mix2 <- lmeb(yield~ setf + setf:repf +
                    (1|femalef:malef:setf) + (1|malef:setf), 
               verbose = 0L, trace=0L, data=DT)
 vc <- VarCorr(mix2); print(vc,comp=c("Variance"))
@@ -594,7 +594,7 @@ Vg=c(Va,Vd); names(Vg) <- c("Va","Vd"); Vg
 ## REML method
 ##############################
 
-mix2 <- lmebreed(yield~ setf + setf:repf +
+mix2 <- lmeb(yield~ setf + setf:repf +
                (1|femalef:malef:setf) + (1|malef:setf) + 
                (1|femalef:setf),
               verbose = 0L, trace=0L, data=DT)
@@ -639,7 +639,7 @@ Instead of fitting the RRBLUP/SNP-BLUP model we can fit a GBLUP model which is l
 # MMTinv<-solve( MMT ) ## inverse
 # MTMMTinv<-t(M)%*%MMTinv # M' %*% (M'M)-
 # 
-# mix.part <- lmebreed(color ~ (1|id) + (1|Rowf) + (1|Colf),
+# mix.part <- lmeb(color ~ (1|id) + (1|Rowf) + (1|Colf),
 #                      relmat = list(id=MMT),
 #                       verbose = 0L, trace=0L,
 #                      data=DT)

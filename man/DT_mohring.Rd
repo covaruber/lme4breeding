@@ -39,7 +39,7 @@ head(DT2)
 ## overlay matrix to be added to the addmat argument
 Z <- with(DT, overlay(Par1, Par2) )
 fema <- (rep(colnames(Z), nrow(Z)))[1:nrow(Z)]
-mod1h <- lmebreed(Ftime ~ 1 + (1|Block) +
+mod1h <- lmeb(Ftime ~ 1 + (1|Block) +
                     ## GCA male & female overlayed
                     (1|fema) +
                     ## SCA effects (includes cross and selfs)
@@ -62,7 +62,7 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 \donttest{
 
 ## GRIFFING MODEL 2, no reciprocal effects ##############################
-mod1h <- lmebreed(Ftime ~ Block + is.cross +
+mod1h <- lmeb(Ftime ~ Block + is.cross +
                     ## GCA male & female overlayed main and rr
                     ## GCA effect (calculated only in hybrids; remaining variance)
                     (is.cross||fema) +
@@ -79,7 +79,7 @@ vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
 ## units.Ftime-Ftime                         501.6275   74.36075 6.745864
 ##
 ## GRIFFING MODEL 3, no reciprocal effects ###############################
-mod1h <- lmebreed(Ftime ~ Block + is.cross +
+mod1h <- lmeb(Ftime ~ Block + is.cross +
                     ## GCAC (only for hybrids)
                     (0+is.cross||fema) +
                     ## male GCA (only for inbreds)
@@ -98,7 +98,7 @@ vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
 ##
 ## GRIFFING MODEL 2, with reciprocal effects #############################
 ## In Mohring: mixed model 3 reduced
-mod1h <- lmebreed(Ftime ~ Block + is.cross +
+mod1h <- lmeb(Ftime ~ Block + is.cross +
                     ## GCAC (for hybrids only)
                     (0+is.cross||fema) +
                     ## male GCA (for selfs only)
@@ -120,7 +120,7 @@ vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
 ##
 ## GRIFFING MODEL 3, with RGCA + RSCA ####################################
 ## In Mohring: mixed model 3
-mod1h <- lmebreed(Ftime ~ Block + is.cross +
+mod1h <- lmeb(Ftime ~ Block + is.cross +
                     ## GCAC (for hybrids only)
                     (0+is.cross||fema) +
                     ## RGCA: exclude selfs (to identify reciprocal GCA effects)
@@ -148,4 +148,4 @@ vc <- VarCorr(mod1h); print(vc,comp=c("Variance"))
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

@@ -2,10 +2,10 @@
 \alias{getMME}
 
 \title{
-Build the mixed model equations from a lmebreed object
+Build the mixed model equations from a lmeb object
 }
 \description{
-Uses the lmebreed object and builds the coefficient matrix (C) and returns its 
+Uses the lmeb object and builds the coefficient matrix (C) and returns its 
 inverse and the solutions to the mixed model equations.
 }
 \usage{
@@ -14,7 +14,7 @@ getMME(object, vc=NULL, recordsToUse=NULL)
 
 \arguments{
   \item{object}{
-an object of class lmebreed.
+an object of class lmeb.
   }
   \item{vc}{
 optional variance components to force in the mixed model equations. This this to 
@@ -29,7 +29,7 @@ be the outpur of the \code{\link[lme4]{VarCorr}} function.
 }
 \details{
 
-Uses the lmebreed object and builds the coefficient matrix (C) and returns its inverse and the solutions to the mixed model equations. It is internally used by the ranef function when the user wants standard errors for the BLUPs.
+Uses the lmeb object and builds the coefficient matrix (C) and returns its inverse and the solutions to the mixed model equations. It is internally used by the ranef function when the user wants standard errors for the BLUPs.
 
 }
 \value{
@@ -55,7 +55,7 @@ data(DT_example)
 DT <- DT_example
 A <- A_example
 
-ansMain <- lmebreed(Yield ~ Env + (1|Name),
+ansMain <- lmeb(Yield ~ Env + (1|Name),
                     relmat = list(Name = A ),
                     data=DT)
 mme <- getMME(ansMain)
@@ -75,7 +75,7 @@ A <- A.mat(GT) # additive relationship matrix
 A <- A + diag(1e-4, ncol(A), ncol(A))
 #### look at the data and fit the model
 head(DT)
-mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+mix1 <- lmeb(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
                  control = lmerControl(
                    check.nobs.vs.nlev = "ignore",
@@ -88,7 +88,7 @@ vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
 # the new dataset includes more individuals
 DT2 <- DT
 DT2$Yield <- imputev(DT2$Yield)
-mix1expanded <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+mix1expanded <- lmeb(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
                  control = lmerControl(
                    check.nobs.vs.nlev = "ignore",
@@ -108,4 +108,4 @@ res <- getMME(object=mix1expanded, vc=VarCorr(mix1), recordsToUse = which(!is.na
 
 
 }
-\seealso{\code{\link{lmebreed}}-- the core function of the package }
+\seealso{\code{\link{lmeb}}-- the core function of the package }

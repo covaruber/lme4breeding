@@ -1,6 +1,6 @@
-\name{lmebreed}
-\alias{lmebreed}
+\name{lmeb}
 \alias{lmeb}
+\alias{lmebreed}
 \title{Fit breeding-related mixed-effects models}
 \description{
   Fits linear or generalized linear mixed models incorporating known relationships 
@@ -9,10 +9,10 @@
   and Van der Werf (2006).
 }
 \usage{
-lmebreed(formula, data, REML = TRUE, control = list(), start = NULL, 
+lmeb(formula, data, REML = TRUE, control = list(), start = NULL, 
          verbose = 1L, subset, weights, na.action, offset, contrasts = NULL, 
          calc.derivs = FALSE, nIters=100,
-         # lmebreed special params
+         # lmeb special params
          family = NULL, relmat = list(), addmat = list(), trace=1L,
          dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=8, 
          returnFormula=FALSE, suppressOpt=FALSE, ...)
@@ -45,14 +45,14 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   this argument at the level of main argument is to set it as FALSE as default 
   to speed up computation. This means that in lme4breeding if you pass calc.derivs
   inside the lmerControl object it won't have any effect. You need to set it using the 
-  argument in the lmebreed function.}
+  argument in the lmeb function.}
   
   \item{nIters}{the number of iterations used by the \code{\link[lme4]{optimizeGlmer}} 
   and \code{\link[lme4]{optimizeLmer}} functions. Internally, it replaces the values of
   the \code{maxfun} and \code{maxeval} arguments in the \code{\link[lme4]{lmerControl}} 
   optCtrl passed.This means that in lme4breeding if you pass calc.derivs
   inside the lmerControl object it won't have any effect. You need to set it using the 
-  argument in the lmebreed function. }
+  argument in the lmeb function. }
   
   \item{family}{as in \code{\link[lme4]{glmer}}}
   
@@ -143,7 +143,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   called "maxfun" whereas for \code{\link[lme4]{nloptwrap}} is called "maxeval". 
   This should be passed inside a list in the \code{optCtrl} argument. For example:
   
-\code{lmebreed(... , 
+\code{lmeb(... , 
          control = lmerControl(
            optimizer="Nelder_Mead",
            optCtrl=list(maxfun=100)
@@ -176,7 +176,7 @@ lmebreed(formula, data, REML = TRUE, control = list(), start = NULL,
   }
   
   This is important to notice because if the user decides to specify its own controls
-  then the user should also consider some of these arguments that are the defaults in lmebreed.
+  then the user should also consider some of these arguments that are the defaults in lmeb.
   
   \strong{Methods}
   
@@ -231,7 +231,7 @@ The package has been equiped with several datasets to learn how to use the lme4b
 
 }
 \value{
-  a \code{\linkS4class{lmebreed}} object.
+  a \code{\linkS4class{lmeb}} object.
 }
 \references{
 
@@ -251,7 +251,7 @@ data(DT_example)
 DT <- DT_example
 A <- A_example
 
-ansMain <- lmebreed(Yield ~ Env + (1|Name),
+ansMain <- lmeb(Yield ~ Env + (1|Name),
                         relmat = list(Name = A ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))

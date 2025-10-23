@@ -37,6 +37,6 @@ head(DT)
 simage(data=DT, Var1 = "male", Var2 = "female")
 
 }
-\seealso{\code{\link{image}}, \code{\link{lmebreed}}}
+\seealso{\code{\link{image}}, \code{\link{lmeb}}}
 \keyword{models}
 

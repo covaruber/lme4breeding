@@ -56,4 +56,4 @@ numo2$M[1:5,1:5]
 }
 
 }
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

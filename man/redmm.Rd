@@ -50,7 +50,7 @@ Md <- Md_technow
 M <- tcrossprod(Md)
 Z = with(DT, redmm(x=dent, M=M, nPC=10))
 custom <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
-ans <- lmebreed(GY ~ (1|custom),
+ans <- lmeb(GY ~ (1|custom),
                 addmat = list(custom=Z),
             data=DT)
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
@@ -60,4 +60,4 @@ u = tcrossprod(xx$Lam, t(as.matrix( ranef(ans)[[1]] ) ))
 
 
 }
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

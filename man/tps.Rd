@@ -156,7 +156,7 @@ List of length 7, 8 or 9 (according to the \code{asreml} and
 }
 }
 \description{
-\code{tps} is a wrapper of tpsmmb function from the TPSbits package to avoid version dependencies but if you're using this function for your research please cite the TPSbits package. To be used with \code{lme4breeding} and its main function \code{lmebreed}.
+\code{tps} is a wrapper of tpsmmb function from the TPSbits package to avoid version dependencies but if you're using this function for your research please cite the TPSbits package. To be used with \code{lme4breeding} and its main function \code{lmeb}.
 }
 \examples{
 
@@ -173,7 +173,7 @@ Z = with(DT, redmm(x=units, M=Zs, nPC=100))
 \donttest{
 
 # fit model
-mix1 <- lmebreed(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
+mix1 <- lmeb(Yield~ (1|Rowf) + (1|Colf) + (1|spatial),
                  addmat =list(spatial=Z),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))

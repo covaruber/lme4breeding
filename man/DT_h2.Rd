@@ -36,7 +36,7 @@ head(DT)
 # Diagonal for Block
 # Diagonal for residuals
 DT=DT[with(DT, order(Env)), ]
-ans1b <- lmebreed(y ~ Env + (Env||Name) + (0+Env||Block) + (0+Env||unitsR),
+ans1b <- lmeb(y ~ Env + (Env||Name) + (0+Env||Block) + (0+Env||unitsR),
                   verbose = 1L,
                   data=DT)
 vc <- VarCorr(ans1b); print(vc,comp=c("Variance"))
@@ -51,4 +51,4 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

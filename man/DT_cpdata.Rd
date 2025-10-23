@@ -41,7 +41,7 @@ head(DT)
 
 \donttest{
 
-mix1 <- lmebreed(Yield~ (1|id) + (1|Rowf) + (1|Colf),
+mix1 <- lmeb(Yield~ (1|id) + (1|Rowf) + (1|Colf),
                  relmat=list(id=A),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
@@ -73,4 +73,4 @@ plot(preds$bu[2:364,], predsMix2$id[,1])
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

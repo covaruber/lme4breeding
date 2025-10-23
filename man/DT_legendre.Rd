@@ -5,7 +5,7 @@
 Simulated data for random regression
 }
 \description{
-A data frame with 4 columns; SUBJECT, X, Xf and Y to show how to use the Legendre polynomials in the lmebreed function using a numeric variable X and a response variable Y. 
+A data frame with 4 columns; SUBJECT, X, Xf and Y to show how to use the Legendre polynomials in the lmeb function using a numeric variable X and a response variable Y. 
 
 }
 \usage{data("DT_legendre")}
@@ -36,7 +36,7 @@ Z <- with(DT, smm(leg(X,1)) )
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 ## diagonal random regression Y ~ Xf + (0+leg0+leg1|| SUBJECT)
 ## unstructured random regression Y ~ Xf + (0+leg0+leg1| SUBJECT)
-mRR2b<-lmebreed(Y ~ Xf + (0+leg0+leg1| SUBJECT),
+mRR2b<-lmeb(Y ~ Xf + (0+leg0+leg1| SUBJECT),
                 , data=DT)
 vc <- VarCorr(mRR2b); print(vc,comp=c("Variance"))
 sigma(mRR2b)^2 # error variance
@@ -49,4 +49,4 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

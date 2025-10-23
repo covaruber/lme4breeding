@@ -29,7 +29,7 @@ head(DT)
 
 \donttest{
 
-mix4 <- lmebreed(tarsus ~ sex + (1|dam) + (1|fosternest),
+mix4 <- lmeb(tarsus ~ sex + (1|dam) + (1|fosternest),
              data = DT)
 vc <- VarCorr(mix4); print(vc,comp=c("Variance"))
 sigma(mix4)^2 # error variance
@@ -48,7 +48,7 @@ DTL <- DTL[with(DTL, order(trait)), ]
 head(DTL)
 
 system.time(
-  mix <- lmebreed(value ~ (0+trait|dam),
+  mix <- lmeb(value ~ (0+trait|dam),
                   # relmat = list(geno=A),
                   # rotation = TRUE,
                   data=DTL)
@@ -61,4 +61,4 @@ sigma(mix)^2 # error variance
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

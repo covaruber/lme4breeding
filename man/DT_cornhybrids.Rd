@@ -44,7 +44,7 @@ K2 <- A[levels(DT$GCA2), levels(DT$GCA2)]; dim(K2)
 S <- kronecker(K1, K2) ; dim(S)
 rownames(S) <- colnames(S) <- levels(DT$SCA)
 
-ans <- lmebreed(Yield ~ Location + (1| GCA1) + (1|GCA2),
+ans <- lmeb(Yield ~ Location + (1| GCA1) + (1|GCA2),
                 relmat = list(GCA1=K1,
                               GCA2=K2),
                 data=DT)
@@ -58,4 +58,4 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

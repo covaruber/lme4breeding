@@ -9,7 +9,7 @@ Cholesky factors and Eigen factors if applicable.
 condVarRotated(object)
 }
 \arguments{
- \item{object}{model object of class \code{\link{lmebreed}} }
+ \item{object}{model object of class \code{\link{lmeb}} }
 }
 \value{
   Matrix
@@ -23,7 +23,7 @@ A <- A_example
 head(DT)
 
 ## Compound simmetry (CS) model
-ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
+ans1 <- lmeb(Yield~Env + (1|Name) + (1|Env:Name),
                  data=DT)
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
 
@@ -31,6 +31,6 @@ condVarMat <- condVarRotated(ans1)
 # image(condVarMat)
 
 }
-\seealso{\code{\link{image}}, \code{\link{lmebreed}}}
+\seealso{\code{\link{image}}, \code{\link{lmeb}}}
 \keyword{models}
 

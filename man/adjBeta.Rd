@@ -34,11 +34,11 @@ data(DT_example)
 DT <- DT_example
 A <- A_example
 
-ansMain <- lmebreed(Yield ~ Env + (1|Name),
+ansMain <- lmeb(Yield ~ Env + (1|Name),
                     relmat = list(Name = Matrix::chol(A) ),
                     data=DT)
 
 fixef(ansMain)
 adjBeta(fixef(ansMain))
 }
-\seealso{The core function of the package \code{\link{lmebreed}}}
+\seealso{The core function of the package \code{\link{lmeb}}}

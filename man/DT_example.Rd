@@ -32,7 +32,7 @@ A <- A_example
 head(DT)
 
 ## Compound simmetry (CS) model
-ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
+ans1 <- lmeb(Yield~Env + (1|Name) + (1|Env:Name),
              data=DT)
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
 
@@ -43,7 +43,7 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 
 ## Main (M) + Diagonal (DIAG) model
 ## with relationship matrix
-ansCSDG <- lmebreed(Yield ~ Env + (Env||Name),
+ansCSDG <- lmeb(Yield ~ Env + (Env||Name),
                     relmat = list(Name = A ),
                     data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
@@ -51,7 +51,7 @@ vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
 ## Main (M) + Diagonal (DIAG) model
 ## with diagonal residuals
 ## with relationship matrix
-ansCSDG <- lmebreed(Yield ~ Env + (Env||Name) + (0+Env||unitsR),
+ansCSDG <- lmeb(Yield ~ Env + (Env||Name) + (0+Env||unitsR),
                     relmat = list(Name = A ),
                     data=DT)
 vc <- VarCorr(ansCSDG); print(vc,comp=c("Variance"))
@@ -61,4 +61,4 @@ sigma(ansCSDG)^2 # error variance
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{lmebreed}} }
+\seealso{The core functions of the package \code{\link{lmeb}} }

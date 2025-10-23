@@ -103,4 +103,4 @@ A <- A.mat(M)
 }
 
 }
-\seealso{\code{\link{lmebreed}}-- the core function of the package }
+\seealso{\code{\link{lmeb}}-- the core function of the package }

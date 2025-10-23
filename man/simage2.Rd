@@ -19,6 +19,6 @@ simage2(X, \dots)
 simage2(matrix(0:8,3,3))
 
 }
-\seealso{\code{\link{image}}, \code{\link{lmebreed}}}
+\seealso{\code{\link{image}}, \code{\link{lmeb}}}
 \keyword{models}
 

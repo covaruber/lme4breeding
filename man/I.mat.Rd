@@ -44,4 +44,4 @@ Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear 
 
 
 }
-\seealso{\code{\link{lmebreed}} -- the core function of the package }
+\seealso{\code{\link{lmeb}} -- the core function of the package }

@@ -55,7 +55,7 @@ A <- A.mat(marks)
 
 ## run as mixed model
 A <- A + diag(1e-4,ncol(A),ncol(A))
-ans <- lmebreed(tuber_shape~ (1|Name),
+ans <- lmeb(tuber_shape~ (1|Name),
                 relmat = list(Name=A),
                 data=DT2)
 vc <- VarCorr(ans); print(vc,comp=c("Variance"))
@@ -68,4 +68,4 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 
 }
 \keyword{datasets}
-\seealso{The core functions of the package \code{\link{lmebreed}} }
+\seealso{The core functions of the package \code{\link{lmeb}} }

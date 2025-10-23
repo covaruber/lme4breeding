@@ -46,4 +46,4 @@ head(DT2)
 ## see ?DT_mohring for an example on how to use the data to fit diallel models.
 
 }
-\seealso{The core function of the package \code{\link{lmebreed}} function and the \code{\link{DT_mohring}} example. }
+\seealso{The core function of the package \code{\link{lmeb}} function and the \code{\link{DT_mohring}} example. }

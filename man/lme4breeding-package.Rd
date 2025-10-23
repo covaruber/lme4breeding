@@ -32,7 +32,7 @@ will make this machinery extremely fast! if you have unbalanced data you may wan
 to stick to the use of mmec until I discover how to adapt the eigen decomposition
 to unbalanced data. I hope you enjoy it.
 
-The \code{\link{lmebreed}} function is the core function of the package which is 
+The \code{\link{lmeb}} function is the core function of the package which is 
 exactly the same function than lmer or glmer but with few added arguments 
 \code{relmat} and \code{addmat} that allow the user to provide relationship matrices
 and customized incidence matrices respectively. Also the argument \code{rotation} 
@@ -156,7 +156,7 @@ data(DT_example)
 DT <- DT_example
 A <- A_example
 
-ansMain <- lmebreed(Yield ~ Env + (1|Name),
+ansMain <- lmeb(Yield ~ Env + (1|Name),
                         relmat = list(Name = A ),
                         data=DT)
 vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))

@@ -43,7 +43,7 @@ MMT <- MMT + diag(1e-05, ncol(MMT), ncol(MMT))
 DT[,"envf_repf"] = paste(DT[,"envf"],DT[,"repf"],sep="_")
 
 # fit the models
-mixm2 <- lmebreed(value ~ (1|envf_repf) + (0+envf_repf||id), 
+mixm2 <- lmeb(value ~ (1|envf_repf) + (0+envf_repf||id), 
                   data = DT, 
                   relmat = list(id = MMT), 
                   control = lmerControl( 
@@ -60,4 +60,4 @@ H0 <- ran2$id
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

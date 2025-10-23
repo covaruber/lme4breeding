@@ -2,14 +2,14 @@
 \alias{mkMmeIndex}
 \title{Table to track effects}
 \description{
-For an lmebreed object it creates a table to track the indices of each effect for
+For an lmeb object it creates a table to track the indices of each effect for
 a given slope and intercept.
 }
 \usage{
 mkMmeIndex(object)
 }
 \arguments{
- \item{object}{model object of class \code{\link{lmebreed}} }
+ \item{object}{model object of class \code{\link{lmeb}} }
 }
 \value{
   data frame with 4 columns: 
@@ -32,7 +32,7 @@ A <- A_example
 head(DT)
 
 ## Compound simmetry (CS) model
-ans1 <- lmebreed(Yield~Env + (1|Name) + (1|Env:Name),
+ans1 <- lmeb(Yield~Env + (1|Name) + (1|Env:Name),
                  data=DT)
 vc <- VarCorr(ans1); print(vc,comp=c("Variance"))
 
@@ -40,6 +40,6 @@ head(mkMmeIndex(ans1))
 
 
 }
-\seealso{\code{\link{getCi}}, \code{\link{lmebreed}}}
+\seealso{\code{\link{getCi}}, \code{\link{lmeb}}}
 \keyword{models}
 

@@ -2,7 +2,7 @@
 \alias{rrm}
 \title{reduced rank matrix}
 \description{
-  \code{rrm} creates a reduced rank factor analytic matrix by selecting the n vectors of the L matrix of the Cholesky decomposition or the U vectors of the SVD decomposition (loadings or latent covariates) to create a new incidence matrix of latent covariates that can be used with the \code{\link{lmebreed}} solver to fit random regressions on the latent covariates.
+  \code{rrm} creates a reduced rank factor analytic matrix by selecting the n vectors of the L matrix of the Cholesky decomposition or the U vectors of the SVD decomposition (loadings or latent covariates) to create a new incidence matrix of latent covariates that can be used with the \code{\link{lmeb}} solver to fit random regressions on the latent covariates.
 }
 \usage{
   rrm(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE)
@@ -103,7 +103,7 @@ diagFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"),
                        "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(diagFormula))
-ans1a <- lmebreed(as.formula(diagFormula),
+ans1a <- lmeb(as.formula(diagFormula),
                   relmat = list(Name=A),
                   data=DT)
 vc <- VarCorr(ans1a); print(vc,comp=c("Variance"))
@@ -117,7 +117,7 @@ faFormula <- paste0( "y ~ Env + (0+", paste(colnames(Z), collapse = "+"),
                      "|| Name)")
 for(i in 1:ncol(Z)){DT[,colnames(Z)[i]] <- Z[,i]}
 print(as.formula(faFormula))
-ansFA <- lmebreed(as.formula(faFormula),
+ansFA <- lmeb(as.formula(faFormula),
                   relmat = list(Name=A),
                   data=DT)
 vc <- VarCorr(ansFA); print(vc,comp=c("Variance"))
@@ -140,4 +140,4 @@ u <- uSpec + uInter
 
 
 }
-\seealso{The \code{\link{lmebreed}} solver.}
+\seealso{The \code{\link{lmeb}} solver.}

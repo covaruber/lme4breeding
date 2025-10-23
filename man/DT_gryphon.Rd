@@ -47,7 +47,7 @@ head(DT)
 \donttest{
 
 ## fit the model with no fixed effects (intercept only)
-mix1 <- lmebreed(BWT~ (1|ANIMAL),
+mix1 <- lmeb(BWT~ (1|ANIMAL),
                  relmat = list(ANIMAL=A),
                  data=DT)
 vc <- VarCorr(mix1); print(vc,comp=c("Variance"))
@@ -66,7 +66,7 @@ DTL <- DTL[with(DTL, order(trait)), ]
 head(DTL)
 
 system.time(
-  mix <- lmebreed(value ~ (0+trait|ANIMAL),
+  mix <- lmeb(value ~ (0+trait|ANIMAL),
                   relmat = list(ANIMAL=A),
                   # rotation = TRUE, 
                   data=DTL)
@@ -80,4 +80,4 @@ sigma(mix)^2 # error variance
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

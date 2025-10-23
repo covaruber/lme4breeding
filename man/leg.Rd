@@ -45,4 +45,4 @@ library(orthopolynom)
 ## see dataset data(DT_legendre) for a random regression modeling example
 
 }
-\seealso{The core function of the package \code{\link{lmebreed}}}
+\seealso{The core function of the package \code{\link{lmeb}}}

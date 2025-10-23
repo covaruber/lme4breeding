@@ -2,7 +2,7 @@
 \alias{smm}
 \title{sparse model matrix}
 \description{
-  \code{smm} creates a sparse model matrix for the levels of the random effect  to be used with the \code{\link{lmebreed}} solver.
+  \code{smm} creates a sparse model matrix for the levels of the random effect  to be used with the \code{\link{lmeb}} solver.
 }
 \usage{
   smm(x)
@@ -32,4 +32,4 @@ x <- as.factor(c(1:5,1:5,1:5));x
 smm(x)
 
 }
-\seealso{The \code{\link{lmebreed}} solver.}
+\seealso{The \code{\link{lmeb}} solver.}

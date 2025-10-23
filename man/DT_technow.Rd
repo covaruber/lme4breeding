@@ -41,7 +41,7 @@ Af <- A.mat(Mf)
 Ad <- Ad + diag(1e-4, ncol(Ad), ncol(Ad))
 Af <- Af + diag(1e-4, ncol(Af), ncol(Af))
 ## simple model
-ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
+ans2 <- lmeb(GY ~ (1|dent) + (1|flint),
                  data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 BLUP <- ranef(ans2, condVar=TRUE)
@@ -50,7 +50,7 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 \donttest{
 
 ### with relationship matrices
-ans2 <- lmebreed(GY ~ (1|dent) + (1|flint),
+ans2 <- lmeb(GY ~ (1|dent) + (1|flint),
              relmat = list(dent=Ad,
                            flint=Af),
              data=DT)
@@ -66,7 +66,7 @@ Z = Z[which(!is.na(DT$GY)),]
 # since these will be replaced by admat argument
 fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 #### model using overlay without relationship matrix
-ans2 <- lmebreed(GY ~ (1|fema),
+ans2 <- lmeb(GY ~ (1|fema),
                  addmat = list(fema=Z),
                  relmat = list(fema=A),
                  data=DT)
@@ -77,4 +77,4 @@ sigma(ans2)^2 # error variance
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

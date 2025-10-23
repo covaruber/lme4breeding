@@ -38,7 +38,7 @@
 data(DT_yatesoats)
 DT <- DT_yatesoats
 head(DT)
-mix <- lmebreed(Y ~ V + N + V:N +
+mix <- lmeb(Y ~ V + N + V:N +
              (1|B) + (1|B:MP),
            data = DT)
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))

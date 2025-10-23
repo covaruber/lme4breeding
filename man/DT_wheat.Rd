@@ -71,7 +71,7 @@ head(DT)
 
 #### main effect model
 system.time(
-mix0 <- lmebreed(pheno ~ (1|id),
+mix0 <- lmeb(pheno ~ (1|id),
                  relmat = list(id=K),
                  data=DT)
                  )
@@ -83,7 +83,7 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 #### unstructured model
 DT <- DT[with(DT, order(envf_repf, id)), ] # sort for rotation
 system.time(
-  mix1 <- lmebreed(pheno ~ (0 + env | id),
+  mix1 <- lmeb(pheno ~ (0 + env | id),
                    relmat = list(id=K),
                    rotation = TRUE,
                    data=DT)
@@ -95,4 +95,4 @@ sigma(mix1)^2 # error variance
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

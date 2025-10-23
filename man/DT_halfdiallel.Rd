@@ -34,7 +34,7 @@ DT$genof <- as.factor(DT$geno)
 # overlay matrix to be added to the addmat argument
 Z <- with(DT, overlay(femalef,malef) )
 ## model using overlay without relationship matrix
-modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
+modh <- lmeb(sugar ~ (1|genof) + (1|fema),
                  addmat = list(fema=Z),
              data=DT)
 vc <- VarCorr(modh); print(vc,comp=c("Variance"))
@@ -44,7 +44,7 @@ vc <- VarCorr(modh); print(vc,comp=c("Variance"))
 ## model using overlay with relationship matrix
 ## relationship matrix to be added to the relmat argument
 A <- diag(7); colnames(A) <- rownames(A) <- 1:7;A
-modh <- lmebreed(sugar ~ (1|genof) + (1|fema),
+modh <- lmeb(sugar ~ (1|genof) + (1|fema),
                  addmat = list(fema=Z),
                  relmat = list(fema=A),
                  data=DT)
@@ -58,4 +58,4 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

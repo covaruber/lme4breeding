@@ -55,4 +55,4 @@ xx <- umat(~id, relmat = list(id=A), data=DT)
 
 
 }
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }

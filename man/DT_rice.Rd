@@ -48,7 +48,7 @@ M <- atcg1234(GT)
 ### univariate model
 A <- A.mat(M$M)
 A <- A + diag(1e-4, ncol(A), ncol(A))
-mix <- lmebreed(Protein.content ~ (1|geno),
+mix <- lmeb(Protein.content ~ (1|geno),
                 relmat = list(geno=A),
                 data=DT)
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
@@ -64,7 +64,7 @@ DTL <- DTL[with(DTL, order(trait, geno)), ]
 head(DTL)
 
 system.time(
-  mix <- lmebreed(value ~ (0+trait|geno),
+  mix <- lmeb(value ~ (0+trait|geno),
                   relmat = list(geno=A),
                   rotation = TRUE,
                   data=DTL)
@@ -81,4 +81,4 @@ condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for
 
 }
 \keyword{datasets}
-\seealso{The core function of the package \code{\link{lmebreed}} }
+\seealso{The core function of the package \code{\link{lmeb}} }
