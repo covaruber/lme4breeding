@@ -1,5 +1,5 @@
 #### "relmat" class methods
-lmebreed <-  function(formula, data, REML = TRUE, control = list(), start = NULL, 
+lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), start = NULL, 
                       verbose = 1L, subset, weights, na.action, offset, contrasts = NULL,
                       calc.derivs=FALSE, nIters=100,
                       # new params

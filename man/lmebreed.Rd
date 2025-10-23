@@ -1,5 +1,6 @@
 \name{lmebreed}
 \alias{lmebreed}
+\alias{lmeb}
 \title{Fit breeding-related mixed-effects models}
 \description{
   Fits linear or generalized linear mixed models incorporating known relationships 
