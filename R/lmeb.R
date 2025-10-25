@@ -192,7 +192,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
     }else{
       suppressWarnings( mm <- eval.parent(lmerc), classes = "warning")
       cls <- if (gaus){"lmerMod"}else{"glmerMod"} 
-      # put it in a lmebreed object
+      # put it in a lmeb object
       ans <- do.call(new, list(Class=cls, relfac=list(), udu=list(), 
                                frame=mm@frame, flist=mm@flist, cnms=mm@cnms, Gp=mm@Gp,
                                theta=mm@theta, beta=mm@beta,u=mm@u,lower=mm@lower,
@@ -509,7 +509,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
   
 }
 
-setMethod("ranef", signature(object = "lmebreed"),
+setMethod("ranef", signature(object = "lmeb"),
           function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includeCVM=TRUE, ...)  {
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
@@ -563,7 +563,7 @@ setMethod("ranef", signature(object = "lmebreed"),
             return(ans)
           })
 
-setMethod("fitted", signature(object = "lmebreed"),
+setMethod("fitted", signature(object = "lmeb"),
           function(object, ...) {
             W <- do.call(cbind, getME(object = object, c("X","Z")) )
             b <- rbind( fixef(object),
@@ -573,12 +573,12 @@ setMethod("fitted", signature(object = "lmebreed"),
           })
 
 
-setMethod("residuals", signature(object = "lmebreed"),
+setMethod("residuals", signature(object = "lmeb"),
           function(object, ...) {
             getME(object, "y") - fitted(object)
           })
 
-setMethod("predict", signature(object = "lmebreed"),
+setMethod("predict", signature(object = "lmeb"),
           function(object, hyperTable=NULL, classify=NULL, usePEV=FALSE, ...)  {
             
             if(is.null(classify)){

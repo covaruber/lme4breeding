@@ -4,7 +4,6 @@
 \alias{fitted,lmeb-method}
 \alias{ranef,lmeb-method}
 \alias{residuals,lmeb-method}
-\alias{predict,lmeb-method}
 \title{Relationship-based mixed-effects model fits}
 \description{A mixed-effects model fit by \code{\link{lmeb}}.
   This class extends class \code{"\link[lme4:merMod-class]{merMod}"} class and includes one

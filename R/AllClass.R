@@ -1,24 +1,24 @@
-#' lmebreed class
+#' lmeb class
 #'
 #'
 
-# setClass("lmebreed", representation = list(relfac = "list"),
+# setClass("lmeb", representation = list(relfac = "list"),
 #          contains = "merMod")
 # setClass("glmerlmebreed", representation = list(resp="glmResp"),
-#          contains = "lmebreed")
+#          contains = "lmeb")
 # setClass("lmerlmebreed", representation = list(resp="lmerResp"),
-#          contains = "lmebreed")
+#          contains = "lmeb")
 
-setClass("lmebreed", slots = c(relfac = "list", udu = "list"),
+setClass("lmeb", slots = c(relfac = "list", udu = "list"),
          contains = c("merMod"))
 setClass("glmerMod", slots = c(resp="glmResp"),
-         contains = "lmebreed")
+         contains = "lmeb")
 setClass("lmerMod", slots = c(resp="lmerResp"),
-         contains = "lmebreed")
+         contains = "lmeb")
 
-# setClass("lmebreed", representation = list(relfac = "list", udu="list"),
+# setClass("lmeb", representation = list(relfac = "list", udu="list"),
 #          contains = "merMod")
 # setClass("glmerlmebreed", representation = list(resp="glmResp"),
-#          contains = "lmebreed")
+#          contains = "lmeb")
 # setClass("lmerlmebreed", representation = list(resp="lmerResp"),
-#          contains = "lmebreed")
+#          contains = "lmeb")
