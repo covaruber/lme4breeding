@@ -247,17 +247,42 @@ Lee & Van der Werf (2016). MTG2: an efficient algorithm for multivariate linear 
 }
 \examples{
 
-data(DT_example)
-DT <- DT_example
-A <- A_example
 
-ansMain <- lmeb(Yield ~ Env + (1|Name),
-                        relmat = list(Name = A ),
-                        data=DT)
-vc <- VarCorr(ansMain); print(vc,comp=c("Variance"))
-sigma(ansMain)^2 # error variance
+nInds=300
+nMarks=1000
+nEnvs=2
 
-BLUP <- ranef(ansMain, condVar=TRUE)
+#random population of nInds lines with nMarks markers
+M <- matrix(rep(0,nInds*nMarks),nInds,nMarks)
+for (i in 1:nInds) {
+  M[i,] <- ifelse(runif(nMarks)<0.5,-1,1)
+}
+# compute the relationship matrix
+MMT <- tcrossprod(M)
+m <- sum(diag(MMT))/nrow(MMT)
+MMT <- MMT/m
+MMT <- MMT + diag(1e-05, ncol(MMT), ncol(MMT))
+# get phenotypes
+yl <- el <- il <- list()
+for(iEnv in 1:nEnvs){
+  #random phenotypes
+  u <- rnorm(nMarks)
+  g <- as.vector(crossprod(t(M),u))
+  h2 <- 0.5  #heritability
+  envEffect <- rnorm(1, mean = abs(rnorm(1)))
+  yl[[iEnv]] <- g + rnorm(nInds,mean=0,sd=sqrt((1-h2)/h2*var(g))) + envEffect
+  el[[iEnv]] <- rep(paste0("e",iEnv), length(g))
+  il[[iEnv]] <-  paste0("i",1:length(g))
+}
+y <- unlist(yl)
+env <- unlist(el)
+ind <- unlist(il)
+colnames(MMT) <- rownames(MMT) <- paste0("i",1:length(g))
+# fit the mixed model with rotation
+mix <- lmeb(y~env + (1|ind), relmat=list(ind=MMT), rotation = TRUE )
+vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+# retrieve parameters
+BLUP <- ranef(mix, condVar=TRUE)
 condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 

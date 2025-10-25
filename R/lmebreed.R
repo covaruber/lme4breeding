@@ -351,6 +351,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
   }
   for (i in seq_along(namR)) { # for each random effect readjust # Zt i=2
     tn <- which(match(namR[i], names(fl)) == asgn) # match relmat names with random effects names
+    # unstructured tn=1, other models tn=n.levels.intercept
     for(j in 1:length(tn)){ # for each intercept matching this relationship matrix (diagonal and unstructured models require to multiple all incidence matrices by the same relfactor)
       ind <- (lmod$reTrms$Gp)[tn[j]:(tn[j]+1L)] # which columns match this random effect
       rowsi <- (ind[1]+1L):ind[2] # first to last column from Z
@@ -380,7 +381,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
         }
       }
       # multiply by the provRelFac or by the Utn matrix
-      if( length(lmod$reTrms$cnms[[j]]) == 1 ){ # regular model (single random intercept)
+      if( length(lmod$reTrms$cnms[[j]]) == 1 ){ # regular model (intercept || slope) OR (1 | slope )
         
         ZtL <- list() # we have to do this because filling by rows a Column-oriented matrix is extremely slow so it is faster to cut and paste
         
@@ -409,7 +410,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
           }
         }
         
-      }else{ # complex model (multiple random intercepts)
+      }else{ # complex model (intercept | slope)
         mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[j]]) )
         ZtL <- list()
         if(namR[i] %in% names(relmat) ){ # if random effect has a relmat

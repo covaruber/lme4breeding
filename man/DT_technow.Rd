@@ -34,8 +34,15 @@ Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear 
 
 data(DT_technow)
 DT <- DT_technow
-Md <- (Md_technow*2) - 1
-Mf <- (Mf_technow*2) - 1
+
+Md <- apply(Md_technow,2,as.numeric)
+rownames(Md) <- rownames(Md_technow)
+Mf <- apply(Mf_technow,2,as.numeric)
+rownames(Mf) <- rownames(Mf_technow)
+
+Md <- (Md*2) - 1
+Mf <- (Mf*2) - 1
+
 Ad <- A.mat(Md)
 Af <- A.mat(Mf)
 Ad <- Ad + diag(1e-4, ncol(Ad), ncol(Ad))
@@ -62,9 +69,6 @@ A <- A.mat(M)
 A <- A + diag(1e-4,ncol(A), ncol(A))
 Z <- with(DT, overlay(dent,flint) )
 Z = Z[which(!is.na(DT$GY)),]
-# inital values for incidence matrix but irrelevant
-# since these will be replaced by admat argument
-fema <- (rep(colnames(Z), nrow(DT)))[1:nrow(DT)]
 #### model using overlay without relationship matrix
 ans2 <- lmeb(GY ~ (1|fema),
                  addmat = list(fema=Z),
@@ -72,6 +76,16 @@ ans2 <- lmeb(GY ~ (1|fema),
                  data=DT)
 vc <- VarCorr(ans2); print(vc,comp=c("Variance"))
 sigma(ans2)^2 # error variance
+
+### rotated model for hybrids
+H <- kronecker(Ad,Af, make.dimnames = TRUE)
+H <- H[which(colnames(H)%in% DT$hy),which(colnames(H)%in% DT$hy)]
+
+ans3 <- lmeb(GY ~ (1|hy),
+             relmat = list(hy=H), 
+             rotation=TRUE,
+             data=DT)
+vc <- VarCorr(ans3); print(vc,comp=c("Variance"))
 
 }
 
