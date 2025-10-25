@@ -279,8 +279,9 @@ env <- unlist(el)
 ind <- unlist(il)
 colnames(MMT) <- rownames(MMT) <- paste0("i",1:length(g))
 # fit the mixed model with rotation
-mix <- lmeb(y~env + (1|ind), relmat=list(ind=MMT), rotation = TRUE )
+mix <- lmeb(y~env + (0+env|ind), relmat=list(ind=MMT), rotation = TRUE )
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+# lattice::levelplot(cov2cor(vc$ind))
 # retrieve parameters
 BLUP <- ranef(mix, condVar=TRUE)
 condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
