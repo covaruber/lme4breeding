@@ -566,7 +566,7 @@ setMethod("ranef", signature(object = "lmeb"),
 setMethod("fitted", signature(object = "lmeb"),
           function(object, ...) {
             W <- do.call(cbind, getME(object = object, c("X","Z")) )
-            b <- rbind( fixef(object),
+            b <- rbind( as.matrix(fixef(object)),
                         getME(object = object, c("b")) )
             y.hat <- W%*%b
             return(y.hat)
