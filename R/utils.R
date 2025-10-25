@@ -66,7 +66,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
     common <- intersect(colnames(U), colnames(Z))
     Ul[[iProv]]<- U[common,common]
     Dl[[iProv]]<-D[common,common]# This will be our new 'relationship-matrix'
-    Utn <- Matrix::kronecker(Matrix::Diagonal(n=nTraits),t(U[common,common]))
+    # Utn <- Matrix::kronecker(Matrix::Diagonal(n=nTraits),t(U[common,common]))
   }
   # UnList <- list()
   # for(iel in 1:1){ # we only use the first relationship matrix for the rotation # length(Ul)
@@ -74,11 +74,11 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   # }
   # Utn <- Reduce("+",UnList)
   
-  if(nrow(Utn) != nrow(data)){
+  if( (nrow(U)*nTraits) != nrow(data)){
     stop("The eigen decomposition only works when the rotated effect is balanced (equal number of reps for each level). \n Please ensure you fill the dataset to make it balanced for the \n 'relmat' terms or set 'rotation' to FALSE.", call. = FALSE)
   }
   
-  return(list(Utn=Utn, D=Dl, U=Ul, # RRt=ZrZrt, 
+  return(list(D=Dl, U=Ul, # RRt=ZrZrt, 
               effect=idProvided, 
               record=idProvided # data$recordF
   ))

@@ -41,6 +41,7 @@ MMT <- MMT + diag(1e-05, ncol(MMT), ncol(MMT))
 
 # let's fit the GxE model (diagonal first)
 DT[,"envf_repf"] = paste(DT[,"envf"],DT[,"repf"],sep="_")
+DT=DT[with(DT, order(envf_repf)), ]
 
 # fit the models
 mixm2 <- lmeb(value ~ (1|envf_repf) + (0+envf_repf||id), 

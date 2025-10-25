@@ -263,8 +263,18 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
                   data=lmod$fr, addmat = addmat, k=rotationK)
       # if rotation we impute the response
       lmod$fr[,response] <- imputev(x=lmod$fr[,response],method="median")#, by=data[udu$effect])
-      newValues <- udu$Utn %*% Matrix::Matrix(lmod$fr[,response])
+      
+      Ut <- t(udu$U[[1]]) # extract Ut
+      U <- udu$U[[1]] # extract U
+      sx0 <- seq(1,length(lmod$fr[,response]), ncol(Ut) ) # start of each piece
+      ex0 <- seq(ncol(Ut),length(lmod$fr[,response]), ncol(Ut) ) # end of each piece
+      newValues <- Matrix::Matrix(lmod$fr[,response])
+      for(iPiece in 1:length(sx0)){ # rotate response piece by piece
+        newValues[sx0[iPiece]:ex0[iPiece],] <- Ut %*% newValues[sx0[iPiece]:ex0[iPiece],]
+      }
+      # newValues <- udu$Utn %*% Matrix::Matrix(lmod$fr[,response])
       newValues <- newValues[,1]
+      
       outlier <- grDevices::boxplot.stats(x=newValues,coef=coefOutRotation )$out
       if(length(outlier) > 0){newValues[which(newValues %in% outlier)] = mean(newValues[which(newValues %!in% outlier)])}
       lmod$fr[,response] <- newValues
@@ -294,8 +304,10 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
   ## transform X if rotation is needed
   if(length(relmat) > 0){
     if(rotation){
-      if(ncol(udu$Utn) != nrow(lmod$X)){stop("Rotation approach requires your dataset to be balanced and imputed.")}
-      lmod$X <- udu$Utn %*% lmod$X #* lmod$X
+      for(iPiece in 1:length(sx0)){ # rotate X piece by piece
+        lmod$X[sx0[iPiece]:ex0[iPiece],] <- Ut %*% lmod$X[sx0[iPiece]:ex0[iPiece],]
+      }
+      # lmod$X <- udu$Utn %*% lmod$X # previous approach
       if(trace){message(magenta("* Rotation applied to the X matrix."))}
     }
   }
@@ -333,7 +345,6 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
   }
   
   # >>>>>>>>> time to apply the relmat
-  
   namR <- unique(names(lmod$reTrms$cnms))
   if(any(namR %in% names(relmat) )){
     if(trace){message(magenta("* Postmultiplying LZ' step."))}
@@ -387,7 +398,10 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
             # left part
             if(min(rowsi) > 1){ZtL[[1]] <- Zt[1:(min(rowsi)-1),]}
             # central part
-            ZtL[[2]] <- Zt[rowsi,] %*% t(udu$Utn)
+            for(iPiece in 1:length(sx0)){ # rotate Z piece by piece
+              Zt[rowsi,sx0[iPiece]:ex0[iPiece]] <- Zt[rowsi,sx0[iPiece]:ex0[iPiece]] %*% U
+            }; ZtL[[2]] <- Zt[rowsi,]
+            # ZtL[[2]] <- Zt[rowsi,] %*% t(udu$Utn)
             if(trace){message(magenta("* Rotation applied to other Z matrices."))}
             # right part
             if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
@@ -414,7 +428,10 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
             # left part
             if(min(rowsi) > 1){ZtL[[1]] <- Zt[1:(min(rowsi)-1),]}
             # central part
-            ZtL[[2]] <- Zt[rowsi,] %*% t(udu$Utn)
+            for(iPiece in 1:length(sx0)){ # rotate Z piece by piece
+              Zt[rowsi,sx0[iPiece]:ex0[iPiece]] <- Zt[rowsi,sx0[iPiece]:ex0[iPiece]] %*% U
+            }; ZtL[[2]] <- Zt[rowsi,]
+            # ZtL[[2]] <- Zt[rowsi,] %*% t(udu$Utn)
             if(trace){message(magenta("* Rotation applied to the Z matrices."))}
             # right part
             if(max(rowsi) < nrow(Zt)){ZtL[[3]] <- Zt[(max(rowsi)+1):nrow(Zt),]}
@@ -427,9 +444,6 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
     } # enf of for each intercept
     provRelFac <- NULL
   } # end of for each random effect
-  if(rotation){
-    udu$Utn <- NULL # avoid storing a big matrix after the multiplication
-  }
   
   reTrms <- list(Zt=Zt,theta=if(is.null(start)){lmod$reTrms$theta}else{start},Lambdat=lmod$reTrms$Lambdat,Lind=lmod$reTrms$Lind,
                  lower=lmod$reTrms$lower,flist=lmod$reTrms$flist,cnms=lmod$reTrms$cnms, Gp=lmod$reTrms$Gp)
