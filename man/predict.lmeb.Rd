@@ -1,14 +1,14 @@
-\name{predict.lmebreed}
+\name{predict.lmeb}
+\alias{predict.lmeb}
 \alias{predict.lmebreed}
-\alias{predict.mmer}
-\title{Predict form of a LMM fitted with lmeb/lmebreed}
-\description{\code{predict} method for class \code{"lmebreed"}.
+\title{Predict form of a LMM fitted with lmeb/lmeb}
+\description{\code{predict} method for class \code{"lmeb"}.
 }
 \usage{
-\method{predict}{lmebreed}(object, hyperTable=NULL, classify, usePEV=FALSE, \dots)
+\method{predict}{lmeb}(object, hyperTable=NULL, classify, usePEV=FALSE, \dots)
 }
 \arguments{
- \item{object}{a mixed model of class \code{"lmebreed"} fitted with \code{\link{lmeb}} }
+ \item{object}{a mixed model of class \code{"lmeb"} fitted with \code{\link{lmeb}} }
  \item{hyperTable}{ a data frame with columns; variable, group, type, include,
      average. See the \code{\link{Dtable}} function to understand the format.
  
@@ -70,13 +70,13 @@
   Welham, S., Cullis, B., Gogel, B., Gilmour, A., and Thompson, R. (2004). Prediction in linear mixed models. Australian and New Zealand Journal of Statistics, 46, 325 - 347.
  }
 \author{Giovanny Covarrubias-Pazaran}
-\seealso{\code{\link{predict}}, \code{\link{lmebreed}}}
+\seealso{\code{\link{predict}}, \code{\link{lmeb}}}
 \keyword{models}
 \examples{
 
 data(DT_yatesoats)
 DT <- DT_yatesoats
-m3 <- lmebreed(Y ~ V + N + V:N +
+m3 <- lmeb(Y ~ V + N + V:N +
                  (1|B) + (1|B:MP),
                data = DT)
 

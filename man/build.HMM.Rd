@@ -81,8 +81,13 @@ Su G, Christensen OF, Ostersen T, Henryon M, Lund MS. 2012. Estimating Additive 
 ## use Technow data as example
 data(DT_technow)
 DT <- DT_technow
-Md <- (Md_technow * 2) - 1
-Mf <- (Mf_technow * 2) - 1
+Md <- apply(Md_technow,2,as.numeric)
+rownames(Md) <- rownames(Md_technow)
+Mf <- apply(Mf_technow,2,as.numeric)
+rownames(Mf) <- rownames(Mf_technow)
+
+Md <- (Md*2) - 1
+Mf <- (Mf*2) - 1
 
 ## first get all possible hybrids
 res1 <- build.HMM(Md, Mf, 

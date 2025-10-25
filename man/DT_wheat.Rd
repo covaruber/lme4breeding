@@ -81,7 +81,7 @@ BLUP <- ranef(mix0, condVar=TRUE)
 condVAR <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 
 #### unstructured model
-DT <- DT[with(DT, order(envf_repf, id)), ] # sort for rotation
+DT <- DT[with(DT, order(env, id)), ] # sort for rotation
 system.time(
   mix1 <- lmeb(pheno ~ (0 + env | id),
                    relmat = list(id=K),

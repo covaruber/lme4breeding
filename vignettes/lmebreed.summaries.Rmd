@@ -59,8 +59,8 @@ head(PEV$Name)
 Alternatively, you can extract the predicted error variance matrix (inverse of the coefficient matrix) and extract the standard error from coefficients taking the square root from the diagonal elements of the matrix.
 
 ```{r}
-Ci <- getCi(ans1)
-Matrix::image(Ci)
+condVarAns <- condVarRotated(ans1)
+Matrix::image(condVarAns)
 ```
 
 This matrix is also included in the attributes of the object returned by the `ranef()` function.

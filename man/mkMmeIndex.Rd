@@ -14,7 +14,7 @@ mkMmeIndex(object)
 \value{
   data frame with 4 columns: 
   
-  1) index: indicates the position in the effects and PEV matrix (\code{\link{getCi}})
+  1) index: indicates the position in the effects and PEV matrix (\code{\link{condVarRotated}})
   
   2) level: the name of the level for a given effect
   
@@ -40,6 +40,6 @@ head(mkMmeIndex(ans1))
 
 
 }
-\seealso{\code{\link{getCi}}, \code{\link{lmeb}}}
+\seealso{\code{\link{condVarRotated}}, \code{\link{lmeb}}}
 \keyword{models}
 

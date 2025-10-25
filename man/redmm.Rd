@@ -45,7 +45,9 @@ Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear 
   
 data(DT_technow)
 DT <- DT_technow
-Md <- Md_technow
+Md <- apply(Md_technow,2,as.numeric)
+rownames(Md) <- rownames(Md_technow)
+Md <- (Md*2) - 1
 
 M <- tcrossprod(Md)
 Z = with(DT, redmm(x=dent, M=M, nPC=10))

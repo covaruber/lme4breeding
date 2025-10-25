@@ -1,6 +1,6 @@
 \name{condVarRotated}
 \alias{condVarRotated}
-\title{Get the inverse coefficient matrix}
+\title{Get the rotated conditional variance matrix}
 \description{
 Retrieve the conditional variance matrix from the random effects rotated by the 
 Cholesky factors and Eigen factors if applicable.

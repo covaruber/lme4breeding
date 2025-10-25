@@ -79,7 +79,7 @@ sigma(ans2)^2 # error variance
 
 ### rotated model for hybrids
 H <- kronecker(Ad,Af, make.dimnames = TRUE)
-H <- H[which(colnames(H)%in% DT$hy),which(colnames(H)%in% DT$hy)]
+H <- H[which(colnames(H)\%in\% DT$hy),which(colnames(H)\%in\% DT$hy)]
 
 ans3 <- lmeb(GY ~ (1|hy),
              relmat = list(hy=H), 
