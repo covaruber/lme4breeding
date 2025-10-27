@@ -14,7 +14,7 @@ lmeb(formula, data, REML = TRUE, control = list(), start = NULL,
          calc.derivs = FALSE, nIters=100,
          # lmeb special params
          family = NULL, relmat = list(), addmat = list(), trace=1L,
-         dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=8, 
+         dateWarning=TRUE, rotation=FALSE,  rotationK=NULL, coefOutRotation=Inf, 
          returnFormula=FALSE, suppressOpt=FALSE, ...)
 }
 \arguments{
@@ -85,8 +85,8 @@ lmeb(formula, data, REML = TRUE, control = list(), start = NULL,
   when the rotation argument is set to TRUE. By default all eigen vectors are computed.}
   
   \item{coefOutRotation}{a numeric value denoting the inter-quantile outlier coefficient to
-  be used in the rotation of the response when using the eigen decomposition to avoid 
-  overshooting.}
+  be used in the rotation of the response when using the eigen decomposition. Experimental. 
+  Currently is set to Inf value so no outliers are removed.}
   
   \item{returnFormula}{a logical value indicating if you want to only get the results from
   the \code{\link[lme4]{lFormula}} after the relmat and addmat arguments have been applied.
