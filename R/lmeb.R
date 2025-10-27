@@ -4,7 +4,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
                       calc.derivs=FALSE, nIters=100,
                       # new params
                       family = NULL, relmat = list(),  addmat=list(), trace=1L,
-                      dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=8, 
+                      dateWarning=TRUE, rotation=FALSE, rotationK=NULL, coefOutRotation=Inf, 
                       returnFormula=FALSE, suppressOpt=FALSE, ...)
 {
   my.date <- "2026-01-01" # expiry date
