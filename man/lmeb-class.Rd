@@ -50,9 +50,9 @@ A <- A_example
 ans1 <- lmeb(Yield~Env + (1|Name) + (1|Env:Name),
                  data=DT)
                  
-# fitted(ans1)
-# residuals(ans1)
-# rr <- ranef(ans1)
+fitted(ans1)
+residuals(ans1)
+rr <- ranef(ans1)
 
 }
 \keyword{classes}

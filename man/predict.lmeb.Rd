@@ -1,7 +1,7 @@
 \name{predict.lmeb}
 \alias{predict.lmeb}
 \alias{predict.lmebreed}
-\title{Predict form of a LMM fitted with lmeb/lmeb}
+\title{Predict form of a LMM fitted with lmeb/lmebreed}
 \description{\code{predict} method for class \code{"lmeb"}.
 }
 \usage{

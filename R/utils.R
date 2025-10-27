@@ -30,7 +30,7 @@ umat <- function(formula, relmat, data, addmat, k=NULL){
   if(!is.list(relmat)){stop("relmat argument should be a named list of relationship matrices", call. = FALSE)}
   
   idProvided <- all.vars(formula)
-  if(length(idProvided) > 1){stop("Only one relationship matrix can be eigen decomposed.")}
+  if(length(idProvided) > 1){message(magenta("Only one dense relationship matrix can be eigen decomposed. You have provided more than one relmat. Only the first one will be used for the rotation."))}
   
   # build the U nxn matrix
   Ul <- Dl <- Zu <- nLev <- list()

@@ -478,7 +478,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
                                               calc.derivs=lmod$control$calc.derivs,
                                               restart_edge=lmod$control$restart_edge,
                                               boundary.tol=lmod$control$boundary.tol,
-                                              use.last.params=lmod$control$use.last.params, ...)   , classes = "warning") # need to pass control 
+                                              use.last.params=lmod$control$use.last.params)   , classes = "warning") # need to pass control 
       } 
     } else { # exponential family of distributions
       lmod$family <- family
@@ -492,7 +492,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
                                                calc.derivs=lmod$control$calc.derivs,
                                                restart_edge=lmod$control$restart_edge,
                                                boundary.tol=lmod$control$boundary.tol,
-                                               use.last.params=lmod$control$use.last.params,  ...)  ) # need to pass control 
+                                               use.last.params=lmod$control$use.last.params)  ) # need to pass control 
       } 
     }
     if(trace){message(magenta("* Done!!"))}
