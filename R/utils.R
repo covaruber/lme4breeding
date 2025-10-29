@@ -403,10 +403,10 @@ overlay<- function (..., rlist = NULL, prefix = NULL, sparse=FALSE){
 
 
 ## VS structures for lmebreed
-greenmm <- function (x, M = NULL, Lam=NULL, nPC=50, cholD=FALSE, returnLam=FALSE) {
+redmm <- function (x, M = NULL, Lam=NULL, nPC=50, cholD=FALSE, returnLam=FALSE) {
   
   if(system.file(package = "RSpectra") == ""){
-    stop("Please install the RSpectra package to use the greenmm() function.",call. = FALSE)
+    stop("Please install the RSpectra package to use the redmm() function.",call. = FALSE)
   }else{
     requireNamespace("RSpectra",quietly=TRUE)
   }
@@ -512,7 +512,7 @@ imputev <- function (x, method = "median", by=NULL) {
 rrm <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   if(is.null(x) ){stop("Please provide the x argument.", call. = FALSE)}
   if(is.null(H) ){stop("Please provide the x argument.", call. = FALSE)}
-  # these are called PC models by Meyer 2009, GSE. This is a greenuced rank implementation
+  # these are called PC models by Meyer 2009, GSE. This is a reduced rank implementation
   # we produce loadings, the Z*L so we can use it to estimate factor scores in mmec()
   
   Y <- apply(H,2, imputev)
@@ -521,7 +521,7 @@ rrm <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   if(nrow(nans) > 0){
     Ys[nans]=0
   }
-  Sigma <- cov(Ys) # surrogate of unstructugreen matrix to start with
+  Sigma <- cov(Ys) # surrogate of unstructured matrix to start with
   Sigma <- as.matrix(Matrix::nearPD(x=Sigma, corr = FALSE, keepDiag = FALSE, base.matrix = FALSE,
                                     do2eigen = TRUE, doSym = FALSE,
                                     doDykstra = TRUE, only.values = FALSE,
@@ -548,7 +548,7 @@ rrm <- function(x=NULL, H=NULL, nPC=2, returnGamma=FALSE, cholD=TRUE){
   ##
   rownames(Gamma) <- gsub("v.names_","",rownames(Gamma))#rownames(GE)#levels(dataset$Genotype);  # rownames(Se) <- colnames(GE)#levels(dataset$Environment)
   colnames(Gamma) <- paste("PC", 1:ncol(Gamma), sep =""); # 
-  ######### GEgreenuced = Sg %*% t(Se) 
+  ######### GEreduced = Sg %*% t(Se) 
   # if we want to merge with PCs for environments
   dtx <- data.frame(timevar=x)
   dtx$index <- 1:nrow(dtx)
@@ -954,7 +954,7 @@ atcg1234 <- function(data, ploidy=2, format="ATCG", maf=0, multi=TRUE, silent=FA
       }
     }
   }else{
-    message("Imputation not requigreen. Be careful using non-imputed matrices in mixed model solvers\n")
+    message("Imputation not required. Be careful using non-imputed matrices in mixed model solvers\n")
   }
   ## ploidy 2 needs to be adjusted to -1,0,1
   # if(ploidy == 2){
@@ -1195,13 +1195,13 @@ tps <- function (columncoordinates, rowcoordinates, nsegments=NULL,
   nsncol <- 0
   if (nestcol > 1) {
     if (nsegcol%%nestcol != 0) 
-      warning("Column nesting ignogreen: number of column segments must be a multiple of nesting order")
+      warning("Column nesting ignored: number of column segments must be a multiple of nesting order")
     else nsncol <- nsegcol/nestcol
   }
   nsnrow <- 0
   if (nestrow > 1) {
     if (nsegrow%%nestrow != 0) 
-      warning("Row nesting ignogreen: number of row segments must be a multiple of nesting order")
+      warning("Row nesting ignored: number of row segments must be a multiple of nesting order")
     else nsnrow <- nsegrow/nestrow
   }
   Bc <- bbasis(col, cminval, cmaxval, nsegcol, degree[1])
