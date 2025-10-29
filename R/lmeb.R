@@ -312,7 +312,6 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
     }
   }
   ##############################
- 
   # >>>>>>>>>> apply addmat (additional matrices)
   for (i in seq_along(addmat)) {
     if(trace){message(magenta("* Merging additional matrices."))}
