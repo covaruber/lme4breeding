@@ -47,12 +47,12 @@ variances-covariances for fixed and random effects, etc.
 
 \section{Functions for genetic analysis}{
 
-The package provides kernels to the estimate additive (\code{\link{A.mat}})
+The package provides kernels to the estimate additive (\code{\link[enhancer]{A.matr}})
 relationship matrix for diploid and polyploid organisms. A good converter from 
-letter code to numeric format is implemented in the function \code{\link{atcg1234}}, 
+letter code to numeric format is implemented in the function \code{\link[enhancer]{atcg1234}}, 
 which supports higher ploidy levels than diploid. Additional functions for genetic 
 analysis have been included such as build a genotypic hybrid marker matrix 
-(\code{\link{build.HMM}}). If you need to use pedigree you need to convert your 
+(\code{\link[enhancer]{build.HMM}}). If you need to use pedigree you need to convert your 
 pedigree into a relationship matrix (use the `getA` function from the pedigreemm package).
 
 }
@@ -60,7 +60,7 @@ pedigree into a relationship matrix (use the `getA` function from the pedigreemm
 \section{Functions for trial analysis}{
 
 Recently, spatial modeling has been added added to lme4breeding using the two-dimensional
-spline \code{\link{tps}} function.
+spline \code{\link[enhancer]{tps}} function.
 
 }
 
@@ -93,35 +93,35 @@ at the vignettes by typing in the terminal:
 The package has been equiped with several datasets to learn how to use the 
 lme4breeding package (and almost to learn all sort of quantitative genetic analysis): 
 
-* \code{\link{DT_big}} simulated dataset containing 1K individuals in 50 environments to show how to fit big models.
+* \code{\link[enhancer]{DT_big}} simulated dataset containing 1K individuals in 50 environments to show how to fit big models.
 
-* \code{\link{DT_btdata}} dataset contains an animal (birds) model.
+* \code{\link[enhancer]{DT_btdata}} dataset contains an animal (birds) model.
 
-* \code{\link{DT_cornhybrids}} dataset to perform genomic prediction in hybrid single crosses 
+* \code{\link[enhancer]{DT_cornhybrids}} dataset to perform genomic prediction in hybrid single crosses 
 
-* \code{\link{DT_cpdata}} dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects. 
+* \code{\link[enhancer]{DT_cpdata}} dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects. 
 
-* \code{\link{DT_fulldiallel}} dataset with examples to fit full diallel designs. 
+* \code{\link[enhancer]{DT_fulldiallel}} dataset with examples to fit full diallel designs. 
 
-* \code{\link{DT_gryphon}} data contains an example of an animal model including pedigree information.
+* \code{\link[enhancer]{DT_gryphon}} data contains an example of an animal model including pedigree information.
 
-* \code{\link{DT_halfdiallel}} dataset with examples to fit half diallel designs. 
+* \code{\link[enhancer]{DT_halfdiallel}} dataset with examples to fit half diallel designs. 
 
-* \code{\link{DT_h2}} to calculate heritability
+* \code{\link[enhancer]{DT_h2}} to calculate heritability
 
-* \code{\link{DT_ige}} dataset to show how to fit indirect genetic effect models.
+* \code{\link[enhancer]{DT_ige}} dataset to show how to fit indirect genetic effect models.
 
-* \code{\link{DT_legendre}} simulated dataset for random regression model.
+* \code{\link[enhancer]{DT_legendre}} simulated dataset for random regression model.
 
-* \code{\link{DT_mohring}} datasets with examples to fit half diallel designs.
+* \code{\link[enhancer]{DT_mohring}} datasets with examples to fit half diallel designs.
 
-* \code{\link{DT_polyploid}} to fit genomic prediction and GWAS analysis in polyploids. 
+* \code{\link[enhancer]{DT_polyploid}} to fit genomic prediction and GWAS analysis in polyploids. 
 
-* \code{\link{DT_sleepstudy}} dataset to know how to translate lme4 models to lme4breeding models.
+* \code{\link[enhancer]{DT_sleepstudy}} dataset to know how to translate lme4 models to lme4breeding models.
 
-* \code{\link{DT_technow}} dataset to perform genomic prediction in hybrid single crosses 
+* \code{\link[enhancer]{DT_technow}} dataset to perform genomic prediction in hybrid single crosses 
 
-* \code{\link{DT_wheat}} dataset to do genomic prediction in single crosses in species displaying only additive effects.
+* \code{\link[enhancer]{DT_wheat}} dataset to do genomic prediction in single crosses in species displaying only additive effects.
 
 }
 
@@ -152,7 +152,7 @@ Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear 
 \keyword{ R package }
 \examples{
 
-data(DT_example)
+data(DT_example, package="enhancer")
 DT <- DT_example
 A <- A_example
 

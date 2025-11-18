@@ -74,7 +74,7 @@
 \keyword{models}
 \examples{
 
-data(DT_yatesoats)
+data(DT_yatesoats, package="enhancer")
 DT <- DT_yatesoats
 m3 <- lmeb(Y ~ V + N + V:N +
                  (1|B) + (1|B:MP),

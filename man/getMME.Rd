@@ -51,7 +51,7 @@ Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear 
 
 \examples{
 
-data(DT_example)
+data(DT_example, package="enhancer")
 DT <- DT_example
 A <- A_example
 
@@ -66,12 +66,12 @@ mme <- getMME(ansMain)
 ## showing how to predict the individuals
 ## that didn't have records in the dataset
 ##########################################
-data(DT_cpdata)
+data(DT_cpdata, package="enhancer")
 DT <- DT_cpdata
 GT <- GT_cpdata
 MP <- MP_cpdata
 #### create the variance-covariance matrix
-A <- A.mat(GT) # additive relationship matrix
+A <- A.matr(GT) # additive relationship matrix
 A <- A + diag(1e-4, ncol(A), ncol(A))
 #### look at the data and fit the model
 head(DT)

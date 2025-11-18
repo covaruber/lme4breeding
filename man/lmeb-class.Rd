@@ -42,7 +42,7 @@ Class \code{"\link[lme4:merMod-class]{merMod}"}, directly.
 \examples{
 showClass("lmeb")
 
-data(DT_example)
+data(DT_example, package="enhancer")
 DT <- DT_example
 A <- A_example
 

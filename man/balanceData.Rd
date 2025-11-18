@@ -50,6 +50,7 @@ Douglas Bates, Martin Maechler, Ben Bolker, Steve Walker (2015). Fitting Linear 
 
 \examples{
 
+data(DT_big, package="enhancer")
 DT = DT_big
 M = apply(M_big,2,as.numeric)
 rownames(M) <- rownames(M_big)

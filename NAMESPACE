@@ -2,6 +2,7 @@
 import("methods")
 import("Matrix")
 import("lme4")
+import("enhancer")
 import("crayon")
 
 importFrom("utils", "setTxtProgressBar", "txtProgressBar")
@@ -9,10 +10,10 @@ importFrom("utils", "setTxtProgressBar", "txtProgressBar")
 importFrom("stats", "as.formula", "cov", "vcov", "terms", "model.matrix", "na.omit",
            "na.pass", "median", "reshape","var","aggregate", "sigma")
 
-export( "lmebreed", "lmeb", "smm", "rrm", "redmm", "overlay", "add.diallel.vars",
-        "build.HMM","bbasis","tps","A.mat", "I.mat","atcg1234","imputev", "getMME",
-        "leg", "adjBeta", "umat", 
-        "simage","simage2", "balanceData", "Dtable", "condVarRotated","mkMmeIndex",
+export( "lmebreed", "lmeb", "smm",
+        "getMME",
+        "adjBeta", "umat", 
+        "balanceData", "Dtable", "condVarRotated","mkMmeIndex",
         "predict.lmeb"
         )
 

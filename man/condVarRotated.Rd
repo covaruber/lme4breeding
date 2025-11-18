@@ -17,7 +17,7 @@ condVarRotated(object)
 \author{Giovanny Covarrubias}
 \examples{
 
-data(DT_example)
+data(DT_example, package="enhancer")
 DT <- DT_example
 A <- A_example
 head(DT)

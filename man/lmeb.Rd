@@ -132,9 +132,9 @@ lmeb(formula, data, REML = TRUE, control = list(), start = NULL,
   activated and variance components differ slightly with other software they will still provide extremely similar 
   estimates at the speed of hundreds or thousands of times faster. Please consider this.
   
-  Additional useful functions are; \code{\link{tps}} for spatial kernels, \code{\link{rrm}} 
-  for reduced rank matrices, \code{\link{atcg1234}} for conversion of genetic markers, 
-  \code{\link{overlay}} for overlay matrices, \code{\link{reshape}} for moving wide 
+  Additional useful functions are; \code{\link[enhancer]{tps}} for spatial kernels, \code{\link[enhancer]{rrm}} 
+  for reduced rank matrices, \code{\link[enhancer]{atcg1234}} for conversion of genetic markers, 
+  \code{\link[enhancer]{overlay}} for overlay matrices, \code{\link{reshape}} for moving wide 
   format multi-trait datasets into long format.
   
   Normally, using the optimizer argument inside the \code{\link[lme4]{lmerControl}} keep 
@@ -198,35 +198,35 @@ lmeb(formula, data, REML = TRUE, control = list(), start = NULL,
 
 The package has been equiped with several datasets to learn how to use the lme4breeding package:
 
-* \code{\link{DT_big}} simulated dataset containing 1K individuals in 50 environments to show how to fit big models.
+* \code{\link[enhancer]{DT_big}} simulated dataset containing 1K individuals in 50 environments to show how to fit big models.
 
-* \code{\link{DT_btdata}} dataset contains an animal (birds) model.
+* \code{\link[enhancer]{DT_btdata}} dataset contains an animal (birds) model.
 
-* \code{\link{DT_cornhybrids}} dataset to perform genomic prediction in hybrid single crosses 
+* \code{\link[enhancer]{DT_cornhybrids}} dataset to perform genomic prediction in hybrid single crosses 
 
-* \code{\link{DT_cpdata}} dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects. 
+* \code{\link[enhancer]{DT_cpdata}} dataset to fit genomic prediction models within a biparental population coming from 2 highly heterozygous parents including additive, dominance and epistatic effects. 
 
-* \code{\link{DT_fulldiallel}} dataset with examples to fit full diallel designs. 
+* \code{\link[enhancer]{DT_fulldiallel}} dataset with examples to fit full diallel designs. 
 
-* \code{\link{DT_gryphon}} data contains an example of an animal model including pedigree information.
+* \code{\link[enhancer]{DT_gryphon}} data contains an example of an animal model including pedigree information.
 
-* \code{\link{DT_halfdiallel}} dataset with examples to fit half diallel designs. 
+* \code{\link[enhancer]{DT_halfdiallel}} dataset with examples to fit half diallel designs. 
 
-* \code{\link{DT_h2}} to calculate heritability
+* \code{\link[enhancer]{DT_h2}} to calculate heritability
 
-* \code{\link{DT_ige}} dataset to show how to fit indirect genetic effect models.
+* \code{\link[enhancer]{DT_ige}} dataset to show how to fit indirect genetic effect models.
 
-* \code{\link{DT_legendre}} simulated dataset for random regression model.
+* \code{\link[enhancer]{DT_legendre}} simulated dataset for random regression model.
 
-* \code{\link{DT_mohring}} datasets with examples to fit half diallel designs.
+* \code{\link[enhancer]{DT_mohring}} datasets with examples to fit half diallel designs.
 
-* \code{\link{DT_polyploid}} to fit genomic prediction and GWAS analysis in polyploids. 
+* \code{\link[enhancer]{DT_polyploid}} to fit genomic prediction and GWAS analysis in polyploids. 
 
-* \code{\link{DT_sleepstudy}} dataset to know how to translate lme4 models to lme4breeding models.
+* \code{\link[enhancer]{DT_sleepstudy}} dataset to know how to translate lme4 models to lme4breeding models.
 
-* \code{\link{DT_technow}} dataset to perform genomic prediction in hybrid single crosses 
+* \code{\link[enhancer]{DT_technow}} dataset to perform genomic prediction in hybrid single crosses 
 
-* \code{\link{DT_wheat}} dataset to do genomic prediction in single crosses in species displaying only additive effects.
+* \code{\link[enhancer]{DT_wheat}} dataset to do genomic prediction in single crosses in species displaying only additive effects.
 
 
 }

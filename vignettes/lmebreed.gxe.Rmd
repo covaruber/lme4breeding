@@ -37,7 +37,7 @@ library(lme4breeding)
 ```
 
 ```{r}
-data(DT_example)
+data(DT_example, package="enhancer")
 DT <- DT_example
 A <- A_example
 
@@ -155,7 +155,7 @@ In addition, we can fit this without covariance between random slope and interce
 
 ```{r}
 
-data(DT_h2)
+data(DT_h2, package="enhancer")
 DT <- DT_h2
 ## build the environmental index
 ei <- aggregate(y~Env, data=DT,FUN=mean)
@@ -188,7 +188,7 @@ When the number of environments where genotypes are evaluated is big and we want
 
 ```{r}
 
-data(DT_h2)
+data(DT_h2, package="enhancer")
 DT <- DT_h2
 DT=DT[with(DT, order(Env)), ]
 head(DT)
@@ -246,7 +246,7 @@ It is common then to fit a first model that accounts for the variation of random
 ##########
 ## stage 1
 ##########
-data(DT_h2)
+data(DT_h2, package="enhancer")
 DT <- DT_h2
 head(DT)
 envs <- unique(DT$Env)
@@ -291,7 +291,7 @@ complete (no missing data). Still extremely powerful:
 ```{r}
 
 # load data (phenotypes and genotypes)
-data(DT_big)
+data(DT_big, package="enhancer")
 DT = DT_big
 M = apply(M_big,2,as.numeric) # change from bits to numeric
 rownames(M) <- rownames(M_big)

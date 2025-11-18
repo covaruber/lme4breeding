@@ -1,6 +1,6 @@
 Package: lme4breeding
 Version: 1.1.0
-Date: 2025-10-21
+Date: 2025-10-14
 Title: Breeding-Related Mixed-Effects Models
 Authors@R: c(
     person("Giovanny","Covarrubias-Pazaran", email="cova_ruber@live.com.mx", role=c("aut","cre"),
@@ -9,7 +9,7 @@ Authors@R: c(
 Maintainer: Giovanny Covarrubias-Pazaran <cova_ruber@live.com.mx>
 Description: Fit relationship-based and customized mixed-effects models with complex variance-covariance structures using the 'lme4' machinery. The core computational algorithms are implemented using the
     'Eigen' 'C++' library for numerical linear algebra and 'RcppEigen' 'glue'.
-Depends: R(>= 3.5.0), lme4 (>= 1.0), Matrix (>= 1.0), methods, crayon
+Depends: R(>= 3.5.0), lme4 (>= 1.0), Matrix (>= 1.0), methods, crayon, enhancer
 LazyLoad: yes
 LazyData: yes
 License: GPL (>= 2)
