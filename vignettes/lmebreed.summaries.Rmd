@@ -1,5 +1,5 @@
 ---
-title: "Extracting the parameters and predictions from the lme4breeding models"
+title: "Extracting the parameters and predictions from lme4breeding models"
 author: "Giovanny Covarrubias-Pazaran"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -51,12 +51,12 @@ ve <- attr(VarCorr(ans1), "sc")^2; ve
 
 ```{r}
 BLUP <- ranef(ans1, condVar=TRUE)
-PEV <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
+postVar <- lapply(BLUP, function(x){attr(x, which="postVar")}) # take sqrt() for SEs
 head(BLUP$Name)
-head(PEV$Name)
+head(postVar$Name)
 ```
 
-Alternatively, you can extract the predicted error variance matrix (inverse of the coefficient matrix) and extract the standard error from coefficients taking the square root from the diagonal elements of the matrix.
+Alternatively, you can extract the posterior conditional variance matrix and extract the standard error from coefficients taking the square root from the diagonal elements of the matrix.
 
 ```{r}
 condVarAns <- condVarRotated(ans1)

@@ -142,7 +142,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
   ## >>>>>>>>>>>> create control if user didn't specify it for the 3 things we want to force
   if(length(control)==0){
     if(gaus){
-      control <- lmerControl(
+      control <- lme4::lmerControl(
         calc.derivs = FALSE,
         restart_edge = FALSE,
         check.nobs.vs.nlev = "ignore",
@@ -151,7 +151,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
         optCtrl = list(maxfun = nIters, maxeval = nIters)
       )
     }else{
-      control <- glmerControl(
+      control <- lme4::glmerControl(
         calc.derivs = FALSE,
         restart_edge = FALSE,
         check.nobs.vs.nlev = "ignore",
@@ -226,7 +226,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
       if(length(missed)>0){
         if(trace){message(magenta("* Response imputed for rotation."))}
       }
-      lmerc$data[,response] <- imputev(data[,response])
+      lmerc$data[,response] <- enhancer::imputev(data[,response])
     }
   }
   suppressWarnings( lmod <- eval.parent(lmerc) , classes = "warning") # necesary objects from lFormula
@@ -262,7 +262,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
       udu <- umat(formula=as.formula(paste("~", paste(names(relmat), collapse = "+"))), relmat = relmat, 
                   data=lmod$fr, addmat = addmat, k=rotationK)
       # if rotation we impute the response
-      lmod$fr[,response] <- imputev(x=lmod$fr[,response],method="median")#, by=data[udu$effect])
+      lmod$fr[,response] <- enhancer::imputev(x=lmod$fr[,response],method="median")#, by=data[udu$effect])
       
       Ut <- t(udu$U[[1]]) # extract Ut
       U <- udu$U[[1]] # extract U
@@ -453,10 +453,10 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
   
   if(length(control) == 0){
     if(gaus){ # if user calls a gaussian response family
-      control <- lmerControl()
+      control <- lme4::lmerControl()
       lmod$control <- control
     }else{ # any other family response
-      control <- glmerControl()
+      control <- lme4::glmerControl()
       control$optimizer <- control$optimizer[1]
       lmod$control <- control
     }
@@ -509,7 +509,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
 }
 
 setMethod("ranef", signature(object = "lmeb"),
-          function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includeCVM=TRUE, ...)  {
+          function(object, condVar = TRUE, drop = FALSE, whichel = names(ans), includeCVM=TRUE, verbose=1L, ...)  {
             # print("new")
             relmat <- ifelse(length(object@relfac) > 0, TRUE, FALSE)
             if(relmat){rf <- object@relfac}
@@ -525,7 +525,7 @@ setMethod("ranef", signature(object = "lmeb"),
               rn <- rownames(dm)
               
               if (nm %in% names(object@relfac) ) { # transform back when relfac was used for this random effect
-                message(magenta(paste("Rotating back BLUPs by transpose of Cholesky (u=L'u*) for:", nm)))
+                if(verbose){message(magenta(paste("Rotating back BLUPs by transpose of Cholesky (u=L'u*) for:", nm)))}
                 dm <- t(as.matrix( t(dm) %*% rf[[nm]][rn,rn] )) # rotate BLUPs by the relfactor
                 # rotate one more time if a UDU rotation was used in the response
                 if(length(object@udu) > 0){ # rotation was used
