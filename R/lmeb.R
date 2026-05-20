@@ -287,6 +287,8 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
     }else{ # classical approach, just cholesky
       if(trace){message(magenta("* Cholesky of relmats step."))}
       for (i in seq_along(relmat)) {
+        idsOrdered <- as.character(unique(lmod$fr[,names(relmat)[i]])) # when we rotate we need to have relmat already ordered before creating the matrices
+        relmat[[i]] = relmat[[i]][ idsOrdered , idsOrdered ]
         relmat[[i]] <- Matrix::chol(relmat[[i]])
       }
     }
