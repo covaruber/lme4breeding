@@ -254,6 +254,9 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
     if(rotation){ # if UDU decomposition + Cholesky is requested
       if(length(relmat) > 1){warning("Rotation is only reported to be accurate with one relationship matrix. Make sure you are using the same relationship matrix for the different random effects for the rotation approach.", call. = FALSE)}
       for(iRel in 1:length(relmat)){
+        if(any(c(is.null(rownames(relmat[[iRel]])), is.null(colnames(relmat[[iRel]]))))){
+          stop(paste("relmat for term:", names(relmat)[iRel], "has no rownames or colnames. Please correct."), call. = FALSE)
+        }
         idsOrdered <- as.character(unique(lmod$fr[,names(relmat)[iRel]])) # when we rotate we need to have relmat already ordered before creating the matrices
         relmat[[iRel]] = relmat[[iRel]][ idsOrdered , idsOrdered ]
       }
@@ -287,9 +290,14 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
     }else{ # classical approach, just cholesky
       if(trace){message(magenta("* Cholesky of relmats step."))}
       for (i in seq_along(relmat)) {
-        idsOrdered <- as.character(unique(lmod$fr[,names(relmat)[i]])) # when we rotate we need to have relmat already ordered before creating the matrices
-        relmat[[i]] = relmat[[i]][ idsOrdered , idsOrdered ]
-        relmat[[i]] <- Matrix::chol(relmat[[i]])
+        if(names(relmat)[i] %in% all.vars(formula)){
+          if(any(c(is.null(rownames(relmat[[i]])), is.null(colnames(relmat[[i]]))))){
+          stop(paste("relmat for term:", names(relmat)[i], "has no rownames or colnames. Please correct."), call. = FALSE)
+          }
+          idsOrdered <- as.character(unique(lmod$fr[,names(relmat)[i]])) # when we rotate we need to have relmat already ordered before creating the matrices
+          relmat[[i]] = relmat[[i]][ idsOrdered , idsOrdered ]
+          relmat[[i]] <- Matrix::chol(relmat[[i]])
+        }
       }
     }
   }
@@ -299,7 +307,9 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
   pnms <- names(relmat)
   pnms2 <- names(addmat)
   fl <- lmod$reTrms$flist
-  stopifnot(all(pnms %in% names(fl)))
+  if(!all(pnms %in% names(fl))){
+    stop("Not all relationship matrices seem to have correspondance with your formula variables. Please review.", call. = FALSE)
+  }
   asgn <- attr(fl, "assign")
   Zt <- lmod$reTrms$Zt
   ##############################
