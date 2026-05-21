@@ -277,7 +277,7 @@ env <- sort(rep(paste0("e",1:nEnvs), nrow(g))) # environment labels
 ind <- rep(paste0("i",1:nrow(g)), nEnvs ) # individuals labels
 colnames(MMT) <- rownames(MMT) <- paste0("i",1:nrow(g)) # assign dimnames
 # fit the mixed model with rotation
-mix <- lmeb(y~env + (0+env|ind), relmat=list(ind=MMT), rotation = TRUE )
+mix <- lmeb(y~env + (0+env|ind), relmat=list(ind=MMT), nIters = 100, rotation = TRUE )
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 cov2cor(vc$ind) # reml estimate or rg
 cov2cor(cov(g)) # rg from genetic values
