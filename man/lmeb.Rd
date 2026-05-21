@@ -264,24 +264,24 @@ m <- sum(diag(MMT))/nrow(MMT)
 MMT <- MMT/m
 MMT <- MMT + diag(1e-05, ncol(MMT), ncol(MMT))
 # get phenotypes
-yl <- el <- il <- list()
-for(iEnv in 1:nEnvs){
-  #random phenotypes
-  u <- rnorm(nMarks)
-  g <- as.vector(crossprod(t(M),u))
-  h2 <- 0.5  #heritability
-  envEffect <- rnorm(1, mean = abs(rnorm(1)))
-  yl[[iEnv]] <- g + rnorm(nInds,mean=0,sd=sqrt((1-h2)/h2*var(g))) + envEffect
-  el[[iEnv]] <- rep(paste0("e",iEnv), length(g))
-  il[[iEnv]] <-  paste0("i",1:length(g))
-}
-y <- unlist(yl)
-env <- unlist(el)
-ind <- unlist(il)
-colnames(MMT) <- rownames(MMT) <- paste0("i",1:length(g))
+rg <- enhancer::simGECorMat(nEnvs, 1, mu=0.2, v=0.2)
+rg # desired genetic correlation
+u <- mvrnorm(n = nMarks, rep(0, nEnvs), Sigma=rg) # marker effects
+g <- crossprod(t(M),u) # genetic values
+h2 <- 0.2  #heritability 
+envEffect <- rnorm(nEnvs, mean = abs(rnorm(1))) # environment means
+e <- mvrnorm(n = nInds, envEffect, Sigma=(1-h2)/h2*diag(diag(var(g)))) # errors
+p = g + e # phenotypes
+y <- as.vector(p) # phenotypes as vector
+env <- sort(rep(paste0("e",1:nEnvs), nrow(g))) # environment labels
+ind <- rep(paste0("i",1:nrow(g)), nEnvs ) # individuals labels
+colnames(MMT) <- rownames(MMT) <- paste0("i",1:nrow(g)) # assign dimnames
 # fit the mixed model with rotation
 mix <- lmeb(y~env + (0+env|ind), relmat=list(ind=MMT), rotation = TRUE )
 vc <- VarCorr(mix); print(vc,comp=c("Variance"))
+cov2cor(vc$ind) # reml estimate or rg
+cov2cor(cov(g)) # rg from genetic values
+cov2cor(cov(u)) # rg from marker effects
 # lattice::levelplot(cov2cor(vc$ind))
 # retrieve parameters
 BLUP <- ranef(mix, condVar=TRUE)
