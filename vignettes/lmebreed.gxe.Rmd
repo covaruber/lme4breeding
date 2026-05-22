@@ -121,7 +121,7 @@ ve <- attr(vc, "sc")^2; ve
 
 ## 5) MET: random regression model
 
-A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The random regression model assumes that the environment can be seen as a continuous variable and therefore a variance component for the intercept and a variance component for the slope can be fitted. The number of variance components will depend on the order of the Legendre polynomial fitted.
+A multi-environment model is the one that is fitted when the breeding program can afford more than one location. The random regression model assumes that the environment can be seen as a continuous variable and therefore a variance component for the intercept and a variance component for the slope can be fitted. The number of variance components will depend on the order of the Legendre polynomial fitted. This section is commented because the 'orthopolynom' library is not a strong dependency of the package but a suggested package. Please download the 'orthopolynom' library to run this section.
 
 ```{r}
 

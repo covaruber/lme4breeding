@@ -7,8 +7,9 @@
   if(!exists("getRversion", baseenv()) || (getRversion() < "3.5.0"))
     stop("This package requires R 3.5.0 or later")
   if(interactive()) {
+    desc <- utils::packageDescription(pkg)
     packageStartupMessage(green(paste("[]==================================================================[]")),appendLF=TRUE)
-    packageStartupMessage(green(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) 1.1.0 (2025-12) []",sep="")),appendLF=TRUE)
+    packageStartupMessage(green(paste("[] Linear Mixed Equations 4 Breeding (lme4breeding) ",  desc$Version," (", paste(strsplit(desc$Date,"-")[[1]][1:2],collapse="-") , ") []",sep="")),appendLF=TRUE)
     packageStartupMessage(paste0(green("[] Author: Giovanny Covarrubias-Pazaran",paste0(bgGreen(white(" ")), bgWhite(magenta("M")), bgRed(white(" ")),"  ", bgRed(bold(yellow(" (") )),bgRed(bold(white("W"))), bgRed(bold(yellow(") "))) ) ,"                 []")),appendLF=TRUE)
     packageStartupMessage(green("[] Special thanks to the lme4 dev team (Bolker, Bates, et al.)      []"),appendLF=TRUE)
     packageStartupMessage(green("[] Type 'vignette('lmebreed.gxe')' for a short tutorial             []"),appendLF=TRUE)
