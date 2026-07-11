@@ -265,6 +265,7 @@ MMT <- MMT/m
 MMT <- MMT + diag(1e-05, ncol(MMT), ncol(MMT))
 # get phenotypes
 rg <- enhancer::simGECorMat(nEnvs, 1, mu=0.2, v=0.2)
+rg <- Matrix::nearPD(rg)$mat
 rg # desired genetic correlation
 u <- mvrnorm(n = nMarks, rep(0, nEnvs), Sigma=rg) # marker effects
 g <- crossprod(t(M),u) # genetic values
@@ -282,6 +283,7 @@ vc <- VarCorr(mix); print(vc,comp=c("Variance"))
 cov2cor(vc$ind) # reml estimate or rg
 cov2cor(cov(g)) # rg from genetic values
 cov2cor(cov(u)) # rg from marker effects
+plot(cov2cor(vc$ind) , cov2cor(cov(g)))
 # lattice::levelplot(cov2cor(vc$ind))
 # retrieve parameters
 BLUP <- ranef(mix, condVar=TRUE)
