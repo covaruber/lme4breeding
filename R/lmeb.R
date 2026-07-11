@@ -176,7 +176,6 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
     control$optCtrl$maxeval=nIters
   }
   # lmerc$formula <- formula; lmerc$data <- data; 
-  # lmerc$control <- control # only if we are using it 
   ## silence additional parameters from lme4breeding that don't apply to lmer
   lmerc[[1]] <- if (gaus){as.name("lmer")}else{as.name("glmer")} 
   lmerc$family <- family
@@ -398,8 +397,8 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
         }
       }
       # multiply by the provRelFac or by the Utn matrix
-      # needs to be lmod$reTrms$cnms[[i]] otherwise more than one random effect fails
-      if( length(lmod$reTrms$cnms[[i]]) == 1 ){ # regular model (intercept || slope) OR (1 | slope )
+      # needs to be lmod$reTrms$cnms[[tn[j]]] otherwise more than one random effect fails
+      if( length( lmod$reTrms$cnms[[tn[j]]] ) == 1 ){ # regular model (intercept || slope) OR (1 | slope )
         
         ZtL <- list() # we have to do this because filling by rows a Column-oriented matrix is extremely slow so it is faster to cut and paste
         
@@ -431,7 +430,7 @@ lmebreed <-  lmeb <- function(formula, data, REML = TRUE, control = list(), star
         }
         
       }else{ # complex model (intercept | slope)
-        mm <- Matrix::Diagonal( length(lmod$reTrms$cnms[[i]]) ) # needs to be [[i]] otherwise more than one random effect fails
+        mm <- Matrix::Diagonal( length( lmod$reTrms$cnms[[tn[j]]] ) ) # needs to be lmod$reTrms$cnms[[tn[j]]] otherwise more than one random effect fails
         ZtL <- list()
         if(namR[i] %in% names(relmat) ){ # if random effect has a relmat
           # left part
