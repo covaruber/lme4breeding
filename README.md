@@ -9,7 +9,7 @@ competition models, overlayed models, etc.
 You can install the development version of `lme4breeding` from GitHub:
 
 ``` r
-devtools::install_github('covaruber/lme4breeding')
+remotes::install_github('covaruber/lme4breeding')
 ```
 In addition, the package is also available on CRAN:
 
